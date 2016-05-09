@@ -1578,6 +1578,16 @@ class TestContentQuestionSummary(object):
 
         assert question.value == u'12.20£'
 
+    def test_question_unit_not_added_if_value_is_empty(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+        }).summary({})
+
+        assert question.value == u''
+
 
 class TestReadYaml(object):
     @mock.patch.object(builtins, 'open', return_value=io.StringIO(u'foo: bar'))
