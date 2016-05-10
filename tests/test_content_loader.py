@@ -1578,6 +1578,27 @@ class TestContentQuestionSummary(object):
 
         assert question.value == u'12.20£'
 
+    def test_question_unit_not_added_if_value_is_empty(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+        }).summary({})
+
+        assert question.value == u''
+
+    def test_question_unit_added_for_questions_with_assertion(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+            'assuranceApproach': '2answers-type1',
+        }).summary({'example': {'value': 15,  'assurance': 'Service provider assertion'}})
+
+        assert question.value == u'15£'
+
 
 class TestReadYaml(object):
     @mock.patch.object(builtins, 'open', return_value=io.StringIO(u'foo: bar'))

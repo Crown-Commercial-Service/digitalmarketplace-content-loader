@@ -616,15 +616,16 @@ class ContentQuestionSummary(ContentQuestion):
                 return format_price(price or minimum_price, maximum_price, price_unit, price_interval, hours_for_price)
             else:
                 return ''
-        if self.has_assurance():
-            return self._service_data.get(self.id, {}).get('value', '')
 
         # Look up display values for options that have different labels from values
         options = self.get('options')
-        value = self._service_data.get(self.id, '')
-        if self.type == "number" and self.get('unit'):
+        if self.has_assurance():
+            value = self._service_data.get(self.id, {}).get('value', '')
+        else:
+            value = self._service_data.get(self.id, '')
+        if value != '' and self.type == "number" and self.get('unit'):
             if self.unit_position == "after":
-                return u"{}{}".format(value, self.unit)
+                value = u"{}{}".format(value, self.unit)
             else:
                 return u"{}{}".format(self.unit, value)
         if options and value:
