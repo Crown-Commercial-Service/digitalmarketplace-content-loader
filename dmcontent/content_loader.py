@@ -396,8 +396,11 @@ class ContentQuestion(object):
 
     def _get_single_question_data(self, form_data):
         if self.id not in form_data and self.type != 'boolean_list':
-            if self.get('assuranceApproach') and '{}--assurance'.format(self.id) in form_data:
-                return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
+            if self.get('assuranceApproach'):
+                if '{}--assurance'.format(self.id) in form_data:
+                    return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
+                else:
+                    return {self.id: {}}
             elif self.type in ['list', 'checkboxes']:
                 return {self.id: None}
             else:
@@ -432,10 +435,9 @@ class ContentQuestion(object):
             return {}
 
         if self.get('assuranceApproach'):
-            value = {
-                "value": value,
-                "assurance": form_data.get(self.id + '--assurance'),
-            }
+            value = {"value": value}
+            if form_data.get(self.id + '--assurance'):
+                value["assurance"] = form_data.get(self.id + '--assurance')
 
         if self.type not in ['boolean', 'number']:
             value = value if value else None
