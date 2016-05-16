@@ -400,7 +400,7 @@ class ContentQuestion(object):
                 if '{}--assurance'.format(self.id) in form_data:
                     return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
                 else:
-                    return {self.id: {'value': [] if self.type in ['list', 'checkboxes'] else None}}
+                    return {self.id: {}}
             elif self.type in ['list', 'checkboxes']:
                 return {self.id: None}
             else:
