@@ -345,7 +345,18 @@ class ContentSection(object):
         return len(self.questions) > 1 or self.description is not None
 
 
+QUESTION_TYPES = {}
+
+
 class ContentQuestion(object):
+    def __new__(cls, data, *args, **kwargs):
+        if data.get('type') in QUESTION_TYPES:
+            return QUESTION_TYPES[data['type']](data, *args, **kwargs)
+        else:
+            return BaseContentQuestion(data, *args, **kwargs)
+
+
+class BaseContentQuestion(object):
     def __init__(self, data, number=None):
         self.number = number
         self._data = data.copy()
@@ -550,7 +561,7 @@ class ContentQuestion(object):
         return '<{0.__class__.__name__}: number={0.number}, data={0._data}>'.format(self)
 
 
-class ContentQuestionSummary(ContentQuestion):
+class ContentQuestionSummary(BaseContentQuestion):
     def __init__(self, question, service_data):
         self.number = question.number
         self._data = question._data
