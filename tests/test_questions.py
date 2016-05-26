@@ -3,7 +3,7 @@
 from dmcontent.content_loader import ContentQuestion
 
 
-class TestContentQuestion(object):
+class TestBaseQuestion(object):
     def test_form_fields_property(self):
         question = ContentQuestion({
             "id": "example",
@@ -11,7 +11,9 @@ class TestContentQuestion(object):
         })
         assert question.form_fields == ['example']
 
-    def test_form_fields_property_with_pricing_field(self):
+
+class TestPricing(object):
+    def test_form_fields(self):
         question = ContentQuestion({
             "id": "example",
             "type": "pricing",
@@ -21,23 +23,6 @@ class TestContentQuestion(object):
             }
         })
         assert sorted(question.form_fields) == sorted(['priceMin', 'priceMax'])
-
-    def test_form_fields_property_with_multiquestion(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "multiquestion",
-            "questions": [
-                {
-                    "id": "example2",
-                    "type": "text",
-                },
-                {
-                    "id": "example3",
-                    "type": "text",
-                }
-            ]
-        })
-        assert question.form_fields == ['example2', 'example3']
 
     def test_required_form_fields_property(self):
         question = ContentQuestion({
@@ -76,7 +61,26 @@ class TestContentQuestion(object):
         })
         assert question.required_form_fields == ['priceMax']
 
-    def test_required_form_fields_with_multiquestion(self):
+
+class TestMultiquestion(object):
+    def test_form_fields(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "multiquestion",
+            "questions": [
+                {
+                    "id": "example2",
+                    "type": "text",
+                },
+                {
+                    "id": "example3",
+                    "type": "text",
+                }
+            ]
+        })
+        assert question.form_fields == ['example2', 'example3']
+
+    def test_required_form_fields(self):
         question = ContentQuestion({
             "id": "example",
             "type": "multiquestion",
