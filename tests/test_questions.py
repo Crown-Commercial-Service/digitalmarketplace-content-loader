@@ -83,3 +83,75 @@ class TestMultiquestion(object):
             }
         ])
         assert question.required_form_fields == ['example2']
+
+
+class TestContentQuestionSummary(object):
+    def test_question_value_with_no_options(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "text",
+        }).summary({'example': 'value1'})
+
+        assert question.value == 'value1'
+
+    def test_question_value_returns_matching_option_label(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "checkboxes",
+            "options": [
+                {"label": "Wrong label", "value": "value"},
+                {"label": "Option label", "value": "value1"},
+                {"label": "Wrong label", "value": "value11"},
+            ]
+        }).summary({'example': 'value1'})
+
+        assert question.value == 'Option label'
+
+    def test_number_questions_without_unit(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+        }).summary({'example': '12.20'})
+
+        assert question.value == '12.20'
+
+    def test_number_questions_adds_unit_before(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "before",
+        }).summary({'example': '12.20'})
+
+        assert question.value == u'£12.20'
+
+    def test_number_questions_adds_unit_after(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+        }).summary({'example': '12.20'})
+
+        assert question.value == u'12.20£'
+
+    def test_question_unit_not_added_if_value_is_empty(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+        }).summary({})
+
+        assert question.value == u''
+
+    def test_question_unit_added_for_questions_with_assertion(self):
+        question = ContentQuestion({
+            "id": "example",
+            "type": "number",
+            "unit": u"£",
+            "unit_position": "after",
+            'assuranceApproach': '2answers-type1',
+        }).summary({'example': {'value': 15,  'assurance': 'Service provider assertion'}})
+
+        assert question.value == u'15£'
