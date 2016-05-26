@@ -85,7 +85,7 @@ class TestMultiquestion(object):
         assert question.required_form_fields == ['example2']
 
 
-class TestContentQuestionSummary(object):
+class TestTextSummary(object):
     def test_question_value_with_no_options(self):
         question = ContentQuestion({
             "id": "example",
@@ -94,6 +94,8 @@ class TestContentQuestionSummary(object):
 
         assert question.value == 'value1'
 
+
+class TestListSummary(object):
     def test_question_value_returns_matching_option_label(self):
         question = ContentQuestion({
             "id": "example",
@@ -107,6 +109,8 @@ class TestContentQuestionSummary(object):
 
         assert question.value == 'Option label'
 
+
+class TestNumberSummary(object):
     def test_number_questions_without_unit(self):
         question = ContentQuestion({
             "id": "example",
