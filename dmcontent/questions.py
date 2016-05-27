@@ -5,18 +5,7 @@ from .errors import ContentNotFoundError
 from .formats import format_price
 
 
-QUESTION_TYPES = {}
-
-
-class ContentQuestion(object):
-    def __new__(cls, data, *args, **kwargs):
-        if data.get('type') in QUESTION_TYPES:
-            return QUESTION_TYPES[data['type']](data, *args, **kwargs)
-        else:
-            return BaseContentQuestion(data, *args, **kwargs)
-
-
-class BaseContentQuestion(object):
+class Question(object):
     def __init__(self, data, number=None):
         self.number = number
         self._data = data.copy()
@@ -221,7 +210,7 @@ class BaseContentQuestion(object):
         return '<{0.__class__.__name__}: number={0.number}, data={0._data}>'.format(self)
 
 
-class ContentQuestionSummary(BaseContentQuestion):
+class ContentQuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
         self._data = question._data
@@ -322,3 +311,14 @@ class ContentQuestionSummary(BaseContentQuestion):
             return any(question.answer_required for question in self.questions)
         else:
             return self.is_empty
+
+
+QUESTION_TYPES = {}
+
+
+class ContentQuestion(object):
+    def __new__(cls, data, *args, **kwargs):
+        if data.get('type') in QUESTION_TYPES:
+            return QUESTION_TYPES[data['type']](data, *args, **kwargs)
+        else:
+            return Question(data, *args, **kwargs)
