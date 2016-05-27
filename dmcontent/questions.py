@@ -139,7 +139,7 @@ class Question(object):
 
     @property
     def required_form_fields(self):
-        return list(set(self.form_fields) - set(self._optional_form_fields))
+        return [field for field in self.form_fields if field not in self._optional_form_fields]
 
     @property
     def _optional_form_fields(self):
