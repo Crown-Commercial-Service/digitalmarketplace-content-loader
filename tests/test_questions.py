@@ -86,76 +86,69 @@ class TestMultiquestion(object):
 
 
 class TestTextSummary(object):
-    def test_question_value_with_no_options(self):
-        question = ContentQuestion({
+    def question(self, **kwargs):
+        data = {
             "id": "example",
-            "type": "text",
-        }).summary({'example': 'value1'})
+            "type": "text"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_question_value_with_no_options(self):
+        question = self.question().summary({'example': 'value1'})
 
         assert question.value == 'value1'
 
 
 class TestListSummary(object):
-    def test_question_value_returns_matching_option_label(self):
-        question = ContentQuestion({
+    def question(self, **kwargs):
+        data = {
             "id": "example",
             "type": "checkboxes",
             "options": [
                 {"label": "Wrong label", "value": "value"},
                 {"label": "Option label", "value": "value1"},
-                {"label": "Wrong label", "value": "value11"},
+                {"label": "Wrong label", "value": "value2"},
             ]
-        }).summary({'example': 'value1'})
+        }
+        data.update(kwargs)
 
+        return ContentQuestion(data)
+
+    def test_question_value_returns_matching_option_label(self):
+        question = self.question().summary({'example': 'value1'})
         assert question.value == 'Option label'
 
 
 class TestNumberSummary(object):
-    def test_number_questions_without_unit(self):
-        question = ContentQuestion({
+    def question(self, **kwargs):
+        data = {
             "id": "example",
             "type": "number",
-        }).summary({'example': '12.20'})
+        }
+        data.update(kwargs)
 
+        return ContentQuestion(data)
+
+    def test_number_questions_without_unit(self):
+        question = self.question().summary({'example': '12.20'})
         assert question.value == '12.20'
 
     def test_number_questions_adds_unit_before(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "before",
-        }).summary({'example': '12.20'})
-
+        question = self.question(unit=u"£", unit_position="before").summary({'example': '12.20'})
         assert question.value == u'£12.20'
 
     def test_number_questions_adds_unit_after(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-        }).summary({'example': '12.20'})
-
+        question = self.question(unit=u"£", unit_position="after").summary({'example': '12.20'})
         assert question.value == u'12.20£'
 
     def test_question_unit_not_added_if_value_is_empty(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-        }).summary({})
-
+        question = self.question(unit=u"£", unit_position="after").summary({})
         assert question.value == u''
 
     def test_question_unit_added_for_questions_with_assertion(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-            'assuranceApproach': '2answers-type1',
-        }).summary({'example': {'value': 15,  'assurance': 'Service provider assertion'}})
-
+        question = self.question(unit=u"£", unit_position="after", assuranceApproach="2answers-type1").summary({
+            'example': {'value': 15,  'assurance': 'Service provider assertion'}
+        })
         assert question.value == u'15£'
