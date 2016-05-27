@@ -261,6 +261,7 @@ class TestContentManifest(object):
                 {
                     "id": "q1",
                     "question": 'First question',
+                    "type": "multiquestion",
                     "questions": [
                         {"id": "q2", "type": "text"},
                         {"id": "q3", "type": "text"}
@@ -691,7 +692,7 @@ class TestContentSection(object):
             "questions": [{
                 "id": "q0",
                 "question": "Boolean question",
-                "type": "Boolean question",
+                "type": "multiquestion",
                 "questions": [
                     {
                         "id": "q2",
@@ -771,6 +772,7 @@ class TestContentSection(object):
             "name": "First section",
             "questions": [{
                 "id": "q0",
+                "type": "multiquestion",
                 "questions": [
                     {"id": "q01", "type": "text"},
                     {"id": "q02", "type": "radios"}

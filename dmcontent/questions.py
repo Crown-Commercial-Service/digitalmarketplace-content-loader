@@ -10,34 +10,19 @@ class Question(object):
         self.number = number
         self._data = data.copy()
 
-        if 'questions' in data:
-            self.questions = [
-                question if isinstance(question, ContentQuestion) else ContentQuestion(question)
-                for question in data['questions']
-            ]
-        else:
-            self.questions = None
-
         if 'fields' in data:
             self.fields = data['fields']
         else:
             self.fields = {}
 
     def summary(self, service_data):
-        return QuestionSummary(
-            self, service_data
-        )
+        return QuestionSummary(self, service_data)
 
     def get_question(self, field_name):
         if field_name in self.fields.values():
             return self
         if self.id == field_name:
             return self
-        elif self.questions:
-            return next(
-                (question for question in self.questions if question.id == field_name),
-                None
-            )
 
     def get_data(self, form_data):
         if self.fields:
@@ -46,11 +31,6 @@ class Question(object):
                 for key in self.fields.values()
                 if key in form_data
             }
-        elif self.questions:
-            questions_data = {}
-            for question in self.questions:
-                questions_data.update(question.get_data(form_data))
-            return questions_data
         else:
             return self._get_single_question_data(form_data)
 
@@ -150,8 +130,6 @@ class Question(object):
     def form_fields(self):
         if self.fields:
             return sorted(self.fields.values())
-        elif self.questions:
-            return [form_field for question in self.questions for form_field in question.form_fields]
         else:
             # pricing fields should have fields.
             # throw an assertion error if they don't.
@@ -169,10 +147,8 @@ class Question(object):
             return self.form_fields
         elif self.get('optional_fields'):
             return [self.fields[key] for key in self['optional_fields']]
-        elif self.questions:
-            return [form_field for question in self.questions for form_field in question._optional_form_fields]
-        else:
-            return []
+
+        return []
 
     def inject_brief_questions_into_boolean_list_question(self, brief):
         if self.type == 'boolean_list':
@@ -186,10 +162,7 @@ class Question(object):
         return True if self.get('assuranceApproach') else False
 
     def get_question_ids(self, type=None):
-        if self.questions:
-            return [question.id for question in self.questions if type in [question.type, None]]
-        else:
-            return [self.id] if type in [self.type, None] else []
+        return [self.id] if type in [self.type, None] else []
 
     def get(self, key, default=None):
         try:
@@ -210,15 +183,54 @@ class Question(object):
         return '<{0.__class__.__name__}: number={0.number}, data={0._data}>'.format(self)
 
 
+class Multiquestion(Question):
+    def __init__(self, data, *args, **kwargs):
+        super(Multiquestion, self).__init__(data, *args, **kwargs)
+
+        self.questions = [
+            question if isinstance(question, ContentQuestion) else ContentQuestion(question)
+            for question in data['questions']
+        ]
+
+    def summary(self, service_data):
+        return MultiquestionSummary(self, service_data)
+
+    def get_question(self, field_name):
+        if self.id == field_name:
+            return self
+
+        return next(
+            (question for question in self.questions if question.id == field_name),
+            None
+        )
+
+    def get_data(self, form_data):
+        questions_data = {}
+        for question in self.questions:
+            questions_data.update(question.get_data(form_data))
+        return questions_data
+
+    @property
+    def form_fields(self):
+        return [form_field for question in self.questions for form_field in question.form_fields]
+
+    @property
+    def _optional_form_fields(self):
+        if self.get('optional'):
+            return self.form_fields
+
+        return [form_field for question in self.questions for form_field in question._optional_form_fields]
+
+    def get_question_ids(self, type=None):
+        return [question.id for question in self.questions if type in [question.type, None]]
+
+
 class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
         self._data = question._data
         self._service_data = service_data
 
-        self.questions = question.questions
-        if self.questions:
-            self.questions = [q.summary(service_data) for q in self.questions]
         self.fields = question.fields
 
         if question.get('boolean_list_questions'):
@@ -229,7 +241,7 @@ class QuestionSummary(Question):
 
     def get_error_messages(self, errors):
 
-        question_errors = super(ContentQuestionSummary, self).get_error_messages(errors)
+        question_errors = super(QuestionSummary, self).get_error_messages(errors)
 
         boolean_list_questions = self.get('boolean_list_questions')
         boolean_list_values = self.get('value') or []
@@ -261,8 +273,6 @@ class QuestionSummary(Question):
 
     @property
     def value(self):
-        if self.questions:
-            return [question for question in self.questions if not question.is_empty]
         if self.type == "pricing":
             price = self._service_data.get(self.fields.get('price'))
             minimum_price = self._service_data.get(self.fields.get('minimum_price'))
@@ -307,13 +317,30 @@ class QuestionSummary(Question):
     def answer_required(self):
         if self.get('optional'):
             return False
-        elif self.questions:
-            return any(question.answer_required for question in self.questions)
         else:
             return self.is_empty
 
 
-QUESTION_TYPES = {}
+class MultiquestionSummary(QuestionSummary, Multiquestion):
+    def __init__(self, question, service_data):
+        super(MultiquestionSummary, self).__init__(question, service_data)
+        self.questions = [q.summary(service_data) for q in question.questions]
+
+    @property
+    def value(self):
+        return [question for question in self.questions if not question.is_empty]
+
+    @property
+    def answer_required(self):
+        if self.get('optional'):
+            return False
+
+        return any(question.answer_required for question in self.questions)
+
+
+QUESTION_TYPES = {
+    'multiquestion': Multiquestion,
+}
 
 
 class ContentQuestion(object):
