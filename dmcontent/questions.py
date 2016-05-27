@@ -24,7 +24,7 @@ class Question(object):
             self.fields = {}
 
     def summary(self, service_data):
-        return ContentQuestionSummary(
+        return QuestionSummary(
             self, service_data
         )
 
@@ -210,7 +210,7 @@ class Question(object):
         return '<{0.__class__.__name__}: number={0.number}, data={0._data}>'.format(self)
 
 
-class ContentQuestionSummary(Question):
+class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
         self._data = question._data
