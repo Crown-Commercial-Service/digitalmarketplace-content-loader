@@ -3,7 +3,35 @@
 from dmcontent.content_loader import ContentQuestion
 
 
-class TestText(object):
+class QuestionTest(object):
+    def test_get_question(self):
+        question = self.question()
+        assert question.get_question('example') == question
+
+    def test_get_question_unknown_id(self):
+        question = self.question()
+        assert question.get_question('other') is None
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {}
+
+    def test_required_form_fields_optional_question(self):
+        assert self.question(optional=True).required_form_fields == []
+
+    def test_get_question_ids_by_unknown_type(self):
+        assert self.question().get_question_ids(type='other') == []
+
+    def test_label_name(self):
+        assert self.question(name='name').label == 'name'
+
+    def test_label_question(self):
+        assert self.question(question='question').label == 'question'
+
+    def test_label_name_and_question(self):
+        assert self.question(name='name', question='question').label == 'name'
+
+
+class TestText(QuestionTest):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -13,11 +41,23 @@ class TestText(object):
 
         return ContentQuestion(data)
 
-    def test_form_fields_property(self):
+    def test_get_data(self):
+        assert self.question().get_data({'example': 'value'}) == {'example': 'value'}
+
+    def test_form_fields(self):
         assert self.question().form_fields == ['example']
 
+    def test_required_form_fields(self):
+        assert self.question().required_form_fields == ['example']
 
-class TestPricing(object):
+    def test_get_question_ids(self):
+        assert self.question().get_question_ids() == ['example']
+
+    def test_get_question_ids_by_type(self):
+        assert self.question().get_question_ids(type='text') == ['example']
+
+
+class TestPricing(QuestionTest):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -31,22 +71,34 @@ class TestPricing(object):
 
         return ContentQuestion(data)
 
+    def test_get_data(self):
+        assert self.question().get_data(
+            {'priceMin': '10', 'priceMax': '20'}
+        ) == {'priceMin': '10', 'priceMax': '20'}
+
+    def test_get_data_partial(self):
+        assert self.question().get_data(
+            {'priceMax': '20'}
+        ) == {'priceMax': '20'}
+
     def test_form_fields(self):
         assert sorted(self.question().form_fields) == sorted(['priceMin', 'priceMax'])
 
-    def test_required_form_fields_property(self):
+    def test_required_form_fields(self):
         assert sorted(self.question().required_form_fields) == sorted(['priceMin', 'priceMax'])
 
-    def test_required_form_fields_property_when_optional(self):
-        question = self.question(optional=True)
-        assert question.required_form_fields == []
-
-    def test_required_form_fields_property_with_optional_fields(self):
+    def test_required_form_fields_optional_fields(self):
         question = self.question(optional_fields=["minimum_price"])
         assert question.required_form_fields == ['priceMax']
 
+    def test_get_question_ids(self):
+        assert self.question().get_question_ids() == ['example']
 
-class TestMultiquestion(object):
+    def test_get_question_ids_by_type(self):
+        assert self.question().get_question_ids(type='pricing') == ['example']
+
+
+class TestMultiquestion(QuestionTest):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -58,7 +110,7 @@ class TestMultiquestion(object):
                 },
                 {
                     "id": "example3",
-                    "type": "text",
+                    "type": "number",
                 }
             ]
         }
@@ -66,10 +118,30 @@ class TestMultiquestion(object):
 
         return ContentQuestion(data)
 
+    def test_get_question_nested(self):
+        question = self.question()
+        assert question.get_question('example3') == question.questions[1]
+
+    def test_get_data(self):
+        assert self.question().get_data(
+            {'example2': 'value2', 'example3': 'value3'}
+        ) == {'example2': 'value2', 'example3': 'value3'}
+
+    def test_get_data_ignores_own_key(self):
+        assert self.question().get_data(
+            {'example': 'value', 'example3': 'value3'}
+        ) == {'example3': 'value3'}
+
     def test_form_fields(self):
         assert self.question().form_fields == ['example2', 'example3']
 
+    def test_form_fields_optional_question(self):
+        assert self.question(optional=True).form_fields == ['example2', 'example3']
+
     def test_required_form_fields(self):
+        assert self.question().required_form_fields == ['example2', 'example3']
+
+    def test_required_form_fields_optional_nested_question(self):
         question = self.question(questions=[
             {
                 "id": "example2",
@@ -84,8 +156,36 @@ class TestMultiquestion(object):
         ])
         assert question.required_form_fields == ['example2']
 
+    def test_get_question_ids(self):
+        assert self.question().get_question_ids() == ['example2', 'example3']
 
-class TestTextSummary(object):
+    def test_get_question_ids_by_type(self):
+        assert self.question().get_question_ids(type='number') == ['example3']
+
+
+class QuestionSummaryTest(object):
+    def test_value_missing(self):
+        question = self.question().summary({})
+        assert question.value == ''
+
+    def test_answer_required_value_missing(self):
+        question = self.question().summary({})
+        assert question.answer_required
+
+    def test_answer_required_optional_question(self):
+        question = self.question(optional=True).summary({})
+        assert not question.answer_required
+
+    def test_is_empty_value_missing(self):
+        question = self.question().summary({})
+        assert question.is_empty
+
+    def test_is_empty_optional_question(self):
+        question = self.question(optional=True).summary({})
+        assert question.is_empty
+
+
+class TestTextSummary(QuestionSummaryTest):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -95,13 +195,24 @@ class TestTextSummary(object):
 
         return ContentQuestion(data)
 
-    def test_question_value_with_no_options(self):
+    def test_value(self):
+        question = self.question().summary({'example': 'textvalue'})
+        assert question.value == 'textvalue'
+
+    def test_value_empty(self):
+        question = self.question().summary({'example': ''})
+        assert question.value == ''
+
+    def test_answer_required(self):
         question = self.question().summary({'example': 'value1'})
+        assert not question.answer_required
 
-        assert question.value == 'value1'
+    def test_is_empty(self):
+        question = self.question().summary({'example': 'value1'})
+        assert not question.is_empty
 
 
-class TestListSummary(object):
+class TestCheckboxesSummary(TestTextSummary):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -116,12 +227,12 @@ class TestListSummary(object):
 
         return ContentQuestion(data)
 
-    def test_question_value_returns_matching_option_label(self):
+    def test_value_returns_matching_option_label(self):
         question = self.question().summary({'example': 'value1'})
         assert question.value == 'Option label'
 
 
-class TestNumberSummary(object):
+class TestNumberSummary(QuestionSummaryTest):
     def question(self, **kwargs):
         data = {
             "id": "example",
@@ -131,24 +242,85 @@ class TestNumberSummary(object):
 
         return ContentQuestion(data)
 
-    def test_number_questions_without_unit(self):
+    def test_value(self):
+        question = self.question().summary({'example': 23.41})
+        assert question.value == 23.41
+
+    def test_value_zero(self):
+        question = self.question().summary({'example': 0})
+        assert question.value == 0
+
+    def test_value_without_unit(self):
         question = self.question().summary({'example': '12.20'})
         assert question.value == '12.20'
 
-    def test_number_questions_adds_unit_before(self):
+    def test_value_adds_unit_before(self):
         question = self.question(unit=u"£", unit_position="before").summary({'example': '12.20'})
         assert question.value == u'£12.20'
 
-    def test_number_questions_adds_unit_after(self):
+    def test_value_adds_unit_after(self):
         question = self.question(unit=u"£", unit_position="after").summary({'example': '12.20'})
         assert question.value == u'12.20£'
 
-    def test_question_unit_not_added_if_value_is_empty(self):
+    def test_value_doesnt_add_unit_if_value_is_empty(self):
         question = self.question(unit=u"£", unit_position="after").summary({})
         assert question.value == u''
 
-    def test_question_unit_added_for_questions_with_assertion(self):
+    def test_value_adds_unit_for_questions_with_assertion(self):
         question = self.question(unit=u"£", unit_position="after", assuranceApproach="2answers-type1").summary({
             'example': {'value': 15,  'assurance': 'Service provider assertion'}
         })
         assert question.value == u'15£'
+
+    def test_answer_required(self):
+        question = self.question().summary({'example': 0})
+        assert not question.answer_required
+
+    def test_is_empty(self):
+        question = self.question().summary({'example': 0})
+        assert not question.is_empty
+
+
+class TestMultiquestionSummary(QuestionSummaryTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "multiquestion",
+            "questions": [
+                {
+                    "id": "example2",
+                    "type": "text",
+                },
+                {
+                    "id": "example3",
+                    "type": "number",
+                }
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_value(self):
+        question = self.question().summary({'example2': 'value2', 'example3': 'value3'})
+        assert question.value == question.questions
+
+    def test_value_missing(self):
+        question = self.question().summary({})
+        assert question.value == []
+
+    def test_answer_required(self):
+        question = self.question().summary({'example2': 'value2', 'example3': 'value3'})
+        assert not question.answer_required
+
+    def test_is_empty(self):
+        question = self.question().summary({'example': 'value2', 'example3': 'value3'})
+        assert not question.is_empty
+
+    def test_answer_required_partial(self):
+        question = self.question().summary({'example3': 'value3'})
+        assert question.answer_required
+
+    def test_is_empty_partial(self):
+        question = self.question().summary({'example2': 'value2'})
+        assert not question.is_empty
