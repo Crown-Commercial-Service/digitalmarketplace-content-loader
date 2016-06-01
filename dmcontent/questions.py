@@ -10,31 +10,14 @@ class Question(object):
         self.number = number
         self._data = data.copy()
 
-        if 'fields' in data:
-            self.fields = data['fields']
-        else:
-            self.fields = {}
-
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
 
     def get_question(self, field_name):
-        if field_name in self.fields.values():
-            return self
         if self.id == field_name:
             return self
 
     def get_data(self, form_data):
-        if self.fields:
-            return {
-                key: form_data[key] if form_data[key] else None
-                for key in self.fields.values()
-                if key in form_data
-            }
-        else:
-            return self._get_single_question_data(form_data)
-
-    def _get_single_question_data(self, form_data):
         if self.id not in form_data and self.type != 'boolean_list':
             if self.get('assuranceApproach'):
                 if '{}--assurance'.format(self.id) in form_data:
@@ -128,14 +111,7 @@ class Question(object):
 
     @property
     def form_fields(self):
-        if self.fields:
-            return sorted(self.fields.values())
-        else:
-            # pricing fields should have fields.
-            # throw an assertion error if they don't.
-            # TODO: maybe we can check this elsewhere?
-            assert self.type != "pricing"
-            return [self.id]
+        return [self.id]
 
     @property
     def required_form_fields(self):
@@ -145,8 +121,6 @@ class Question(object):
     def _optional_form_fields(self):
         if self.get('optional'):
             return self.form_fields
-        elif self.get('optional_fields'):
-            return [self.fields[key] for key in self['optional_fields']]
 
         return []
 
@@ -225,13 +199,44 @@ class Multiquestion(Question):
         return [question.id for question in self.questions if type in [question.type, None]]
 
 
+class Pricing(Question):
+    def __init__(self, data, *args, **kwargs):
+        super(Pricing, self).__init__(data, *args, **kwargs)
+        self.fields = data['fields']
+
+    def summary(self, service_data):
+        return PricingSummary(self, service_data)
+
+    def get_question(self, field_name):
+        if self.id == field_name or field_name in self.fields.values():
+            return self
+
+    def get_data(self, form_data):
+        return {
+            key: form_data[key] if form_data[key] else None
+            for key in self.fields.values()
+            if key in form_data
+        }
+
+    @property
+    def form_fields(self):
+        return sorted(self.fields.values())
+
+    @property
+    def _optional_form_fields(self):
+        if self.get('optional'):
+            return self.form_fields
+        elif self.get('optional_fields'):
+            return [self.fields[key] for key in self['optional_fields']]
+
+        return []
+
+
 class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
         self._data = question._data
         self._service_data = service_data
-
-        self.fields = question.fields
 
         if question.get('boolean_list_questions'):
             self.boolean_list_questions = question.boolean_list_questions
@@ -273,22 +278,6 @@ class QuestionSummary(Question):
 
     @property
     def value(self):
-        if self.type == "pricing":
-            price = self._service_data.get(self.fields.get('price'))
-            minimum_price = self._service_data.get(self.fields.get('minimum_price'))
-            maximum_price = self._service_data.get(self.fields.get('maximum_price'))
-            price_unit = self._service_data.get(self.fields.get('price_unit'),
-                                                self._default_for_field('price_unit'))
-            price_interval = self._service_data.get(self.fields.get('price_interval'),
-                                                    self._default_for_field('price_interval'))
-            hours_for_price = self._service_data.get(self.fields.get('hours_for_price'),
-                                                     self._default_for_field('hours_for_price'))
-
-            if price or minimum_price:
-                return format_price(price or minimum_price, maximum_price, price_unit, price_interval, hours_for_price)
-            else:
-                return ''
-
         # Look up display values for options that have different labels from values
         options = self.get('options')
         if self.has_assurance():
@@ -338,8 +327,32 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
         return any(question.answer_required for question in self.questions)
 
 
+class PricingSummary(QuestionSummary, Pricing):
+    def __init__(self, question, service_data):
+        super(PricingSummary, self).__init__(question, service_data)
+        self.fields = question.fields
+
+    @property
+    def value(self):
+        price = self._service_data.get(self.fields.get('price'))
+        minimum_price = self._service_data.get(self.fields.get('minimum_price'))
+        maximum_price = self._service_data.get(self.fields.get('maximum_price'))
+        price_unit = self._service_data.get(self.fields.get('price_unit'),
+                                            self._default_for_field('price_unit'))
+        price_interval = self._service_data.get(self.fields.get('price_interval'),
+                                                self._default_for_field('price_interval'))
+        hours_for_price = self._service_data.get(self.fields.get('hours_for_price'),
+                                                 self._default_for_field('hours_for_price'))
+
+        if price or minimum_price:
+            return format_price(price or minimum_price, maximum_price, price_unit, price_interval, hours_for_price)
+        else:
+            return ''
+
+
 QUESTION_TYPES = {
     'multiquestion': Multiquestion,
+    'pricing': Pricing,
 }
 
 

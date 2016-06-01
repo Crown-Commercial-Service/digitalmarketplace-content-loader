@@ -223,6 +223,7 @@ class ContentSection(object):
         ]
 
     def get_question_ids(self, type=None):
+        # FIXME should this ever return self.id?
         return [
             question_id for question in self.questions for question_id in question.get_question_ids(type)
         ]

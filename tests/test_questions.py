@@ -1,5 +1,7 @@
 # coding=utf-8
 
+import pytest
+
 from dmcontent.content_loader import ContentQuestion
 
 
@@ -279,6 +281,59 @@ class TestNumberSummary(QuestionSummaryTest):
     def test_is_empty(self):
         question = self.question().summary({'example': 0})
         assert not question.is_empty
+
+
+class TestPricingSummary(QuestionSummaryTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "pricing",
+            "fields": {
+                "price": "price",
+                "minimum_price": "priceMin",
+                "maximum_price": "priceMax",
+                "price_unit": "priceUnit",
+                "price_interval": "priceInterval",
+                "hours_for_price": "priceHours",
+            }
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_value(self):
+        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00'})
+        assert question.value == u'£20.41 to £25.00'
+
+    def test_value_without_price_min(self):
+        question = self.question().summary({'priceMax': '25.00'})
+        assert question.value == ''
+
+    def test_value_price_field(self):
+        question = self.question().summary({'price': '20.41'})
+        assert question.value == u'£20.41'
+
+    def test_value_without_price_max(self):
+        question = self.question().summary({'priceMin': '20.41'})
+        assert question.value == u'£20.41'
+
+    def test_value_with_hours_for_price(self):
+        question = self.question().summary({'priceMin': '20.41', 'priceHours': '8'})
+        assert question.value == u'8 for £20.41'
+
+    def test_value_with_unit(self):
+        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service'})
+        assert question.value == u'£20.41 to £25.00 per service'
+
+    def test_value_with_interval(self):
+        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00', 'priceInterval': 'day'})
+        assert question.value == u'£20.41 to £25.00 per day'
+
+    def test_value_with_unit_and_interval(self):
+        question = self.question().summary(
+            {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service', 'priceInterval': 'day'}
+        )
+        assert question.value == u'£20.41 to £25.00 per service per day'
 
 
 class TestMultiquestionSummary(QuestionSummaryTest):

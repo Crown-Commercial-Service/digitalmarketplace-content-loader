@@ -1060,16 +1060,16 @@ class TestContentSection(object):
         assert section.get_question('q1').get('id') == 'q1'
 
     def test_get_field_names_with_incomplete_pricing_question(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": "First question",
-                "type": "pricing",
-            }]
-        })
-        with pytest.raises(AssertionError):
+        with pytest.raises(KeyError):
+            section = ContentSection.create({
+                "slug": "first_section",
+                "name": "First section",
+                "questions": [{
+                    "id": "q1",
+                    "question": "First question",
+                    "type": "pricing",
+                }]
+            })
             section.get_field_names()
 
     def test_get_field_names_with_good_pricing_question(self):
