@@ -2,6 +2,7 @@
 
 import pytest
 
+from werkzeug.datastructures import OrderedMultiDict
 from dmcontent.content_loader import ContentQuestion
 
 
@@ -31,6 +32,9 @@ class QuestionTest(object):
 
     def test_label_name_and_question(self):
         assert self.question(name='name', question='question').label == 'name'
+
+    def test_question_repr(self):
+        assert 'data=' in repr(self.question())
 
 
 class TestText(QuestionTest):
@@ -165,6 +169,43 @@ class TestMultiquestion(QuestionTest):
         assert self.question().get_question_ids(type='number') == ['example3']
 
 
+class TestCheckboxes(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "checkboxes",
+            "options": [
+                {"label": "Wrong label", "value": "value"},
+                {"label": "Option label", "value": "value1"},
+                {"label": "Wrong label", "value": "value2"},
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data(
+            OrderedMultiDict([('example', 'value1'), ('example', 'value2')])
+        ) == {'example': ['value1', 'value2']}
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {'example': None}
+
+    def test_get_data_with_assurance(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data(
+            OrderedMultiDict([('example', 'value1'), ('example', 'value2'), ('example--assurance', 'assurance value')])
+        ) == {'example': {'value': ['value1', 'value2'], 'assurance': 'assurance value'}}
+
+    def test_get_data_with_assurance_unknown_key(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data({'other': 'value'}) == {'example': {}}
+
+    def test_get_data_with_assurance_only(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data(
+            {'example--assurance': 'assurance value'}
+        ) == {'example': {'assurance': 'assurance value'}}
+
+
 class QuestionSummaryTest(object):
     def test_value_missing(self):
         question = self.question().summary({})
@@ -214,15 +255,15 @@ class TestTextSummary(QuestionSummaryTest):
         assert not question.is_empty
 
 
-class TestCheckboxesSummary(TestTextSummary):
+class TestRadiosSummary(TestTextSummary):
     def question(self, **kwargs):
         data = {
             "id": "example",
-            "type": "checkboxes",
+            "type": "radios",
             "options": [
                 {"label": "Wrong label", "value": "value"},
                 {"label": "Option label", "value": "value1"},
-                {"label": "Wrong label", "value": "value2"},
+                {"label": "Other label", "value": "value2"},
             ]
         }
         data.update(kwargs)
@@ -232,6 +273,32 @@ class TestCheckboxesSummary(TestTextSummary):
     def test_value_returns_matching_option_label(self):
         question = self.question().summary({'example': 'value1'})
         assert question.value == 'Option label'
+
+
+class TestCheckboxesSummary(QuestionSummaryTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "checkboxes",
+            "options": [
+                {"label": "Wrong label", "value": "value"},
+                {"label": "Option label", "value": "value1"},
+                {"label": "Other label", "value": "value2"},
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_value(self):
+        question = self.question().summary({'example': ['value1', 'value2']})
+        assert question.value == ['value1', 'value2']
+
+    def test_value_with_assurance(self):
+        question = self.question(assuranceApproach='2answers-type1').summary(
+            {'example': {'assurance': 'assurance value', 'value': ['value1', 'value2']}}
+        )
+        assert question.value == ['value1', 'value2']
 
 
 class TestNumberSummary(QuestionSummaryTest):

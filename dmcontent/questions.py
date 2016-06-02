@@ -24,14 +24,10 @@ class Question(object):
                     return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
                 else:
                     return {self.id: {}}
-            elif self.type in ['list', 'checkboxes']:
-                return {self.id: None}
             else:
                 return {}
 
-        if self.type in ['list', 'checkboxes']:
-            value = form_data.getlist(self.id)
-        elif self.type == 'boolean_list':
+        if self.type == 'boolean_list':
 
             # if self.id is 'q5', form keys will come back as ('q5-0', 'true'), ('q5-1', 'false'), ('q5-3', 'true'), ...
             # here, we build a dict with keys as indices and values converted to boolean, eg {0: True, 1: False, 3: True, ...}  # noqa
@@ -232,6 +228,30 @@ class Pricing(Question):
         return []
 
 
+class List(Question):
+    def get_data(self, form_data):
+        if self.id not in form_data:
+            if self.get('assuranceApproach'):
+                if '{}--assurance'.format(self.id) in form_data:
+                    return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
+                else:
+                    return {self.id: {}}
+            else:
+                return {self.id: None}
+
+        value = form_data.getlist(self.id)
+
+        if self.get('assuranceApproach'):
+            value = {"value": value}
+            if form_data.get(self.id + '--assurance'):
+                value["assurance"] = form_data.get(self.id + '--assurance')
+
+        return {self.id: value or None}
+
+    def summary(self, service_data):
+        return ListSummary(self, service_data)
+
+
 class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
@@ -350,9 +370,22 @@ class PricingSummary(QuestionSummary, Pricing):
             return ''
 
 
+class ListSummary(QuestionSummary, List):
+    @property
+    def value(self):
+        # Look up display values for options that have different labels from values
+        if self.has_assurance():
+            value = self._service_data.get(self.id, {}).get('value', '')
+        else:
+            value = self._service_data.get(self.id, '')
+
+        return value
+
 QUESTION_TYPES = {
     'multiquestion': Multiquestion,
     'pricing': Pricing,
+    'list': List,
+    'checkboxes': List,
 }
 
 
