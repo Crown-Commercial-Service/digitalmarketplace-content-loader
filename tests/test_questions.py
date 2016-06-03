@@ -313,6 +313,14 @@ class TestCheckboxesSummary(QuestionSummaryTest):
         )
         assert question.value == ['value1', 'value2']
 
+    def test_value_with_before_summary_value(self):
+        question = self.question(before_summary_value=['value0']).summary({'example': ['value1', 'value2']})
+        assert question.value == ['value0', 'value1', 'value2']
+
+    def test_value_with_before_summary_value_if_empty(self):
+        question = self.question(before_summary_value=['value0']).summary({})
+        assert question.value == ['value0']
+
 
 class TestNumberSummary(QuestionSummaryTest):
     def question(self, **kwargs):

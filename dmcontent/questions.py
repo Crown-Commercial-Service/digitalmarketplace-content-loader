@@ -373,6 +373,9 @@ class ListSummary(QuestionSummary, List):
         else:
             value = self._service_data.get(self.id, '')
 
+        if self.get('before_summary_value'):
+            value = self.before_summary_value + (value or [])
+
         return value
 
 
