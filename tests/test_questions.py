@@ -50,6 +50,19 @@ class TestText(QuestionTest):
     def test_get_data(self):
         assert self.question().get_data({'example': 'value'}) == {'example': 'value'}
 
+    def test_get_data_with_assurance(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data(
+            {'example': 'value1', 'example--assurance': 'assurance value'}
+        ) == {'example': {'value': 'value1', 'assurance': 'assurance value'}}
+
+    def test_get_data_with_assurance_unknown_key(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data({'other': 'value'}) == {'example': {}}
+
+    def test_get_data_with_assurance_only(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data(
+            {'example--assurance': 'assurance value'}
+        ) == {'example': {'assurance': 'assurance value'}}
+
     def test_form_fields(self):
         assert self.question().form_fields == ['example']
 

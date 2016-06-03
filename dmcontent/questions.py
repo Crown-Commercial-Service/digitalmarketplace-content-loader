@@ -18,14 +18,24 @@ class Question(object):
             return self
 
     def get_data(self, form_data):
+        data = self._get_data(form_data)
+
+        if not self.get('assuranceApproach'):
+            return data
+
+        value = {}
+
+        if data.get(self.id) is not None:
+            value = {"value": data[self.id]}
+
+        if '{}--assurance'.format(self.id) in form_data:
+            value['assurance'] = form_data.get('{}--assurance'.format(self.id))
+
+        return {self.id: value}
+
+    def _get_data(self, form_data):
         if self.id not in form_data and self.type != 'boolean_list':
-            if self.get('assuranceApproach'):
-                if '{}--assurance'.format(self.id) in form_data:
-                    return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
-                else:
-                    return {self.id: {}}
-            else:
-                return {}
+            return {}
 
         if self.type == 'boolean_list':
 
@@ -52,11 +62,6 @@ class Question(object):
             value = form_data[self.id]
         else:
             return {}
-
-        if self.get('assuranceApproach'):
-            value = {"value": value}
-            if form_data.get(self.id + '--assurance'):
-                value["assurance"] = form_data.get(self.id + '--assurance')
 
         if self.type not in ['boolean', 'number']:
             value = value if value else None
@@ -229,22 +234,11 @@ class Pricing(Question):
 
 
 class List(Question):
-    def get_data(self, form_data):
+    def _get_data(self, form_data):
         if self.id not in form_data:
-            if self.get('assuranceApproach'):
-                if '{}--assurance'.format(self.id) in form_data:
-                    return {self.id: {'assurance': form_data.get('{}--assurance'.format(self.id))}}
-                else:
-                    return {self.id: {}}
-            else:
-                return {self.id: None}
+            return {self.id: None}
 
         value = form_data.getlist(self.id)
-
-        if self.get('assuranceApproach'):
-            value = {"value": value}
-            if form_data.get(self.id + '--assurance'):
-                value["assurance"] = form_data.get(self.id + '--assurance')
 
         return {self.id: value or None}
 
@@ -380,6 +374,7 @@ class ListSummary(QuestionSummary, List):
             value = self._service_data.get(self.id, '')
 
         return value
+
 
 QUESTION_TYPES = {
     'multiquestion': Multiquestion,
