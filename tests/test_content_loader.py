@@ -261,6 +261,7 @@ class TestContentManifest(object):
                 {
                     "id": "q1",
                     "question": 'First question',
+                    "type": "multiquestion",
                     "questions": [
                         {"id": "q2", "type": "text"},
                         {"id": "q3", "type": "text"}
@@ -691,7 +692,7 @@ class TestContentSection(object):
             "questions": [{
                 "id": "q0",
                 "question": "Boolean question",
-                "type": "Boolean question",
+                "type": "multiquestion",
                 "questions": [
                     {
                         "id": "q2",
@@ -771,6 +772,7 @@ class TestContentSection(object):
             "name": "First section",
             "questions": [{
                 "id": "q0",
+                "type": "multiquestion",
                 "questions": [
                     {"id": "q01", "type": "text"},
                     {"id": "q02", "type": "radios"}
@@ -1058,16 +1060,16 @@ class TestContentSection(object):
         assert section.get_question('q1').get('id') == 'q1'
 
     def test_get_field_names_with_incomplete_pricing_question(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": "First question",
-                "type": "pricing",
-            }]
-        })
-        with pytest.raises(AssertionError):
+        with pytest.raises(KeyError):
+            section = ContentSection.create({
+                "slug": "first_section",
+                "name": "First section",
+                "questions": [{
+                    "id": "q1",
+                    "question": "First question",
+                    "type": "pricing",
+                }]
+            })
             section.get_field_names()
 
     def test_get_field_names_with_good_pricing_question(self):
@@ -1433,171 +1435,6 @@ class TestContentSection(object):
 
         assert section_summary.get_question('q1').value == 'Some text stuff'
         assert section_summary.get_question('q1').get('boolean_list_questions') is None
-
-
-class TestContentQuestion(object):
-    def test_form_fields_property(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "text"
-        })
-        assert question.form_fields == ['example']
-
-    def test_form_fields_property_with_pricing_field(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "pricing",
-            "fields": {
-                "minimum_price": "priceMin",
-                "maximum_price": "priceMax",
-            }
-        })
-        assert sorted(question.form_fields) == sorted(['priceMin', 'priceMax'])
-
-    def test_form_fields_property_with_multiquestion(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "multiquestion",
-            "questions": [
-                {
-                    "id": "example2",
-                    "type": "text",
-                },
-                {
-                    "id": "example3",
-                    "type": "text",
-                }
-            ]
-        })
-        assert question.form_fields == ['example2', 'example3']
-
-    def test_required_form_fields_property(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "pricing",
-            "fields": {
-                "minimum_price": "priceMin",
-                "maximum_price": "priceMax",
-            }
-        })
-        assert sorted(question.required_form_fields) == sorted(['priceMin', 'priceMax'])
-
-    def test_required_form_fields_property_when_optional(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "pricing",
-            "optional": True,
-            "fields": {
-                "minimum_price": "priceMin",
-                "maximum_price": "priceMax",
-            }
-        })
-        assert question.required_form_fields == []
-
-    def test_required_form_fields_property_with_optional_fields(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "pricing",
-            "fields": {
-                "minimum_price": "priceMin",
-                "maximum_price": "priceMax",
-            },
-            "optional_fields": [
-                "minimum_price"
-            ]
-        })
-        assert question.required_form_fields == ['priceMax']
-
-    def test_required_form_fields_with_multiquestion(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "multiquestion",
-            "questions": [
-                {
-                    "id": "example2",
-                    "type": "text",
-                    "optional": False,
-                },
-                {
-                    "id": "example3",
-                    "type": "text",
-                    "optional": True,
-                }
-            ]
-        })
-        assert question.required_form_fields == ['example2']
-
-
-class TestContentQuestionSummary(object):
-    def test_question_value_with_no_options(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "text",
-        }).summary({'example': 'value1'})
-
-        assert question.value == 'value1'
-
-    def test_question_value_returns_matching_option_label(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "checkboxes",
-            "options": [
-                {"label": "Wrong label", "value": "value"},
-                {"label": "Option label", "value": "value1"},
-                {"label": "Wrong label", "value": "value11"},
-            ]
-        }).summary({'example': 'value1'})
-
-        assert question.value == 'Option label'
-
-    def test_number_questions_without_unit(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-        }).summary({'example': '12.20'})
-
-        assert question.value == '12.20'
-
-    def test_number_questions_adds_unit_before(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "before",
-        }).summary({'example': '12.20'})
-
-        assert question.value == u'£12.20'
-
-    def test_number_questions_adds_unit_after(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-        }).summary({'example': '12.20'})
-
-        assert question.value == u'12.20£'
-
-    def test_question_unit_not_added_if_value_is_empty(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-        }).summary({})
-
-        assert question.value == u''
-
-    def test_question_unit_added_for_questions_with_assertion(self):
-        question = ContentQuestion({
-            "id": "example",
-            "type": "number",
-            "unit": u"£",
-            "unit_position": "after",
-            'assuranceApproach': '2answers-type1',
-        }).summary({'example': {'value': 15,  'assurance': 'Service provider assertion'}})
-
-        assert question.value == u'15£'
 
 
 class TestReadYaml(object):
