@@ -6,6 +6,7 @@ import re
 import os
 from collections import defaultdict, OrderedDict
 from functools import partial
+from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
@@ -149,7 +150,7 @@ class ContentSection(object):
         self.editable = editable
         self.edit_questions = edit_questions
         self.questions = questions
-        self.description = description
+        self._description = description
         self.summary_page_description = summary_page_description
         self.step = step
 
@@ -163,9 +164,16 @@ class ContentSection(object):
             editable=self.editable,
             edit_questions=self.edit_questions,
             questions=self.questions[:],
-            description=self.description,
+            description=self._description,
             summary_page_description=self.summary_page_description,
             step=self.step)
+
+    @property
+    def description(self):
+        if isinstance(self._description, string_types) or self._description is None:
+            return self._description
+        else:
+            raise TypeError('_description is not a string or not None')
 
     def summary(self, service_data):
         summary_section = self.copy()
@@ -309,6 +317,17 @@ class ContentSection(object):
                 question.get("depends"), service_data
             )
         ]
+
+        # Filter description by lot
+        if isinstance(self._description, dict) and service_data.get('lot'):
+            if self._description.get(service_data['lot']):
+                filtered_description = self._description.get(service_data['lot'])
+            elif self._description.get('default'):
+                filtered_description = self._description.get('default')
+            else:
+                raise KeyError
+
+            section._description = filtered_description
 
         if len(filtered_questions):
             section.questions = filtered_questions
