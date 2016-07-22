@@ -6,6 +6,7 @@ import re
 import os
 from collections import defaultdict, OrderedDict
 from functools import partial
+from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
@@ -97,37 +98,11 @@ class ContentManifest(object):
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
         sections = filter(None, [
-            self._get_section_filtered_by(section, service_data)
+            section.filter(service_data)
             for section in self.sections
         ])
 
         return ContentManifest(sections)
-
-    def _get_section_filtered_by(self, section, service_data):
-        section = section.copy()
-
-        filtered_questions = [
-            question for question in section.questions
-            if self._question_should_be_shown(
-                question.get("depends"), service_data
-            )
-        ]
-
-        if len(filtered_questions):
-            section.questions = filtered_questions
-            return section
-        else:
-            return None
-
-    def _question_should_be_shown(self, dependencies, service_data):
-        if dependencies is None:
-            return True
-        for depends in dependencies:
-            if not depends["on"] in service_data:
-                return False
-            if not service_data[depends["on"]] in depends["being"]:
-                return False
-        return True
 
     def get_question(self, field_name):
         for section in self.sections:
@@ -175,7 +150,7 @@ class ContentSection(object):
         self.editable = editable
         self.edit_questions = edit_questions
         self.questions = questions
-        self.description = description
+        self._description = description
         self.summary_page_description = summary_page_description
         self.step = step
 
@@ -189,9 +164,16 @@ class ContentSection(object):
             editable=self.editable,
             edit_questions=self.edit_questions,
             questions=self.questions[:],
-            description=self.description,
+            description=self._description,
             summary_page_description=self.summary_page_description,
             step=self.step)
+
+    @property
+    def description(self):
+        if isinstance(self._description, string_types) or self._description is None:
+            return self._description
+        else:
+            raise TypeError('_description is not a string or not None')
 
     def summary(self, service_data):
         summary_section = self.copy()
@@ -325,6 +307,43 @@ class ContentSection(object):
     def inject_brief_questions_into_boolean_list_question(self, brief):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
+
+    def filter(self, service_data):
+        section = self.copy()
+
+        filtered_questions = [
+            question for question in section.questions
+            if self._question_should_be_shown(
+                question.get("depends"), service_data
+            )
+        ]
+
+        # Filter description by lot
+        if isinstance(self._description, dict) and service_data.get('lot'):
+            if self._description.get(service_data['lot']):
+                filtered_description = self._description.get(service_data['lot'])
+            elif self._description.get('default'):
+                filtered_description = self._description.get('default')
+            else:
+                raise KeyError
+
+            section._description = filtered_description
+
+        if len(filtered_questions):
+            section.questions = filtered_questions
+            return section
+        else:
+            return None
+
+    def _question_should_be_shown(self, dependencies, service_data):
+        if dependencies is None:
+            return True
+        for depends in dependencies:
+            if not depends["on"] in service_data:
+                return False
+            if not service_data[depends["on"]] in depends["being"]:
+                return False
+        return True
 
     # Type checking
 
