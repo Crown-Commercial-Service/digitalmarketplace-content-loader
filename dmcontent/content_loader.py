@@ -486,7 +486,8 @@ class ContentLoader(object):
                 self.get_question(framework_slug, question_set, question)
                 for question in section_or_question['questions']
             ]
-            section_or_question['slug'] = _make_slug(section_or_question['name'])
+            if not section_or_question.get('slug'):
+                section_or_question['slug'] = _make_slug(section_or_question['name'])
 
         return section_or_question
 
