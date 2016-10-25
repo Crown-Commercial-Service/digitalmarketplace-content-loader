@@ -320,6 +320,9 @@ class ContentSection(object):
             )
         ]
 
+        if not filtered_questions:
+            return None
+
         # Filter description by lot
         if isinstance(self._description, dict) and service_data.get('lot'):
             if self._description.get(service_data['lot']):
@@ -334,11 +337,9 @@ class ContentSection(object):
         env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
         section.name = env.from_string(section.name).render(**service_data)
 
-        if len(filtered_questions):
-            section.questions = filtered_questions
-            return section
-        else:
-            return None
+        section.questions = filtered_questions
+
+        return section
 
     def _question_should_be_shown(self, dependencies, service_data):
         if dependencies is None:
