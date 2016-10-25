@@ -8,6 +8,8 @@ from collections import defaultdict, OrderedDict
 from functools import partial
 from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
+from jinja2 import StrictUndefined
+from jinja2.sandbox import SandboxedEnvironment
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import ContentQuestion
@@ -328,6 +330,9 @@ class ContentSection(object):
                 raise KeyError
 
             section._description = filtered_description
+
+        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+        section.name = env.from_string(section.name).render(**service_data)
 
         if len(filtered_questions):
             section.questions = filtered_questions
