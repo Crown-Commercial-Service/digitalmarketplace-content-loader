@@ -651,7 +651,10 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
-            "questions": [],
+            "questions": [{
+                "id": "q1",
+                "question": 'First question'
+            }],
             "description": {
                 "digital-specialists": "description just for digital specialists",
                 "digital-outcomes": "description just for digital outcomes"

@@ -46,3 +46,27 @@ class TestFilterContentSection(object):
         )
 
         assert section.filter({'name': 'one'}).name == 'Section one'
+
+    def test_section_description_is_templated(self):
+        section = ContentSection(
+            slug='section',
+            name='Section one',
+            editable=False,
+            edit_questions=False,
+            questions=[Question({})],
+            description="This is the {{ name }} section"
+        )
+
+        assert section.filter({'name': 'first'}).description == 'This is the first section'
+
+    def test_section_description_is_not_set(self):
+        section = ContentSection(
+            slug='section',
+            name='Section one',
+            editable=False,
+            edit_questions=False,
+            questions=[Question({})],
+            description=None
+        )
+
+        assert section.filter({}).description == None

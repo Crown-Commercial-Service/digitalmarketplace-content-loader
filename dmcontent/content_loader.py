@@ -93,14 +93,14 @@ class ContentManifest(object):
     def get_next_editable_section_id(self, section_id=None):
         return self.get_next_section_id(section_id, True)
 
-    def filter(self, service_data):
+    def filter(self, context):
         """Return a new :class:`ContentManifest` filtered by service data
 
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
         sections = filter(None, [
-            section.filter(service_data)
+            section.filter(context)
             for section in self.sections
         ])
 
@@ -310,13 +310,13 @@ class ContentSection(object):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
 
-    def filter(self, service_data):
+    def filter(self, context):
         section = self.copy()
 
         filtered_questions = [
             question for question in section.questions
             if self._question_should_be_shown(
-                question.get("depends"), service_data
+                question.get("depends"), context
             )
         ]
 
@@ -324,9 +324,9 @@ class ContentSection(object):
             return None
 
         # Filter description by lot
-        if isinstance(self._description, dict) and service_data.get('lot'):
-            if self._description.get(service_data['lot']):
-                filtered_description = self._description.get(service_data['lot'])
+        if isinstance(self._description, dict) and context.get('lot'):
+            if self._description.get(context['lot']):
+                filtered_description = self._description.get(context['lot'])
             elif self._description.get('default'):
                 filtered_description = self._description.get('default')
             else:
@@ -335,19 +335,24 @@ class ContentSection(object):
             section._description = filtered_description
 
         env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        section.name = env.from_string(section.name).render(**service_data)
+        for section_field in ['name', '_description']:
+            setattr(
+                section,
+                section_field,
+                section[section_field] and env.from_string(section[section_field]).render(**context)
+            )
 
         section.questions = filtered_questions
 
         return section
 
-    def _question_should_be_shown(self, dependencies, service_data):
+    def _question_should_be_shown(self, dependencies, context):
         if dependencies is None:
             return True
         for depends in dependencies:
-            if not depends["on"] in service_data:
+            if not depends["on"] in context:
                 return False
-            if not service_data[depends["on"]] in depends["being"]:
+            if not context[depends["on"]] in depends["being"]:
                 return False
         return True
 
