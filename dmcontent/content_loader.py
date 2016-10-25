@@ -152,7 +152,7 @@ class ContentSection(object):
         self.editable = editable
         self.edit_questions = edit_questions
         self.questions = questions
-        self._description = description
+        self.description = description
         self.summary_page_description = summary_page_description
         self.step = step
 
@@ -166,16 +166,9 @@ class ContentSection(object):
             editable=self.editable,
             edit_questions=self.edit_questions,
             questions=self.questions[:],
-            description=self._description,
+            description=self.description,
             summary_page_description=self.summary_page_description,
             step=self.step)
-
-    @property
-    def description(self):
-        if isinstance(self._description, string_types) or self._description is None:
-            return self._description
-        else:
-            raise TypeError('_description is not a string or not None')
 
     def summary(self, service_data):
         summary_section = self.copy()
@@ -323,19 +316,8 @@ class ContentSection(object):
         if not filtered_questions:
             return None
 
-        # Filter description by lot
-        if isinstance(self._description, dict) and context.get('lot'):
-            if self._description.get(context['lot']):
-                filtered_description = self._description.get(context['lot'])
-            elif self._description.get('default'):
-                filtered_description = self._description.get('default')
-            else:
-                raise KeyError
-
-            section._description = filtered_description
-
         env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        for section_field in ['name', '_description']:
+        for section_field in ['name', 'description']:
             setattr(
                 section,
                 section_field,

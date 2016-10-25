@@ -628,68 +628,6 @@ class TestContentSection(object):
 
         return section, brief, form
 
-    def test_filtering_a_section_with_a_description_dictionary(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": 'First question'
-            }],
-            "description": {
-                "default": "default description",
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-
-        assert section.filter({"lot": "digital-specialists"}).description == "description just for digital specialists"
-        assert section.filter({"lot": "digital-outcomes"}).description == "description just for digital outcomes"
-        assert section.filter({"lot": "user-research-studios"}).description == "default description"
-
-    def test_filtering_a_section_with_a_description_dictionary_with_no_default_and_unknown_key_raises_error(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": 'First question'
-            }],
-            "description": {
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-        with pytest.raises(KeyError):
-            section.filter({"lot": "user-research-participants"})
-
-    def test_filtering_a_section_with_a_description_string_does_not_affect_the_description(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": 'First question'
-            }],
-            "description": "just a string"
-        })
-
-        assert section.filter({"lot": "digital-specialists"}).description == "just a string"
-
-    def test_get_section_description_which_is_dictionary_raises_error(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [],
-            "description": {
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-
-        with pytest.raises(TypeError):
-            section.description
-
     def test_has_summary_page_if_multiple_questions(self):
         section = ContentSection.create({
             "slug": "first_section",
