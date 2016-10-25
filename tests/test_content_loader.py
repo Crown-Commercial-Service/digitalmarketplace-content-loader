@@ -1514,13 +1514,14 @@ class TestContentLoader(object):
             self.manifest1(),
             self.question1(),
             self.question2(),
+            self.question3()
         ]
 
     def manifest1(self):
-        return [{"name": "section1", "questions": ["question1", "question2"]}]
-
-    def manifest2(self):
-        return [{"name": "section1", "questions": ["question2", "question3"]}]
+        return [
+            {"name": "section1", "questions": ["question1", "question2"]},
+            {"name": "section2", "slug": "section-2", "questions": ["question3"]}
+        ]
 
     def question1(self):
         return {"name": "question1", "depends": [{"on": "lot", "being": "SaaS"}]}
@@ -1529,7 +1530,7 @@ class TestContentLoader(object):
         return {"id": "q2", "name": "question2", "depends": [{"on": "lot", "being": "SaaS"}]}
 
     def question3(self):
-        return {"name": "question3", "depends": [{"on": "lot", "being": "SaaS"}]}
+        return {"name": "question3", "depends": [{"on": "lot", "being": "IaaS"}]}
 
     def test_manifest_loading(self, read_yaml_mock):
         self.set_read_yaml_mock_response(read_yaml_mock)
@@ -1545,7 +1546,12 @@ class TestContentLoader(object):
                      'name': 'question1', 'id': 'question1'},
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
                      'name': 'question2', 'id': 'q2'}],
-                'slug': 'section1'}
+                'slug': 'section1'},
+            {'name': 'section2',
+             'questions': [
+                 {'depends': [{'being': 'IaaS', 'on': 'lot'}],
+                  'name': 'question3', 'id': 'question3'}],
+             'slug': 'section-2'}
         ]
         read_yaml_mock.assert_has_calls([
             mock.call('content/frameworks/framework-slug/manifests/my-manifest.yml'),
@@ -1782,7 +1788,7 @@ class TestContentLoader(object):
 
         assert [
             section.id for section in builder.sections
-        ] == ['section1']
+        ] == ['section1', 'section-2']
 
     def test_multple_builders(self, read_yaml_mock):
         self.set_read_yaml_mock_response(read_yaml_mock)
