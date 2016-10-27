@@ -1,7 +1,5 @@
 # coding=utf-8
 
-import pytest
-
 from werkzeug.datastructures import OrderedMultiDict
 from dmcontent.content_loader import ContentQuestion
 
@@ -36,18 +34,6 @@ class QuestionTest(object):
     def test_question_repr(self):
         assert 'data=' in repr(self.question())
 
-
-class TestFilterQuestion(object):
-
-    def question(self, **kwargs):
-        data = {
-            "id": "example",
-            "type": "text"
-        }
-        data.update(kwargs)
-
-        return ContentQuestion(data)
-
     def test_question_filter_without_dependencies(self):
         question = self.question()
         assert question.filter({}) is not None
@@ -61,6 +47,29 @@ class TestFilterQuestion(object):
     def test_question_filter_with_dependencies_that_are_not_matched(self):
         question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
         assert question.filter({"lot": "lot-2"}) is None
+
+    def test_question_without_template_tags_are_unchanged(self):
+        question = self.question(question="Question", hint="Hint", question_advice="Advice").filter({})
+
+        assert question.question == "Question"
+        assert question.hint == "Hint"
+        assert question.question_advice == "Advice"
+
+    def test_question_fields_are_templated(self):
+        question = self.question(
+            question="Question {{ question }}",
+            hint="Hint {{ hint }}",
+            question_advice="Advice {{ advice }}"
+        ).filter({
+            "question": "one",
+            "hint": "two",
+            "advice": "three"
+        })
+
+        assert question.question == "Question one"
+        assert question.hint == "Hint two"
+        assert question.question_advice == "Advice three"
+
 
 class TestText(QuestionTest):
     def question(self, **kwargs):

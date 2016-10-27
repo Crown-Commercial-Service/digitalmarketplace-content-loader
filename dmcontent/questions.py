@@ -1,11 +1,16 @@
 from collections import OrderedDict
 
+from jinja2.sandbox import SandboxedEnvironment
+from jinja2 import StrictUndefined
+
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
 
 
 class Question(object):
+    TEMPLATE_FIELDS = ['question', 'hint', 'question_advice']
+
     def __init__(self, data, number=None):
         self.number = number
         self._data = data.copy()
@@ -17,7 +22,14 @@ class Question(object):
         if not self._should_be_shown(context):
             return None
 
-        return ContentQuestion(self._data, number=self.number)
+        question = ContentQuestion(self._data, number=self.number)
+
+        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+        for field in self.TEMPLATE_FIELDS:
+            if field in question._data:
+                question._data[field] = env.from_string(question[field]).render(**context)
+
+        return question
 
     def _should_be_shown(self, context):
         return all(
