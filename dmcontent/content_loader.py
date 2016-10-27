@@ -4,6 +4,8 @@ import yaml
 import inflection
 import re
 import os
+import copy
+
 from collections import defaultdict, OrderedDict
 from functools import partial
 from six import string_types
@@ -120,6 +122,8 @@ class ContentManifest(object):
 
 
 class ContentSection(object):
+    TEMPLATE_FIELDS = ['name', 'description']
+
     @classmethod
     def create(cls, section):
         if isinstance(section, ContentSection):
@@ -144,7 +148,8 @@ class ContentSection(object):
             questions,
             description=None,
             summary_page_description=None,
-            step=None
+            step=None,
+            _filtered=False,
     ):
         self.id = slug  # TODO deprecated, use `.slug` instead
         self.slug = slug
@@ -155,20 +160,23 @@ class ContentSection(object):
         self.description = description
         self.summary_page_description = summary_page_description
         self.step = step
+        self._filtered = _filtered
+
+    def __getattribute__(self, key):
+        filtered = object.__getattribute__(self, '_filtered')
+        if not filtered and key in object.__getattribute__(self, 'TEMPLATE_FIELDS'):
+            raise TypeError("Can't access dynamic attributes without calling .filter")
+        else:
+            return object.__getattribute__(self, key)
 
     def __getitem__(self, key):
         return getattr(self, key)
 
     def copy(self):
         return ContentSection(
-            slug=self.slug,
-            name=self.name,
-            editable=self.editable,
-            edit_questions=self.edit_questions,
-            questions=self.questions[:],
-            description=self.description,
-            summary_page_description=self.summary_page_description,
-            step=self.step)
+            **{key: copy.copy(value)
+               for key, value in object.__getattribute__(self, '__dict__').items()
+               if key not in ['id']})
 
     def summary(self, service_data):
         summary_section = self.copy()
@@ -186,7 +194,8 @@ class ContentSection(object):
             editable=self.edit_questions,
             edit_questions=False,
             questions=question.questions,
-            description=question.get('hint')
+            description=question.get('hint'),
+            _filtered=self._filtered
         )
 
     def get_field_names(self):
@@ -305,6 +314,7 @@ class ContentSection(object):
 
     def filter(self, context):
         section = self.copy()
+        section._filtered = True
 
         filtered_questions = [
             question for question in section.questions
@@ -317,7 +327,7 @@ class ContentSection(object):
             return None
 
         env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        for section_field in ['name', 'description']:
+        for section_field in self.TEMPLATE_FIELDS:
             setattr(
                 section,
                 section_field,
