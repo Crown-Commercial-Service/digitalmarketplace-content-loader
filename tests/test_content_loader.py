@@ -6,6 +6,7 @@ import pytest
 
 import io
 
+from dmcontent.utils import TemplateField
 from dmcontent.content_loader import (
     ContentLoader, ContentSection, ContentQuestion, ContentManifest,
     read_yaml, ContentNotFoundError, QuestionNotFoundError, _make_slug
@@ -1481,17 +1482,17 @@ class TestContentLoader(object):
         sections = yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
 
         assert sections == [
-            {'name': 'section1',
+            {'name': TemplateField("section1"),
                 'questions': [
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': 'question1', 'id': 'question1'},
+                     'name': TemplateField('question1'), 'id': 'question1'},
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': 'question2', 'id': 'q2'}],
+                     'name': TemplateField('question2'), 'id': 'q2'}],
                 'slug': 'section1'},
-            {'name': 'section2',
+            {'name': TemplateField('section2'),
              'questions': [
                  {'depends': [{'being': 'IaaS', 'on': 'lot'}],
-                  'name': 'question3', 'id': 'question3'}],
+                  'name': TemplateField('question3'), 'id': 'question3'}],
              'slug': 'section-2'}
         ]
         read_yaml_mock.assert_has_calls([
@@ -1526,7 +1527,7 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': 'question1', 'id': 'question1'
+            'name': TemplateField('question1'), 'id': 'question1'
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')
@@ -1538,7 +1539,7 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question2') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': 'question2', 'id': 'q2'
+            'name': TemplateField('question2'), 'id': 'q2'
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question2.yml')

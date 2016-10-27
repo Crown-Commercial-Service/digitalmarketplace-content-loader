@@ -8,13 +8,13 @@ import copy
 
 from collections import defaultdict, OrderedDict
 from functools import partial
-from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
 from jinja2 import StrictUndefined
 from jinja2.sandbox import SandboxedEnvironment
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import ContentQuestion
+from .utils import TemplateField
 
 
 class ContentManifest(object):
@@ -378,8 +378,6 @@ class ContentLoader(object):
 
     def get_manifest(self, framework_slug, manifest):
         try:
-            if framework_slug not in self._content:
-                raise KeyError
             manifest = self._content[framework_slug][manifest]
         except KeyError:
             raise ContentNotFoundError("Content not found for {} and {}".format(framework_slug, manifest))
@@ -389,37 +387,48 @@ class ContentLoader(object):
     get_builder = get_manifest  # TODO remove once apps have switched to .get_manifest
 
     def load_manifest(self, framework_slug, question_set, manifest):
-        if manifest not in self._content[framework_slug]:
-            try:
-                manifest_path = self._manifest_path(framework_slug, manifest)
-                manifest_sections = read_yaml(manifest_path)
-            except IOError:
-                raise ContentNotFoundError("No manifest at {}".format(manifest_path))
+        if manifest in self._content[framework_slug]:
+            return
 
-            self._content[framework_slug][manifest] = [
-                self._load_nested_questions(framework_slug, question_set, section) for section in manifest_sections
-            ]
+        try:
+            manifest_path = os.path.join(self._root_path(framework_slug), 'manifests', '{}.yml'.format(manifest))
+            manifest_sections = read_yaml(manifest_path)
+        except IOError:
+            raise ContentNotFoundError("No manifest at {}".format(manifest_path))
+
+        self._content[framework_slug][manifest] = [
+            self._process_section(framework_slug, question_set, section) for section in manifest_sections
+        ]
 
         return self._content[framework_slug][manifest]
 
-    def _has_question(self, framework_slug, question_set, question):
-        if framework_slug not in self._questions:
-            return False
-        if question_set not in self._questions[framework_slug]:
-            return False
+    def _process_section(self, framework_slug, question_set, section):
+        section = self._load_nested_questions(framework_slug, question_set, section)
 
-        return question in self._questions[framework_slug][question_set]
+        for field in ['name', 'description']:
+            if field in section:
+                section[field] = TemplateField(section[field])
+
+        return section
 
     def get_question(self, framework_slug, question_set, question):
-        if not self._has_question(framework_slug, question_set, question):
-            try:
-                questions_path = self._questions_path(framework_slug, question_set)
-                self._questions[framework_slug][question_set][question] = self._load_nested_questions(
-                    framework_slug, question_set,
-                    _load_question(question, questions_path)
-                )
-            except IOError:
-                raise ContentNotFoundError("No question {} at {}".format(question, questions_path))
+        if question in self._questions.get(framework_slug, {}).get(question_set, {}):
+            return
+
+        try:
+            questions_path = self._questions_path(framework_slug, question_set)
+            question_data = self._load_nested_questions(
+                framework_slug, question_set,
+                _load_question(question, questions_path)
+            )
+        except IOError:
+            raise ContentNotFoundError("No question {} at {}".format(question, questions_path))
+
+        for field in ['name', 'question', 'hint', 'question_advice']:
+            if field in question_data:
+                question_data[field] = TemplateField(question_data[field])
+
+        self._questions[framework_slug][question_set][question] = question_data
 
         return self._questions[framework_slug][question_set][question].copy()
 
@@ -464,9 +473,6 @@ class ContentLoader(object):
 
     def _questions_path(self, framework_slug, question_set):
         return os.path.join(self._root_path(framework_slug), 'questions', question_set)
-
-    def _manifest_path(self, framework_slug, manifest):
-        return os.path.join(self._root_path(framework_slug), 'manifests', '{}.yml'.format(manifest))
 
     def _message_path(self, framework_slug, message):
         return os.path.join(self._root_path(framework_slug), 'messages', '{}.yml'.format(message))
