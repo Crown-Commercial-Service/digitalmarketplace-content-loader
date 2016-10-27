@@ -37,6 +37,31 @@ class QuestionTest(object):
         assert 'data=' in repr(self.question())
 
 
+class TestFilterQuestion(object):
+
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "text"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_question_filter_without_dependencies(self):
+        question = self.question()
+        assert question.filter({}) is not None
+        assert question.filter({}) is not question
+
+    def test_question_filter_with_dependencies_that_match(self):
+        question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
+        assert question.filter({"lot": "lot-1"}) is not None
+        assert question.filter({"lot": "lot-1"}) is not question
+
+    def test_question_filter_with_dependencies_that_are_not_matched(self):
+        question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
+        assert question.filter({"lot": "lot-2"}) is None
+
 class TestText(QuestionTest):
     def question(self, **kwargs):
         data = {

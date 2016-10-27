@@ -13,6 +13,18 @@ class Question(object):
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
 
+    def filter(self, context):
+        if not self._should_be_shown(context):
+            return None
+
+        return ContentQuestion(self._data, number=self.number)
+
+    def _should_be_shown(self, context):
+        return all(
+            depends["on"] in context and (context[depends["on"]] in depends["being"])
+            for depends in self.get("depends", [])
+        )
+
     def get_question(self, field_name):
         if self.id == field_name:
             return self

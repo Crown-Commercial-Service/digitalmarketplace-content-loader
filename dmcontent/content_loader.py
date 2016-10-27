@@ -316,12 +316,10 @@ class ContentSection(object):
         section = self.copy()
         section._filtered = True
 
-        filtered_questions = [
-            question for question in section.questions
-            if self._question_should_be_shown(
-                question.get("depends"), context
-            )
-        ]
+        filtered_questions = list(filter(None, [
+            question.filter(context)
+            for question in self.questions
+        ]))
 
         if not filtered_questions:
             return None
@@ -337,16 +335,6 @@ class ContentSection(object):
         section.questions = filtered_questions
 
         return section
-
-    def _question_should_be_shown(self, dependencies, context):
-        if dependencies is None:
-            return True
-        for depends in dependencies:
-            if not depends["on"] in context:
-                return False
-            if not context[depends["on"]] in depends["being"]:
-                return False
-        return True
 
     # Type checking
 
