@@ -653,7 +653,7 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        })
+        }).filter({})
         assert section.has_summary_page is False
 
     def test_has_summary_page_if_single_question_with_description(self):
@@ -666,7 +666,7 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        })
+        }).filter({})
         assert section.has_summary_page is True
 
     def test_get_question_ids(self):
@@ -729,7 +729,7 @@ class TestContentSection(object):
                     }
                 ]
             }]
-        })
+        }).filter({})
 
         question_section = section.get_question_as_section('q0-slug')
         assert question_section.name == "Q0"
@@ -1360,10 +1360,10 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
-            "questions": [],
+            "questions": [{"id": "q1", "question": "Why?", "type": "text"}],
             "description": "This is the first section",
             "summary_page_description": "This is a summary of the first section"
-        })
+        }).filter({})
         assert section.description == "This is the first section"
         assert section.summary_page_description == "This is a summary of the first section"
 
