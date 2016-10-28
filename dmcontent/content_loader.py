@@ -13,7 +13,7 @@ from jinja2 import StrictUndefined
 from jinja2.sandbox import SandboxedEnvironment
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
-from .questions import ContentQuestion
+from .questions import Question, ContentQuestion
 from .utils import TemplateField
 
 
@@ -405,7 +405,7 @@ class ContentLoader(object):
     def _process_section(self, framework_slug, question_set, section):
         section = self._load_nested_questions(framework_slug, question_set, section)
 
-        for field in ['name', 'description']:
+        for field in ContentSection.TEMPLATE_FIELDS:
             if field in section:
                 section[field] = TemplateField(section[field])
 
@@ -424,7 +424,7 @@ class ContentLoader(object):
         except IOError:
             raise ContentNotFoundError("No question {} at {}".format(question, questions_path))
 
-        for field in ['name', 'question', 'hint', 'question_advice']:
+        for field in Question.TEMPLATE_FIELDS:
             if field in question_data:
                 question_data[field] = TemplateField(question_data[field])
 

@@ -9,7 +9,7 @@ from .formats import format_price
 
 
 class Question(object):
-    TEMPLATE_FIELDS = ['question', 'hint', 'question_advice']
+    TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
 
     def __init__(self, data, number=None):
         self.number = number

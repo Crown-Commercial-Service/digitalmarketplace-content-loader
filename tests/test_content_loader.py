@@ -1532,6 +1532,48 @@ class TestContentLoader(object):
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')
 
+    def test_section_templatable_fields(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+
+        yaml_loader = ContentLoader('content/')
+
+        section = yaml_loader._process_section('framework-slug', 'question-set', {
+            "name": "section1",
+            "description": "This is the first section",
+            "editable": True,
+            "questions": []
+        })
+
+        assert section == {
+            "name": TemplateField("section1"),
+            "slug": "section1",
+            "description": TemplateField("This is the first section"),
+            "editable": True,
+            "questions": []
+        }
+
+    def test_get_question_templatable_fields(self, read_yaml_mock):
+        read_yaml_mock.return_value = {
+            "name": "question1",
+            "question": "Question one",
+            "question_advice": "This is the first question",
+            "hint": "100 character limit",
+            "type": "text",
+        }
+
+        yaml_loader = ContentLoader('content/')
+
+        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
+            "id": "question1",
+            "name": TemplateField("question1"),
+            "question": TemplateField("Question one"),
+            "question_advice": TemplateField("This is the first question"),
+            "hint": TemplateField("100 character limit"),
+            "type": "text",
+        }
+        read_yaml_mock.assert_called_with(
+            'content/frameworks/framework-slug/questions/question-set/question1.yml')
+
     def test_get_question_uses_id_if_available(self, read_yaml_mock):
         read_yaml_mock.return_value = self.question2()
 
@@ -1553,7 +1595,16 @@ class TestContentLoader(object):
 
         yaml_loader = ContentLoader('content/')
 
-        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1')
+        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
+            "id": "question1",
+            "slug": "question1",
+            "name": TemplateField("question1"),
+            "type": "multiquestion",
+            "questions": [
+                {"id": "question10", "name": TemplateField("question10"), "type": "text"},
+                {"id": "question20", "name": TemplateField("question20"), "type": "checkboxes"}
+            ]
+        }
 
         read_yaml_mock.assert_has_calls([
             mock.call('content/frameworks/framework-slug/questions/question-set/question1.yml'),
