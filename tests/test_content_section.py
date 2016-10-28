@@ -1,5 +1,4 @@
 import pytest
-from jinja2 import UndefinedError
 
 from dmcontent.utils import TemplateField
 from dmcontent.questions import Question, Multiquestion
@@ -118,7 +117,7 @@ class TestFilterContentSection(object):
 
         assert section.slug == 'section'
 
-    def test_copying_section_preserves_value_of_filtered_attribute(self):
+    def test_copying_section_preserves_value_of_context_attribute(self):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
@@ -131,7 +130,7 @@ class TestFilterContentSection(object):
         copied_section = section.copy()
         assert copied_section._context == section._context
 
-    def test_getting_a_multiquestion_as_a_section_preserves_value_of_filtered_attribute(self):
+    def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self):
         multiquestion_data = {
             "id": "example",
             "slug": "example",

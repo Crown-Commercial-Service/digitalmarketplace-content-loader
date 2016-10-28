@@ -9,10 +9,8 @@ import copy
 from collections import defaultdict, OrderedDict
 from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
-from jinja2 import StrictUndefined, UndefinedError
-from jinja2.sandbox import SandboxedEnvironment
 
-from .errors import ContentNotFoundError, ContentTemplateError, QuestionNotFoundError
+from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .utils import TemplateField
 
@@ -166,10 +164,7 @@ class ContentSection(object):
         context = object.__getattribute__(self, '_context')
         field = object.__getattribute__(self, key)
         if isinstance(field, TemplateField):
-            try:
-                return field.render(context)
-            except UndefinedError as e:
-                raise ContentTemplateError(e.message)
+            return field.render(context)
         else:
             return field
 

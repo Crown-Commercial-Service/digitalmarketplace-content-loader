@@ -1,5 +1,7 @@
-from jinja2 import StrictUndefined
+from jinja2 import StrictUndefined, UndefinedError
 from jinja2.sandbox import SandboxedEnvironment
+
+from .errors import ContentTemplateError
 
 
 class TemplateField(object):
@@ -9,7 +11,10 @@ class TemplateField(object):
         self.template = env.from_string(field_value)
 
     def render(self, context=None):
-        return self.template.render(context or {})
+        try:
+            return self.template.render(context or {})
+        except UndefinedError as e:
+            raise ContentTemplateError(e.message)
 
     def __eq__(self, other):
         if not isinstance(other, TemplateField):

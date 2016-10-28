@@ -1,7 +1,11 @@
 # coding=utf-8
 
+import pytest
+
 from werkzeug.datastructures import OrderedMultiDict
 from dmcontent.content_loader import ContentQuestion
+from dmcontent.utils import TemplateField
+from dmcontent import ContentTemplateError
 
 
 class QuestionTest(object):
@@ -49,26 +53,46 @@ class QuestionTest(object):
         assert question.filter({"lot": "lot-2"}) is None
 
     def test_question_without_template_tags_are_unchanged(self):
-        question = self.question(question="Question", hint="Hint", question_advice="Advice").filter({})
+        question = self.question(
+            name=TemplateField("Name"),
+            question=TemplateField("Question"),
+            hint=TemplateField("Hint"),
+            question_advice=TemplateField("Advice")
+        ).filter({})
 
+        assert question.name == "Name"
         assert question.question == "Question"
         assert question.hint == "Hint"
         assert question.question_advice == "Advice"
 
     def test_question_fields_are_templated(self):
         question = self.question(
-            question="Question {{ question }}",
-            hint="Hint {{ hint }}",
-            question_advice="Advice {{ advice }}"
+            name=TemplateField("Name {{ name }}"),
+            question=TemplateField("Question {{ question }}"),
+            hint=TemplateField("Hint {{ hint }}"),
+            question_advice=TemplateField("Advice {{ advice }}")
         ).filter({
+            "name": "zero",
             "question": "one",
             "hint": "two",
             "advice": "three"
         })
 
+        assert question.name == "Name zero"
         assert question.question == "Question one"
         assert question.hint == "Hint two"
         assert question.question_advice == "Advice three"
+
+    def test_question_fields_are_templated_on_access_if_filter_wasnt_called(self):
+        question = self.question(
+            name=TemplateField("Name {{ name }}"),
+            question=TemplateField("Question"),
+        )
+
+        with pytest.raises(ContentTemplateError):
+            question.name
+
+        assert question.question == "Question"
 
 
 class TestText(QuestionTest):
@@ -214,6 +238,20 @@ class TestMultiquestion(QuestionTest):
 
     def test_get_question_ids_by_type(self):
         assert self.question().get_question_ids(type='number') == ['example3']
+
+    def test_nested_question_fields_are_templated(self):
+        question = self.question(
+            questions=[{
+                "id": "example2",
+                "type": "text",
+                "question": TemplateField("Question {{ name }}")
+            }]
+        ).filter({
+            "name": "one",
+        })
+
+        assert question.get_question('example2').question == "Question one"
+
 
 
 class TestCheckboxes(QuestionTest):

@@ -1,19 +1,18 @@
 from collections import OrderedDict
 
-from jinja2.sandbox import SandboxedEnvironment
-from jinja2 import StrictUndefined
-
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
+from .utils import TemplateField
 
 
 class Question(object):
     TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
 
-    def __init__(self, data, number=None):
+    def __init__(self, data, number=None, _context=None):
         self.number = number
         self._data = data.copy()
+        self._context = None
 
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
@@ -23,11 +22,7 @@ class Question(object):
             return None
 
         question = ContentQuestion(self._data, number=self.number)
-
-        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        for field in self.TEMPLATE_FIELDS:
-            if field in question._data:
-                question._data[field] = env.from_string(question[field]).render(**context)
+        question._context = context
 
         return question
 
@@ -171,7 +166,11 @@ class Question(object):
 
     def __getattr__(self, key):
         try:
-            return self._data[key]
+            field = self._data[key]
+            if isinstance(field, TemplateField):
+                return field.render(self._context)
+            else:
+                return field
         except KeyError:
             raise AttributeError(key)
 
@@ -193,6 +192,18 @@ class Multiquestion(Question):
 
     def summary(self, service_data):
         return MultiquestionSummary(self, service_data)
+
+    def filter(self, context):
+        multi_question = super(Multiquestion, self).filter(context)
+        if not multi_question:
+            return None
+
+        multi_question.questions = list(filter(None, [
+            question.filter(context)
+            for question in multi_question.questions
+        ]))
+
+        return multi_question
 
     def get_question(self, field_name):
         if self.id == field_name:
