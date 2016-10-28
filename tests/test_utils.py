@@ -57,3 +57,23 @@ class TestTemplateField(object):
         assert field.render(
             {'name': '{{ other }}'}
         ) == u'template {{ other }}'
+
+    def test_fields_are_processed_with_markdown(self):
+        field = TemplateField(u'# Title\n* Hello\n* Markdown')
+
+        assert field.render() == '<h1>Title</h1>\n<ul>\n<li>Hello</li>\n<li>Markdown</li>\n</ul>'
+
+    def test_simple_strings_are_not_wrapped_in_paragraph_tags(self):
+        field = TemplateField(u'Title string')
+
+        assert field.render() == 'Title string'
+
+    def test_jinja_markdown_errors_raise_an_exception(self):
+        with pytest.raises(ContentTemplateError):
+            TemplateField(u'Title:\nnumber {{ number*2*5 }}')
+
+    def test_markdown_characters_in_jinja_tags(self):
+        assert TemplateField(u'Title:\nnumber {{ number._value }}')
+        assert TemplateField(u'Title:\nnumber {{ number["value"] }}')
+        assert TemplateField(u'Title:\nnumber {{ number|join(".") }}')
+        assert TemplateField(u"Title:\n{% if name == 'context' %}template {{ name }}{% endif %}")

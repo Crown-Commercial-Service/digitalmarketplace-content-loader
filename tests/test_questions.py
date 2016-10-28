@@ -253,7 +253,6 @@ class TestMultiquestion(QuestionTest):
         assert question.get_question('example2').question == "Question one"
 
 
-
 class TestCheckboxes(QuestionTest):
     def question(self, **kwargs):
         data = {

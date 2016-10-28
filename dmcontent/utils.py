@@ -1,14 +1,26 @@
-from jinja2 import StrictUndefined, UndefinedError
+from jinja2 import StrictUndefined, UndefinedError, TemplateSyntaxError
 from jinja2.sandbox import SandboxedEnvironment
+from markdown import markdown
 
 from .errors import ContentTemplateError
 
 
 class TemplateField(object):
     def __init__(self, field_value):
-        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
         self._field_value = field_value
-        self.template = env.from_string(field_value)
+        try:
+            self.template = self.make_template(field_value)
+        except TemplateSyntaxError as e:
+            raise ContentTemplateError(e.message)
+
+    def make_template(self, field_value):
+        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+        if '\n' in field_value:
+            template = markdown(field_value, [])
+        else:
+            template = field_value
+
+        return env.from_string(template)
 
     def render(self, context=None):
         try:
