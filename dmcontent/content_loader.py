@@ -9,10 +9,10 @@ import copy
 from collections import defaultdict, OrderedDict
 from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
-from jinja2 import StrictUndefined
+from jinja2 import StrictUndefined, UndefinedError
 from jinja2.sandbox import SandboxedEnvironment
 
-from .errors import ContentNotFoundError, QuestionNotFoundError
+from .errors import ContentNotFoundError, ContentTemplateError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .utils import TemplateField
 
@@ -149,7 +149,7 @@ class ContentSection(object):
             description=None,
             summary_page_description=None,
             step=None,
-            _filtered=False,
+            _context=None,
     ):
         self.id = slug  # TODO deprecated, use `.slug` instead
         self.slug = slug
@@ -160,14 +160,18 @@ class ContentSection(object):
         self.description = description
         self.summary_page_description = summary_page_description
         self.step = step
-        self._filtered = _filtered
+        self._context = _context
 
     def __getattribute__(self, key):
-        filtered = object.__getattribute__(self, '_filtered')
-        if not filtered and key in object.__getattribute__(self, 'TEMPLATE_FIELDS'):
-            raise TypeError("Can't access dynamic attributes without calling .filter")
+        context = object.__getattribute__(self, '_context')
+        field = object.__getattribute__(self, key)
+        if isinstance(field, TemplateField):
+            try:
+                return field.render(context)
+            except UndefinedError as e:
+                raise ContentTemplateError(e.message)
         else:
-            return object.__getattribute__(self, key)
+            return field
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -195,7 +199,7 @@ class ContentSection(object):
             edit_questions=False,
             questions=question.questions,
             description=question.get('hint'),
-            _filtered=self._filtered
+            _context=self._context
         )
 
     def get_field_names(self):
@@ -314,7 +318,7 @@ class ContentSection(object):
 
     def filter(self, context):
         section = self.copy()
-        section._filtered = True
+        section._context = context
 
         filtered_questions = list(filter(None, [
             question.filter(context)
@@ -323,14 +327,6 @@ class ContentSection(object):
 
         if not filtered_questions:
             return None
-
-        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        for section_field in self.TEMPLATE_FIELDS:
-            setattr(
-                section,
-                section_field,
-                section[section_field] and env.from_string(section[section_field]).render(**context)
-            )
 
         section.questions = filtered_questions
 

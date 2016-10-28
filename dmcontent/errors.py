@@ -5,5 +5,9 @@ class ContentNotFoundError(Exception):
     pass
 
 
+class ContentTemplateError(Exception):
+    pass
+
+
 class QuestionNotFoundError(Exception):
     pass
