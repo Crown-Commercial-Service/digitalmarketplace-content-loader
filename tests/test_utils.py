@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+from jinja2 import Markup
 
 from dmcontent.errors import ContentTemplateError
 from dmcontent.utils import TemplateField
@@ -10,6 +11,10 @@ class TestTemplateField(object):
     def test_empty_template(self):
         field = TemplateField('')
         assert field.render() == ''
+
+    def test_template_renders_as_markup(self):
+        field = TemplateField('simple template')
+        assert isinstance(field.render(), Markup)
 
     def test_template_without_template_tags(self):
         field = TemplateField('simple template')

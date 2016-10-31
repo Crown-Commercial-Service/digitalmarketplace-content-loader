@@ -1,4 +1,4 @@
-from jinja2 import StrictUndefined, UndefinedError, TemplateSyntaxError
+from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
 from jinja2.sandbox import SandboxedEnvironment
 from markdown import markdown
 
@@ -24,7 +24,7 @@ class TemplateField(object):
 
     def render(self, context=None):
         try:
-            return self.template.render(context or {})
+            return Markup(self.template.render(context or {}))
         except UndefinedError as e:
             raise ContentTemplateError(e.message)
 
