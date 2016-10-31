@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from jinja2 import Markup
+from jinja2 import Environment, Markup
 
 from dmcontent.errors import ContentTemplateError
 from dmcontent.utils import TemplateField
@@ -82,3 +82,53 @@ class TestTemplateField(object):
         assert TemplateField(u'Title:\nnumber {{ number["value"] }}')
         assert TemplateField(u'Title:\nnumber {{ number|join(".") }}')
         assert TemplateField(u"Title:\n{% if name == 'context' %}template {{ name }}{% endif %}")
+
+
+class TestTemplateFieldsInTemplate(object):
+    def test_html_in_field_variables_is_escaped(self):
+        env = Environment(autoescape=True)
+        template_string = "This is a {{ name }} template"
+        rendered_field = TemplateField(template_string).render({'name': '<em>context</em>'})
+        final_template = env.from_string('{{ rendered_field }}').render({'rendered_field': rendered_field})
+
+        assert final_template == 'This is a &lt;em&gt;context&lt;/em&gt; template'
+
+    def test_html_in_content_is_not_escaped(self):
+        env = Environment(autoescape=True)
+        template_string = "This *is* a {{ name }} <em>template</em>\n"
+        rendered_field = TemplateField(template_string).render({'name': 'context'})
+        final_template = env.from_string('{{ rendered_field }}').render({'rendered_field': rendered_field})
+
+        assert final_template == '<p>This <em>is</em> a context <em>template</em></p>'
+
+    def test_jinja_in_field_variables_is_not_evaluated(self):
+        env = Environment(autoescape=True)
+        template_string = "This is a {{ name }} template"
+        rendered_field = TemplateField(template_string).render({'name': '{{ context }}'})
+        final_template = env.from_string('{{ rendered_field }}').render({'rendered_field': rendered_field})
+
+        assert final_template == 'This is a {{ context }} template'
+
+    def test_html_in_field_variables_is_escaped_with_safe(self):
+        env = Environment(autoescape=True)
+        template_string = "This is a {{ name }} template"
+        rendered_field = TemplateField(template_string).render({'name': '<em>context</em>'})
+        final_template = env.from_string('{{ rendered_field|safe }}').render({'rendered_field': rendered_field})
+
+        assert final_template == 'This is a &lt;em&gt;context&lt;/em&gt; template'
+
+    def test_html_in_content_is_not_escaped_with_safe(self):
+        env = Environment(autoescape=True)
+        template_string = "This *is* a {{ name }} <em>template</em>\n"
+        rendered_field = TemplateField(template_string).render({'name': 'context'})
+        final_template = env.from_string('{{ rendered_field|safe }}').render({'rendered_field': rendered_field})
+
+        assert final_template == '<p>This <em>is</em> a context <em>template</em></p>'
+
+    def test_jinja_in_field_variables_is_not_evaluated_with_safe(self):
+        env = Environment(autoescape=True)
+        template_string = "This is a {{ name }} template"
+        rendered_field = TemplateField(template_string).render({'name': '{{ context }}'})
+        final_template = env.from_string('{{ rendered_field|safe }}').render({'rendered_field': rendered_field})
+
+        assert final_template == 'This is a {{ context }} template'
