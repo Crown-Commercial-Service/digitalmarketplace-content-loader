@@ -167,12 +167,13 @@ class Question(object):
     def __getattr__(self, key):
         try:
             field = self._data[key]
-            if isinstance(field, TemplateField):
-                return field.render(self._context)
-            else:
-                return field
         except KeyError:
             raise AttributeError(key)
+
+        if isinstance(field, TemplateField):
+            return field.render(self._context)
+        else:
+            return field
 
     def __getitem__(self, key):
         return getattr(self, key)
@@ -286,6 +287,7 @@ class QuestionSummary(Question):
         self.number = question.number
         self._data = question._data
         self._service_data = service_data
+        self._context = question._context
 
         if question.get('boolean_list_questions'):
             self.boolean_list_questions = question.boolean_list_questions
