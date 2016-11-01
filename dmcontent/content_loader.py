@@ -404,7 +404,7 @@ class ContentLoader(object):
 
     def get_question(self, framework_slug, question_set, question):
         if question in self._questions.get(framework_slug, {}).get(question_set, {}):
-            return
+            return self._questions[framework_slug][question_set][question].copy()
 
         try:
             questions_path = self._questions_path(framework_slug, question_set)
