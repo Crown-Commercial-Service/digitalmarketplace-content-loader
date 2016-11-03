@@ -1,6 +1,9 @@
+import collections
+
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
 from jinja2.sandbox import SandboxedEnvironment
 from markdown import markdown
+from six import string_types
 
 from .errors import ContentTemplateError
 
@@ -35,3 +38,17 @@ class TemplateField(object):
 
     def __repr__(self):
         return '<{0.__class__.__name__}: "{0._field_value}">'.format(self)
+
+
+def template_all(item):
+    if isinstance(item, string_types):
+        return TemplateField(item)
+    elif isinstance(item, collections.Sequence):
+        return [template_all(i) for i in item]
+    elif isinstance(item, collections.Mapping):
+        result = {}
+        for (key, val) in item.items():
+            result[key] = template_all(val)
+        return result
+    else:
+        return item

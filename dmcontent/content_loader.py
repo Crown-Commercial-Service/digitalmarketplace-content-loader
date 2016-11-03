@@ -12,7 +12,8 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
-from .utils import TemplateField
+from .messages import ContentMessage
+from .utils import TemplateField, template_all
 
 
 class ContentManifest(object):
@@ -423,7 +424,7 @@ class ContentLoader(object):
 
         return self._questions[framework_slug][question_set][question].copy()
 
-    def get_message(self, framework_slug, block, key=None, sub_key=None):
+    def get_message(self, framework_slug, block, key=None):
         """
         `block` corresponds to
           - a file in the frameworks directory
@@ -438,12 +439,13 @@ class ContentLoader(object):
             raise ContentNotFoundError(
                 "Message file at {} not loaded".format(self._message_path(framework_slug, block))
             )
-        if key is not None:
-            return self._messages[framework_slug][block].get(
-                self._message_key(key, sub_key), None
-            )
+
+        message = ContentMessage(self._messages[framework_slug][block])
+
+        if key is None:
+            return message
         else:
-            return self._messages[framework_slug][block]
+            return message.get(key, None)
 
     def load_messages(self, framework_slug, blocks):
         if not isinstance(blocks, list):
@@ -451,13 +453,14 @@ class ContentLoader(object):
 
         for block in blocks:
             try:
-                self._messages[framework_slug][block] = read_yaml(
-                    self._message_path(framework_slug, block)
-                )
+                self._messages[framework_slug][block] = self._load_message(framework_slug, block)
             except IOError:
                 raise ContentNotFoundError(
                     "No message file at {}".format(self._message_path(framework_slug, block))
                 )
+
+    def _load_message(self, framework_slug, message_name):
+        return template_all(read_yaml(self._message_path(framework_slug, message_name)))
 
     def _root_path(self, framework_slug):
         return os.path.join(self.content_path, 'frameworks', framework_slug)
@@ -478,12 +481,6 @@ class ContentLoader(object):
                 section_or_question['slug'] = _make_slug(section_or_question['name'])
 
         return section_or_question
-
-    def _message_key(self, framework_status, supplier_status):
-        return '{}{}'.format(
-            framework_status,
-            '-{}'.format(supplier_status) if supplier_status else ''
-        )
 
 
 def _load_question(question, directory):

@@ -23,6 +23,9 @@ These are the fields that are turned into TemplateFields when the YAML files are
 |-----------------------------------|----------------------------------------------------|
 | [`name`, `description`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/content_loader.py#L123) | [`question`, `name`, `question_advice`, `hint`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/questions.py#L10) |
 
+In addition, all string fields (including fields in lists and nested dictionaries) in content
+messages are turned into TemplateFields.
+
 [ContentTemplateError](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/errors.py#L8)s are raised if a TemplateField is accessed (ie, [rendered](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/content_loader.py#L166-L167)) without
 the variables it needs.  Although we don't have a way to verify that every templated
 field gets all of the variables it expects in every case (we would only know
@@ -31,6 +34,8 @@ HTML and jinja logic is escaped before it is presented to the user.
 
 Nothing that is currently working will break with this update, so the example
 below shows how a previously static field can now be given a variable.
+
+This change also removes support for the unused `sub_key` argument to `ContentLoader.get_message`.
 
 ### Example app change
 

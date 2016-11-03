@@ -8,7 +8,7 @@ import io
 
 from dmcontent.utils import TemplateField
 from dmcontent.content_loader import (
-    ContentLoader, ContentSection, ContentQuestion, ContentManifest,
+    ContentLoader, ContentSection, ContentManifest, ContentMessage,
     read_yaml, ContentNotFoundError, QuestionNotFoundError, _make_slug
 )
 
@@ -1659,51 +1659,58 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') != q1
 
-    def test_message_key_format(self, mock_read_yaml):
-        messages = ContentLoader('content/')
-
-        assert messages._message_key(
-            'coming', 'submitted'
-        ) == 'coming-submitted'
-
-        assert messages._message_key(
-            'coming', None
-        ) == 'coming'
-
-        # frameworks must have a state
-        with pytest.raises(TypeError):
-            messages._message_key()
-
     def test_get_message(self, mock_read_yaml):
+        mock_read_yaml.return_value = {
+            'field_one': 'value_one',
+            'field_two': 'value_two',
+        }
+        messages = ContentLoader('content/')
+        messages.load_messages('g-cloud-7', ['index'])
+
+        assert messages.get_message('g-cloud-7', 'index') == ContentMessage({
+            'field_one': TemplateField('value_one'),
+            'field_two': TemplateField('value_two'),
+        })
+
+        assert messages.get_message('g-cloud-7', 'index').field_one == 'value_one'
+
+    def test_get_message_with_key(self, mock_read_yaml):
+        mock_read_yaml.return_value = {
+            'field_one': 'value_one',
+            'field_two': 'value_two',
+        }
+        messages = ContentLoader('content/')
+        messages.load_messages('g-cloud-7', ['index'])
+
+        assert messages.get_message('g-cloud-7', 'index', 'field_one') == 'value_one'
+
+    def test_load_message_wraps_nested_fields_with_template_field(self, mock_read_yaml):
 
         mock_read_yaml.return_value = {
             'coming': {
                 'heading': 'G-Cloud 7 is coming',
-                'message': 'Get ready'
+                'messages': ['Get ready', 'Other message'],
+                'status': {
+                    'open': 'open message',
+                    'closed': u'closed message'
+                }
             }
         }
         messages = ContentLoader('content/')
         messages.load_messages('g-cloud-7', ['index'])
 
-        assert messages.get_message('g-cloud-7', 'index', 'coming') == {
-            'heading': 'G-Cloud 7 is coming',
-            'message': 'Get ready'
-        }
-        mock_read_yaml.assert_called_with('content/frameworks/g-cloud-7/messages/index.yml')
+        assert messages.get_message('g-cloud-7', 'index') == ContentMessage({
+            'coming': {
+                'heading': TemplateField('G-Cloud 7 is coming'),
+                'messages': [TemplateField('Get ready'), TemplateField('Other message')],
+                'status': {
+                    'open': TemplateField('open message'),
+                    'closed': TemplateField('closed message')
+                }
+            }
+        })
 
-    def test_get_message_with_no_key(self, mock_read_yaml):
-        mock_read_yaml.return_value = {
-            'field_one': 'value_one',
-            'field_two': 'value_two',
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-7', ['index'])
-
-        assert messages.get_message('g-cloud-7', 'index') == {
-            'field_one': 'value_one',
-            'field_two': 'value_two',
-        }
-        assert messages.get_message('g-cloud-7', 'index', 'field_one') == 'value_one'
+        assert messages.get_message('g-cloud-7', 'index').coming.messages[0] == 'Get ready'
 
     def test_load_message_argument_types(self, mock_read_yaml):
 
@@ -1713,36 +1720,6 @@ class TestContentLoader(object):
         with pytest.raises(TypeError):
             messages.load_messages('g-cloud-7', 'index')  # blocks argument must be a list
 
-    def test_get_message_non_existant_state(self, mock_read_yaml):
-
-        mock_read_yaml.return_value = {
-            'coming': {
-                'heading': 'G-Cloud 7 is coming',
-                'message': 'This message won’t be looked for'
-            }
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-7', ['index'])
-
-        assert messages.get_message('g-cloud-7', 'index', 'open') is None
-
-    def test_get_message_with_supplier_status(self, mock_read_yaml):
-
-        mock_read_yaml.return_value = {
-            'open-registered_interest': {
-                'heading': 'G-Cloud 8 is open',
-                'message': 'You have registered interest'
-            }
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-8', ['index'])
-
-        assert messages.get_message('g-cloud-8', 'index', 'open', 'registered_interest') == {
-            'heading': 'G-Cloud 8 is open',
-            'message': 'You have registered interest'
-        }
-        mock_read_yaml.assert_called_with('content/frameworks/g-cloud-8/messages/index.yml')
-
     def test_get_message_must_preload(self, mock_read_yaml):
 
         mock_read_yaml.return_value = {}
@@ -1750,15 +1727,15 @@ class TestContentLoader(object):
         messages.load_messages('g-cloud-8', ['index'])
 
         with pytest.raises(ContentNotFoundError):
-            messages.get_message('g-cloud-8', 'dashboard', 'open')
+            messages.get_message('g-cloud-8', 'dashboard')
             mock_read_yaml.assert_not_called()
 
     def test_caching_of_messages(self, mock_read_yaml):
 
         messages = ContentLoader('content/')
         messages.load_messages('g-cloud-7', ['index'])
-        messages.get_message('g-cloud-7', 'index', 'coming')
-        messages.get_message('g-cloud-7', 'index', 'coming')
+        messages.get_message('g-cloud-7', 'index').get('coming')
+        messages.get_message('g-cloud-7', 'index').get('coming')
 
         mock_read_yaml.assert_called_once_with('content/frameworks/g-cloud-7/messages/index.yml')
 
