@@ -4,13 +4,16 @@ import yaml
 import inflection
 import re
 import os
+import copy
+
 from collections import defaultdict, OrderedDict
 from functools import partial
-from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
-from .questions import ContentQuestion
+from .questions import Question, ContentQuestion
+from .messages import ContentMessage
+from .utils import TemplateField, template_all
 
 
 class ContentManifest(object):
@@ -91,14 +94,14 @@ class ContentManifest(object):
     def get_next_editable_section_id(self, section_id=None):
         return self.get_next_section_id(section_id, True)
 
-    def filter(self, service_data):
+    def filter(self, context):
         """Return a new :class:`ContentManifest` filtered by service data
 
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
         sections = filter(None, [
-            section.filter(service_data)
+            section.filter(context)
             for section in self.sections
         ])
 
@@ -118,6 +121,8 @@ class ContentManifest(object):
 
 
 class ContentSection(object):
+    TEMPLATE_FIELDS = ['name', 'description']
+
     @classmethod
     def create(cls, section):
         if isinstance(section, ContentSection):
@@ -142,7 +147,8 @@ class ContentSection(object):
             questions,
             description=None,
             summary_page_description=None,
-            step=None
+            step=None,
+            _context=None,
     ):
         self.id = slug  # TODO deprecated, use `.slug` instead
         self.slug = slug
@@ -150,30 +156,27 @@ class ContentSection(object):
         self.editable = editable
         self.edit_questions = edit_questions
         self.questions = questions
-        self._description = description
+        self.description = description
         self.summary_page_description = summary_page_description
         self.step = step
+        self._context = _context
+
+    def __getattribute__(self, key):
+        context = object.__getattribute__(self, '_context')
+        field = object.__getattribute__(self, key)
+        if isinstance(field, TemplateField):
+            return field.render(context)
+        else:
+            return field
 
     def __getitem__(self, key):
         return getattr(self, key)
 
     def copy(self):
         return ContentSection(
-            slug=self.slug,
-            name=self.name,
-            editable=self.editable,
-            edit_questions=self.edit_questions,
-            questions=self.questions[:],
-            description=self._description,
-            summary_page_description=self.summary_page_description,
-            step=self.step)
-
-    @property
-    def description(self):
-        if isinstance(self._description, string_types) or self._description is None:
-            return self._description
-        else:
-            raise TypeError('_description is not a string or not None')
+            **{key: copy.copy(value)
+               for key, value in object.__getattribute__(self, '__dict__').items()
+               if key not in ['id']})
 
     def summary(self, service_data):
         summary_section = self.copy()
@@ -191,7 +194,8 @@ class ContentSection(object):
             editable=self.edit_questions,
             edit_questions=False,
             questions=question.questions,
-            description=question.get('hint')
+            description=question.get('hint'),
+            _context=self._context
         )
 
     def get_field_names(self):
@@ -308,42 +312,21 @@ class ContentSection(object):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
 
-    def filter(self, service_data):
+    def filter(self, context):
         section = self.copy()
+        section._context = context
 
-        filtered_questions = [
-            question for question in section.questions
-            if self._question_should_be_shown(
-                question.get("depends"), service_data
-            )
-        ]
+        filtered_questions = list(filter(None, [
+            question.filter(context)
+            for question in self.questions
+        ]))
 
-        # Filter description by lot
-        if isinstance(self._description, dict) and service_data.get('lot'):
-            if self._description.get(service_data['lot']):
-                filtered_description = self._description.get(service_data['lot'])
-            elif self._description.get('default'):
-                filtered_description = self._description.get('default')
-            else:
-                raise KeyError
-
-            section._description = filtered_description
-
-        if len(filtered_questions):
-            section.questions = filtered_questions
-            return section
-        else:
+        if not filtered_questions:
             return None
 
-    def _question_should_be_shown(self, dependencies, service_data):
-        if dependencies is None:
-            return True
-        for depends in dependencies:
-            if not depends["on"] in service_data:
-                return False
-            if not service_data[depends["on"]] in depends["being"]:
-                return False
-        return True
+        section.questions = filtered_questions
+
+        return section
 
     # Type checking
 
@@ -387,8 +370,6 @@ class ContentLoader(object):
 
     def get_manifest(self, framework_slug, manifest):
         try:
-            if framework_slug not in self._content:
-                raise KeyError
             manifest = self._content[framework_slug][manifest]
         except KeyError:
             raise ContentNotFoundError("Content not found for {} and {}".format(framework_slug, manifest))
@@ -398,41 +379,52 @@ class ContentLoader(object):
     get_builder = get_manifest  # TODO remove once apps have switched to .get_manifest
 
     def load_manifest(self, framework_slug, question_set, manifest):
-        if manifest not in self._content[framework_slug]:
-            try:
-                manifest_path = self._manifest_path(framework_slug, manifest)
-                manifest_sections = read_yaml(manifest_path)
-            except IOError:
-                raise ContentNotFoundError("No manifest at {}".format(manifest_path))
+        if manifest in self._content[framework_slug]:
+            return
 
-            self._content[framework_slug][manifest] = [
-                self._load_nested_questions(framework_slug, question_set, section) for section in manifest_sections
-            ]
+        try:
+            manifest_path = os.path.join(self._root_path(framework_slug), 'manifests', '{}.yml'.format(manifest))
+            manifest_sections = read_yaml(manifest_path)
+        except IOError:
+            raise ContentNotFoundError("No manifest at {}".format(manifest_path))
+
+        self._content[framework_slug][manifest] = [
+            self._process_section(framework_slug, question_set, section) for section in manifest_sections
+        ]
 
         return self._content[framework_slug][manifest]
 
-    def _has_question(self, framework_slug, question_set, question):
-        if framework_slug not in self._questions:
-            return False
-        if question_set not in self._questions[framework_slug]:
-            return False
+    def _process_section(self, framework_slug, question_set, section):
+        section = self._load_nested_questions(framework_slug, question_set, section)
 
-        return question in self._questions[framework_slug][question_set]
+        for field in ContentSection.TEMPLATE_FIELDS:
+            if field in section:
+                section[field] = TemplateField(section[field])
+
+        return section
 
     def get_question(self, framework_slug, question_set, question):
-        if not self._has_question(framework_slug, question_set, question):
-            try:
-                questions_path = self._questions_path(framework_slug, question_set)
-                self._questions[framework_slug][question_set][question] = self._load_nested_questions(
-                    framework_slug, question_set,
-                    _load_question(question, questions_path)
-                )
-            except IOError:
-                raise ContentNotFoundError("No question {} at {}".format(question, questions_path))
+        if question in self._questions.get(framework_slug, {}).get(question_set, {}):
+            return self._questions[framework_slug][question_set][question].copy()
+
+        try:
+            questions_path = self._questions_path(framework_slug, question_set)
+            question_data = self._load_nested_questions(
+                framework_slug, question_set,
+                _load_question(question, questions_path)
+            )
+        except IOError:
+            raise ContentNotFoundError("No question {} at {}".format(question, questions_path))
+
+        for field in Question.TEMPLATE_FIELDS:
+            if field in question_data:
+                question_data[field] = TemplateField(question_data[field])
+
+        self._questions[framework_slug][question_set][question] = question_data
 
         return self._questions[framework_slug][question_set][question].copy()
 
-    def get_message(self, framework_slug, block, key=None, sub_key=None):
+    def get_message(self, framework_slug, block, key=None):
         """
         `block` corresponds to
           - a file in the frameworks directory
@@ -447,12 +439,13 @@ class ContentLoader(object):
             raise ContentNotFoundError(
                 "Message file at {} not loaded".format(self._message_path(framework_slug, block))
             )
-        if key is not None:
-            return self._messages[framework_slug][block].get(
-                self._message_key(key, sub_key), None
-            )
+
+        message = ContentMessage(self._messages[framework_slug][block])
+
+        if key is None:
+            return message
         else:
-            return self._messages[framework_slug][block]
+            return message.get(key, None)
 
     def load_messages(self, framework_slug, blocks):
         if not isinstance(blocks, list):
@@ -460,22 +453,20 @@ class ContentLoader(object):
 
         for block in blocks:
             try:
-                self._messages[framework_slug][block] = read_yaml(
-                    self._message_path(framework_slug, block)
-                )
+                self._messages[framework_slug][block] = self._load_message(framework_slug, block)
             except IOError:
                 raise ContentNotFoundError(
                     "No message file at {}".format(self._message_path(framework_slug, block))
                 )
+
+    def _load_message(self, framework_slug, message_name):
+        return template_all(read_yaml(self._message_path(framework_slug, message_name)))
 
     def _root_path(self, framework_slug):
         return os.path.join(self.content_path, 'frameworks', framework_slug)
 
     def _questions_path(self, framework_slug, question_set):
         return os.path.join(self._root_path(framework_slug), 'questions', question_set)
-
-    def _manifest_path(self, framework_slug, manifest):
-        return os.path.join(self._root_path(framework_slug), 'manifests', '{}.yml'.format(manifest))
 
     def _message_path(self, framework_slug, message):
         return os.path.join(self._root_path(framework_slug), 'messages', '{}.yml'.format(message))
@@ -490,12 +481,6 @@ class ContentLoader(object):
                 section_or_question['slug'] = _make_slug(section_or_question['name'])
 
         return section_or_question
-
-    def _message_key(self, framework_status, supplier_status):
-        return '{}{}'.format(
-            framework_status,
-            '-{}'.format(supplier_status) if supplier_status else ''
-        )
 
 
 def _load_question(question, directory):
@@ -516,4 +501,4 @@ def _make_slug(name):
 
 def read_yaml(yaml_file):
     with open(yaml_file, "r") as file:
-        return yaml.load(file)
+        return yaml.safe_load(file)

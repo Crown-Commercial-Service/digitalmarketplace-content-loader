@@ -6,8 +6,9 @@ import pytest
 
 import io
 
+from dmcontent.utils import TemplateField
 from dmcontent.content_loader import (
-    ContentLoader, ContentSection, ContentQuestion, ContentManifest,
+    ContentLoader, ContentSection, ContentManifest, ContentMessage,
     read_yaml, ContentNotFoundError, QuestionNotFoundError, _make_slug
 )
 
@@ -628,65 +629,6 @@ class TestContentSection(object):
 
         return section, brief, form
 
-    def test_filtering_a_section_with_a_description_dictionary(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": 'First question'
-            }],
-            "description": {
-                "default": "default description",
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-
-        assert section.filter({"lot": "digital-specialists"}).description == "description just for digital specialists"
-        assert section.filter({"lot": "digital-outcomes"}).description == "description just for digital outcomes"
-        assert section.filter({"lot": "user-research-studios"}).description == "default description"
-
-    def test_filtering_a_section_with_a_description_dictionary_with_no_default_and_unknown_key_raises_error(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [],
-            "description": {
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-        with pytest.raises(KeyError):
-            section.filter({"lot": "user-research-participants"})
-
-    def test_filtering_a_section_with_a_description_string_does_not_affect_the_description(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [{
-                "id": "q1",
-                "question": 'First question'
-            }],
-            "description": "just a string"
-        })
-
-        assert section.filter({"lot": "digital-specialists"}).description == "just a string"
-
-    def test_get_section_description_which_is_dictionary_raises_error(self):
-        section = ContentSection.create({
-            "slug": "first_section",
-            "name": "First section",
-            "questions": [],
-            "description": {
-                "digital-specialists": "description just for digital specialists",
-                "digital-outcomes": "description just for digital outcomes"
-            }
-        })
-
-        with pytest.raises(TypeError):
-            section.description
-
     def test_has_summary_page_if_multiple_questions(self):
         section = ContentSection.create({
             "slug": "first_section",
@@ -712,7 +654,7 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        })
+        }).filter({})
         assert section.has_summary_page is False
 
     def test_has_summary_page_if_single_question_with_description(self):
@@ -725,7 +667,7 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        })
+        }).filter({})
         assert section.has_summary_page is True
 
     def test_get_question_ids(self):
@@ -788,7 +730,7 @@ class TestContentSection(object):
                     }
                 ]
             }]
-        })
+        }).filter({})
 
         question_section = section.get_question_as_section('q0-slug')
         assert question_section.name == "Q0"
@@ -1419,10 +1361,10 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
-            "questions": [],
+            "questions": [{"id": "q1", "question": "Why?", "type": "text"}],
             "description": "This is the first section",
             "summary_page_description": "This is a summary of the first section"
-        })
+        }).filter({})
         assert section.description == "This is the first section"
         assert section.summary_page_description == "This is a summary of the first section"
 
@@ -1540,17 +1482,17 @@ class TestContentLoader(object):
         sections = yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
 
         assert sections == [
-            {'name': 'section1',
+            {'name': TemplateField("section1"),
                 'questions': [
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': 'question1', 'id': 'question1'},
+                     'name': TemplateField('question1'), 'id': 'question1'},
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': 'question2', 'id': 'q2'}],
+                     'name': TemplateField('question2'), 'id': 'q2'}],
                 'slug': 'section1'},
-            {'name': 'section2',
+            {'name': TemplateField('section2'),
              'questions': [
                  {'depends': [{'being': 'IaaS', 'on': 'lot'}],
-                  'name': 'question3', 'id': 'question3'}],
+                  'name': TemplateField('question3'), 'id': 'question3'}],
              'slug': 'section-2'}
         ]
         read_yaml_mock.assert_has_calls([
@@ -1558,6 +1500,16 @@ class TestContentLoader(object):
             mock.call('content/frameworks/framework-slug/questions/question-set/question1.yml'),
             mock.call('content/frameworks/framework-slug/questions/question-set/question2.yml'),
         ])
+
+    def test_manifest_loading_cache(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+
+        assert read_yaml_mock.call_count == 4
 
     def test_manifest_loading_fails_if_manifest_cannot_be_read(self, read_yaml_mock):
         read_yaml_mock.side_effect = IOError
@@ -1585,7 +1537,49 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': 'question1', 'id': 'question1'
+            'name': TemplateField('question1'), 'id': 'question1'
+        }
+        read_yaml_mock.assert_called_with(
+            'content/frameworks/framework-slug/questions/question-set/question1.yml')
+
+    def test_section_templatable_fields(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+
+        yaml_loader = ContentLoader('content/')
+
+        section = yaml_loader._process_section('framework-slug', 'question-set', {
+            "name": "section1",
+            "description": "This is the first section",
+            "editable": True,
+            "questions": []
+        })
+
+        assert section == {
+            "name": TemplateField("section1"),
+            "slug": "section1",
+            "description": TemplateField("This is the first section"),
+            "editable": True,
+            "questions": []
+        }
+
+    def test_get_question_templatable_fields(self, read_yaml_mock):
+        read_yaml_mock.return_value = {
+            "name": "question1",
+            "question": "Question one",
+            "question_advice": "This is the first question",
+            "hint": "100 character limit",
+            "type": "text",
+        }
+
+        yaml_loader = ContentLoader('content/')
+
+        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
+            "id": "question1",
+            "name": TemplateField("question1"),
+            "question": TemplateField("Question one"),
+            "question_advice": TemplateField("This is the first question"),
+            "hint": TemplateField("100 character limit"),
+            "type": "text",
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')
@@ -1597,7 +1591,7 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question2') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': 'question2', 'id': 'q2'
+            'name': TemplateField('question2'), 'id': 'q2'
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question2.yml')
@@ -1611,7 +1605,16 @@ class TestContentLoader(object):
 
         yaml_loader = ContentLoader('content/')
 
-        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1')
+        assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
+            "id": "question1",
+            "slug": "question1",
+            "name": TemplateField("question1"),
+            "type": "multiquestion",
+            "questions": [
+                {"id": "question10", "name": TemplateField("question10"), "type": "text"},
+                {"id": "question20", "name": TemplateField("question20"), "type": "checkboxes"}
+            ]
+        }
 
         read_yaml_mock.assert_has_calls([
             mock.call('content/frameworks/framework-slug/questions/question-set/question1.yml'),
@@ -1666,51 +1669,58 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') != q1
 
-    def test_message_key_format(self, mock_read_yaml):
-        messages = ContentLoader('content/')
-
-        assert messages._message_key(
-            'coming', 'submitted'
-        ) == 'coming-submitted'
-
-        assert messages._message_key(
-            'coming', None
-        ) == 'coming'
-
-        # frameworks must have a state
-        with pytest.raises(TypeError):
-            messages._message_key()
-
     def test_get_message(self, mock_read_yaml):
+        mock_read_yaml.return_value = {
+            'field_one': 'value_one',
+            'field_two': 'value_two',
+        }
+        messages = ContentLoader('content/')
+        messages.load_messages('g-cloud-7', ['index'])
+
+        assert messages.get_message('g-cloud-7', 'index') == ContentMessage({
+            'field_one': TemplateField('value_one'),
+            'field_two': TemplateField('value_two'),
+        })
+
+        assert messages.get_message('g-cloud-7', 'index').field_one == 'value_one'
+
+    def test_get_message_with_key(self, mock_read_yaml):
+        mock_read_yaml.return_value = {
+            'field_one': 'value_one',
+            'field_two': 'value_two',
+        }
+        messages = ContentLoader('content/')
+        messages.load_messages('g-cloud-7', ['index'])
+
+        assert messages.get_message('g-cloud-7', 'index', 'field_one') == 'value_one'
+
+    def test_load_message_wraps_nested_fields_with_template_field(self, mock_read_yaml):
 
         mock_read_yaml.return_value = {
             'coming': {
                 'heading': 'G-Cloud 7 is coming',
-                'message': 'Get ready'
+                'messages': ['Get ready', 'Other message'],
+                'status': {
+                    'open': 'open message',
+                    'closed': u'closed message'
+                }
             }
         }
         messages = ContentLoader('content/')
         messages.load_messages('g-cloud-7', ['index'])
 
-        assert messages.get_message('g-cloud-7', 'index', 'coming') == {
-            'heading': 'G-Cloud 7 is coming',
-            'message': 'Get ready'
-        }
-        mock_read_yaml.assert_called_with('content/frameworks/g-cloud-7/messages/index.yml')
+        assert messages.get_message('g-cloud-7', 'index') == ContentMessage({
+            'coming': {
+                'heading': TemplateField('G-Cloud 7 is coming'),
+                'messages': [TemplateField('Get ready'), TemplateField('Other message')],
+                'status': {
+                    'open': TemplateField('open message'),
+                    'closed': TemplateField('closed message')
+                }
+            }
+        })
 
-    def test_get_message_with_no_key(self, mock_read_yaml):
-        mock_read_yaml.return_value = {
-            'field_one': 'value_one',
-            'field_two': 'value_two',
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-7', ['index'])
-
-        assert messages.get_message('g-cloud-7', 'index') == {
-            'field_one': 'value_one',
-            'field_two': 'value_two',
-        }
-        assert messages.get_message('g-cloud-7', 'index', 'field_one') == 'value_one'
+        assert messages.get_message('g-cloud-7', 'index').coming.messages[0] == 'Get ready'
 
     def test_load_message_argument_types(self, mock_read_yaml):
 
@@ -1720,36 +1730,6 @@ class TestContentLoader(object):
         with pytest.raises(TypeError):
             messages.load_messages('g-cloud-7', 'index')  # blocks argument must be a list
 
-    def test_get_message_non_existant_state(self, mock_read_yaml):
-
-        mock_read_yaml.return_value = {
-            'coming': {
-                'heading': 'G-Cloud 7 is coming',
-                'message': 'This message won’t be looked for'
-            }
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-7', ['index'])
-
-        assert messages.get_message('g-cloud-7', 'index', 'open') is None
-
-    def test_get_message_with_supplier_status(self, mock_read_yaml):
-
-        mock_read_yaml.return_value = {
-            'open-registered_interest': {
-                'heading': 'G-Cloud 8 is open',
-                'message': 'You have registered interest'
-            }
-        }
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-8', ['index'])
-
-        assert messages.get_message('g-cloud-8', 'index', 'open', 'registered_interest') == {
-            'heading': 'G-Cloud 8 is open',
-            'message': 'You have registered interest'
-        }
-        mock_read_yaml.assert_called_with('content/frameworks/g-cloud-8/messages/index.yml')
-
     def test_get_message_must_preload(self, mock_read_yaml):
 
         mock_read_yaml.return_value = {}
@@ -1757,15 +1737,15 @@ class TestContentLoader(object):
         messages.load_messages('g-cloud-8', ['index'])
 
         with pytest.raises(ContentNotFoundError):
-            messages.get_message('g-cloud-8', 'dashboard', 'open')
+            messages.get_message('g-cloud-8', 'dashboard')
             mock_read_yaml.assert_not_called()
 
     def test_caching_of_messages(self, mock_read_yaml):
 
         messages = ContentLoader('content/')
         messages.load_messages('g-cloud-7', ['index'])
-        messages.get_message('g-cloud-7', 'index', 'coming')
-        messages.get_message('g-cloud-7', 'index', 'coming')
+        messages.get_message('g-cloud-7', 'index').get('coming')
+        messages.get_message('g-cloud-7', 'index').get('coming')
 
         mock_read_yaml.assert_called_once_with('content/frameworks/g-cloud-7/messages/index.yml')
 
