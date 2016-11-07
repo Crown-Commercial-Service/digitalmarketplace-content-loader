@@ -1501,6 +1501,16 @@ class TestContentLoader(object):
             mock.call('content/frameworks/framework-slug/questions/question-set/question2.yml'),
         ])
 
+    def test_manifest_loading_cache(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+
+        assert read_yaml_mock.call_count == 4
+
     def test_manifest_loading_fails_if_manifest_cannot_be_read(self, read_yaml_mock):
         read_yaml_mock.side_effect = IOError
 

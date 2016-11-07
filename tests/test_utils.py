@@ -8,6 +8,13 @@ from dmcontent.utils import TemplateField
 
 
 class TestTemplateField(object):
+    def test_template_field_eq(self):
+        assert TemplateField(u'string') == TemplateField(u'string')
+        assert not (TemplateField(u'string') == 'string')
+
+    def test_template_field_repr(self):
+        assert TemplateField(u'string').__repr__()
+
     def test_empty_template(self):
         field = TemplateField('')
         assert field.render() == ''

@@ -11,6 +11,27 @@ class TestContentMessage(object):
 
         assert message.name == 'Name'
 
+    def test_get_missing_field(self):
+        message = ContentMessage({})
+
+        assert message.get('key', 'default') == 'default'
+
+    def test_message_eq(self):
+        message = ContentMessage({"name": "value"})
+
+        assert message == ContentMessage({"name": "value"})
+        assert not (message == {"name": "value"})
+
+    def test_message_get_item(self):
+        message = ContentMessage({"name": "value"})
+
+        assert message['name'] == 'value'
+
+    def test_message_repr(self):
+        message = ContentMessage({"name": "value"})
+
+        assert message.__repr__()
+
     def test_content_message_template_field(self):
         message = ContentMessage({'name': TemplateField("Name")})
 
