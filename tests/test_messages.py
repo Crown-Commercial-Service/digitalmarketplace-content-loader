@@ -56,6 +56,15 @@ class TestContentMessage(object):
 
         assert message.filter({'name': 'Other'}).nested == ['Name', 'Other']
 
+    def test_content_message_list_field_returns_content_messages(self):
+        message = ContentMessage({'nested': [{'name': 'Name'}, {'name': TemplateField('{{ name }}')}]})
+
+        assert message.filter({'name': 'Other'}).nested == [
+            ContentMessage({'name': 'Name'}, {'name': 'Other'}),
+            ContentMessage({'name': TemplateField('{{ name }}')}, {'name': 'Other'})
+        ]
+        assert message.filter({'name': 'Other'}).nested[1].name == 'Other'
+
     def test_nested_content_message_preserves_context(self):
         message = ContentMessage({'nested': {'name': TemplateField('Nested {{ name }}')}})
 

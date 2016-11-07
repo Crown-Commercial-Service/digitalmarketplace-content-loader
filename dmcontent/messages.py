@@ -29,12 +29,15 @@ class ContentMessage(object):
         except KeyError:
             raise AttributeError(key)
 
+        return self._render(field)
+
+    def _render(self, field):
         if isinstance(field, TemplateField):
             return field.render(self._context)
         elif isinstance(field, dict):
             return ContentMessage(field, _context=self._context)
         elif isinstance(field, list):
-            return [i.render(self._context) for i in field]
+            return [self._render(i) for i in field]
         else:
             return field
 
