@@ -9,8 +9,14 @@ from .errors import ContentTemplateError
 
 
 class TemplateField(object):
-    def __init__(self, field_value):
-        self._field_value = field_value
+    def __init__(self, field_value, markdown=None):
+        self.source = field_value
+
+        if markdown is None:
+            self.markdown = '\n' in field_value
+        else:
+            self.markdown = markdown
+
         try:
             self.template = self.make_template(field_value)
         except TemplateSyntaxError as e:
@@ -18,10 +24,7 @@ class TemplateField(object):
 
     def make_template(self, field_value):
         env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        if '\n' in field_value:
-            template = markdown(field_value, [])
-        else:
-            template = field_value
+        template = markdown(field_value, []) if self.markdown else field_value
 
         return env.from_string(template)
 
@@ -34,10 +37,10 @@ class TemplateField(object):
     def __eq__(self, other):
         if not isinstance(other, TemplateField):
             return False
-        return (self._field_value == other._field_value)
+        return (self.source == other.source)
 
     def __repr__(self):
-        return '<{0.__class__.__name__}: "{0._field_value}">'.format(self)
+        return '<{0.__class__.__name__}: "{0.source}">'.format(self)
 
 
 def template_all(item):

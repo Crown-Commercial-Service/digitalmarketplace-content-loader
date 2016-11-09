@@ -2,4 +2,4 @@ from .content_loader import ContentLoader
 from .errors import ContentTemplateError, QuestionNotFoundError
 from .questions import ContentQuestion
 
-__version__ = '2.0.1'
+__version__ = '2.1.0'
