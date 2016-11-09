@@ -19,6 +19,10 @@ class TestTemplateField(object):
         field = TemplateField('')
         assert field.render() == ''
 
+    def test_template_field_with_force_markdown(self):
+        field = TemplateField('Hello *world*', markdown=True)
+        assert field.render() == '<p>Hello <em>world</em></p>'
+
     def test_template_renders_as_markup(self):
         field = TemplateField('simple template')
         assert isinstance(field.render(), Markup)
