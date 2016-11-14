@@ -12,7 +12,7 @@ class Question(object):
     def __init__(self, data, number=None, _context=None):
         self.number = number
         self._data = data.copy()
-        self._context = None
+        self._context = _context
 
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
@@ -236,6 +236,42 @@ class Multiquestion(Question):
         return [question.id for question in self.questions if type in [question.type, None]]
 
 
+class DynamicList(Multiquestion):
+
+    def __init__(self, data, *args, **kwargs):
+        super(DynamicList, self).__init__(data, *args, **kwargs)
+
+        self.type = 'multiquestion'
+
+    def filter(self, context):
+        dynamic_list = super(Multiquestion, self).filter(context)
+        if not dynamic_list:
+            return None
+
+        # dynamic_field: 'brief.essentialRequirements'
+        dynamic_questions = context
+        for key in self.dynamic_field.split('.'):
+            dynamic_questions = dynamic_questions[key]
+
+        # dynamic_questions = ['1', '2', '3']
+
+        dynamic_list.questions = list(filter(None, [
+            self._make_dynamic_question(question, item, index)
+            for index, item in enumerate(dynamic_questions)
+            for question in dynamic_list.questions
+        ]))
+
+        return dynamic_list
+
+    def _make_dynamic_question(self, question, item, index):
+        question = question.filter({'item': item})
+        question._data['id'] = '{}-{}'.format(question.id, index)
+        if question.get('followup'):
+            question._data['followup'] = '{}-{}'.format(question.followup, index)
+
+        return question
+
+
 class Pricing(Question):
     def __init__(self, data, *args, **kwargs):
         super(Pricing, self).__init__(data, *args, **kwargs)
@@ -417,6 +453,7 @@ class ListSummary(QuestionSummary, List):
 
 
 QUESTION_TYPES = {
+    'dynamic_list': DynamicList,
     'multiquestion': Multiquestion,
     'pricing': Pricing,
     'list': List,
