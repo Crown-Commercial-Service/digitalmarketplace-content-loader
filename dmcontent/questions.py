@@ -253,8 +253,6 @@ class DynamicList(Multiquestion):
         for key in self.dynamic_field.split('.'):
             dynamic_questions = dynamic_questions[key]
 
-        # dynamic_questions = ['1', '2', '3']
-
         dynamic_list.questions = list(filter(None, [
             self._make_dynamic_question(question, item, index)
             for index, item in enumerate(dynamic_questions)
@@ -262,6 +260,48 @@ class DynamicList(Multiquestion):
         ]))
 
         return dynamic_list
+
+    def get_data(self, form_data):
+        """
+        # IN
+        {
+            "respondToEmailAddress": "paul@paul.paul",
+            "yesno-0": "true",
+            "yesno-1": "false",
+            "evidence-0": "Yes, I did.",
+            "evidence-1": ""
+        }
+
+        # OUT
+        {
+            "dynamicListKey":
+            [{
+                "yesno": True,
+                "evidence": "Yes, I did."
+            },
+            {
+                "yesno": False
+            }]
+        }
+        """
+
+        q_data = {}
+        for question in self.questions:
+            q_data.update(question.get_data(form_data))
+        answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
+        if not len(answers):
+            return {self.id: []}
+
+        questions_data = [{} for i in range(1 + (answers[-1][0]))]
+        for index, question, value in answers:
+            if value is not None:
+                questions_data[index][question] = value
+
+        return {self.id: questions_data}
+
+    @property
+    def form_fields(self):
+        return [self.id]
 
     def _make_dynamic_question(self, question, item, index):
         question = question.filter({'item': item})
