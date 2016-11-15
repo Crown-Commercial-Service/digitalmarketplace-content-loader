@@ -299,9 +299,32 @@ class DynamicList(Multiquestion):
 
         return {self.id: questions_data}
 
+    def get_error_messages(self, errors):
+        if self.id not in errors:
+            return {}
+
+        question_errors = {}
+        for error in errors[self.id]:
+            if 'field' in error:
+                input_name = '{}-{}'.format(error['field'], error['index'])
+            else:
+                input_name = self.id
+
+            question = self.get_question(input_name)
+            question_errors[input_name] = {
+                'input_name': input_name,
+                'question': question.label,
+                'message':  question.get_error_message(error['error']),
+            }
+
+        return question_errors
+
     @property
     def form_fields(self):
         return [self.id]
+
+    def summary(self, service_data):
+        return DynamicListSummary(self, service_data)
 
     def _make_dynamic_question(self, question, item, index):
         question = question.filter({'item': item})
@@ -452,6 +475,10 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
             return False
 
         return any(question.answer_required for question in self.questions)
+
+
+class DynamicListSummary(MultiquestionSummary, DynamicList):
+    pass
 
 
 class PricingSummary(QuestionSummary, Pricing):
