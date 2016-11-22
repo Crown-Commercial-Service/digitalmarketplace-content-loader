@@ -240,8 +240,7 @@ class DynamicList(Multiquestion):
 
     def __init__(self, data, *args, **kwargs):
         super(DynamicList, self).__init__(data, *args, **kwargs)
-
-        self.type = 'multiquestion'
+        self.type = 'multiquestion' # same UI components as Multiquestion
 
     def filter(self, context):
         dynamic_list = super(Multiquestion, self).filter(context)
