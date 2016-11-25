@@ -287,9 +287,13 @@ class DynamicList(Multiquestion):
         q_data = {}
         for question in self.questions:
             q_data.update(question.get_data(form_data))
-        answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
-        if not len(answers):
+
+        if not q_data:
             return {self.id: []}
+        elif self._context is None:
+            raise ValueError("DynamicList question requires correct .filter context to parse form data")
+
+        answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 
         questions_data = [{} for i in range(1 + (answers[-1][0]))]
         for index, question, value in answers:
