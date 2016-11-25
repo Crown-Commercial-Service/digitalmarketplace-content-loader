@@ -9,16 +9,15 @@ from dmcontent import ContentTemplateError
 
 
 class QuestionTest(object):
-    _default_context = {}
+    default_context = {}
 
-    def _get_context(self, context={}):
+    def context(self, context=None):
         """
         Update the provided context (if any) with the default context for this test.
-        Override _default_context when testing question types that must have additional
+        Override default_context when testing question types that must have additional
         context injected in the 'filter' call.
         """
-        context.update(self._default_context)
-        return context
+        return dict(context or {}, **self.default_context)
 
     def test_get_question(self):
         question = self.question()
@@ -51,17 +50,17 @@ class QuestionTest(object):
 
     def test_question_filter_without_dependencies(self):
         question = self.question()
-        assert question.filter(self._get_context()) is not None
-        assert question.filter(self._get_context()) is not question
+        assert question.filter(self.context()) is not None
+        assert question.filter(self.context()) is not question
 
     def test_question_filter_with_dependencies_that_match(self):
         question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self._get_context({"lot": "lot-1"})) is not None
-        assert question.filter(self._get_context({"lot": "lot-1"})) is not question
+        assert question.filter(self.context({"lot": "lot-1"})) is not None
+        assert question.filter(self.context({"lot": "lot-1"})) is not question
 
     def test_question_filter_with_dependencies_that_are_not_matched(self):
         question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self._get_context({"lot": "lot-2"})) is None
+        assert question.filter(self.context({"lot": "lot-2"})) is None
 
     def test_question_without_template_tags_are_unchanged(self):
         question = self.question(
@@ -69,7 +68,7 @@ class QuestionTest(object):
             question=TemplateField("Question"),
             hint=TemplateField("Hint"),
             question_advice=TemplateField("Advice")
-        ).filter(self._get_context())
+        ).filter(self.context())
 
         assert question.name == "Name"
         assert question.question == "Question"
@@ -82,7 +81,7 @@ class QuestionTest(object):
             question=TemplateField("Question {{ question }}"),
             hint=TemplateField("Hint {{ hint }}"),
             question_advice=TemplateField("Advice {{ advice }}")
-        ).filter(self._get_context({
+        ).filter(self.context({
             "name": "zero",
             "question": "one",
             "hint": "two",
@@ -257,7 +256,7 @@ class TestMultiquestion(QuestionTest):
                 "type": "text",
                 "question": TemplateField("Question {{ name }}")
             }]
-        ).filter(self._get_context({
+        ).filter(self.context({
             "name": "one",
         }))
 
@@ -265,20 +264,24 @@ class TestMultiquestion(QuestionTest):
 
 
 class TestDynamicListQuestion(QuestionTest):
-    _default_context = {'someplace': {'somequestion': ['First Need', 'Second Need', 'Third Need'], }}
+    default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need']}}
 
     def question(self, **kwargs):
         data = {
             "id": "example",
             "type": "dynamic_list",
-            "dynamic_field": "someplace.somequestion",
+            "question": "Dynamic list",
+            "dynamic_field": "context.field",
             "questions": [
                 {
                     "id": "example2",
+                    "question": TemplateField("{{ item }}-2"),
                     "type": "text",
+                    "followup": "example3"
                 },
                 {
                     "id": "example3",
+                    "question": TemplateField("{{ item }}-3"),
                     "type": "number",
                 }
             ]
@@ -298,14 +301,12 @@ class TestDynamicListQuestion(QuestionTest):
 
     def test_get_data_malformed_submission_no_context_applied(self):
         question = self.question()  # no context applied
-        # TODO this one currently throws - should either be a better exception or should behave as below?
-        assert question.get_data(
-            {'example2': 'value2', 'example3': 'value3'}
-        ) == {'example': []}
+        with pytest.raises(ValueError):
+            question.get_data({'example2': 'value2', 'example3': 'value3'})
 
     def test_get_data(self):
         # must "filter" to apply context as without it, borkedness
-        question = self.question().filter(self._get_context())
+        question = self.question().filter(self.context())
         assert question.get_data(
             {'example2-0': 'First Need example2 response', 'example2-2': 'Third Need example2 response'}
         ) == {
@@ -320,6 +321,34 @@ class TestDynamicListQuestion(QuestionTest):
                     'example2': 'Third Need example2 response'
                 }
             ]
+        }
+
+    def test_get_error_messages_unknown_key(self):
+        question = self.question().filter(self.context())
+        assert question.get_error_messages({'example1': 'answer_required'}) == {}
+
+    def test_get_error_messages(self):
+        question = self.question().filter(self.context())
+        assert question.get_error_messages({'example': [
+            {'field': 'example2', 'index': 0, 'error': 'answer_required'},
+            {'field': 'example3', 'index': 0, 'error': 'answer_required'},
+            {'index': 1, 'error': 'answer_required'}
+        ]}) == {
+            'example': {
+                'input_name': 'example',
+                'message': 'There was a problem with the answer to this question',
+                'question': 'Dynamic list'
+            },
+            'example2-0': {
+                'input_name': 'example2-0',
+                'message': 'There was a problem with the answer to this question',
+                'question': u'First Need-2'
+            },
+            'example3-0': {
+                'input_name': 'example3-0',
+                'message': 'There was a problem with the answer to this question',
+                'question': u'First Need-3'
+            }
         }
 
 
@@ -608,3 +637,32 @@ class TestMultiquestionSummary(QuestionSummaryTest):
     def test_is_empty_partial(self):
         question = self.question().summary({'example2': 'value2'})
         assert not question.is_empty
+
+
+class TestDynamicListSummary(QuestionSummaryTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "dynamic_list",
+            "question": "Dynamic list",
+            "dynamic_field": "context.field",
+            "questions": [
+                {
+                    "id": "example2",
+                    "question": TemplateField("{{ item }}-2"),
+                    "type": "text",
+                },
+                {
+                    "id": "example3",
+                    "question": TemplateField("{{ item }}-3"),
+                    "type": "number",
+                }
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data).filter({'context': {'field': ['First Need', 'Second Need', 'Third Need']}})
+
+    def test_value_missing(self):
+        question = self.question().summary({})
+        assert question.value == []
