@@ -111,6 +111,9 @@ class Question(object):
 
         return question_errors
 
+    def unformat_data(self, data):
+        return data
+
     def get_error_message(self, message_key, field_name=None):
         """Return a single error message.
 
@@ -301,6 +304,47 @@ class DynamicList(Multiquestion):
                 questions_data[index][question] = value
 
         return {self.id: questions_data}
+
+    def unformat_data(self, data):
+        """ Unpack service data to be used in a form
+
+        :param data: the service data as returned from the data API
+        :type data: dict
+        :return: service data with unpacked dynamic list question
+
+        # IN
+        {
+            "dynamicListKey": [
+                {
+                    "yesno": True,
+                    "evidence": "Yes, I did."
+                },
+                {
+                    "yesno": False
+                }
+            ],
+            "nonDynamicListKey": 'other data'
+        }
+
+        # OUT
+        {
+            "yesno-0": True,
+            "yesno-1": False,
+            "evidence-0": "Yes, I did."
+            "nonDynamicListKey": 'other data'
+        }
+        """
+        result = {}
+        for key in data:
+            if key == self.id:
+                for question in self.questions:
+                    # For each question e.g. evidence-0, find if data exists for it and insert it into our result
+                    root, index = question.id.split('-')
+                    if data[self.id][int(index)].get(root):
+                        result[question.id] = data[self.id][int(index)].get(root)
+            else:
+                result[key] = data[key]
+        return result
 
     def get_error_messages(self, errors):
         if self.id not in errors:
