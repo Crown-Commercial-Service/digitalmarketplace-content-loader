@@ -323,6 +323,26 @@ class TestDynamicListQuestion(QuestionTest):
             ]
         }
 
+    def test_unformat_data(self):
+        # must "filter" to apply context as without it, borkedness
+        question = self.question().filter(self.context())
+        data = {
+            "example": [
+                {'example2': 'First Need example 2 response', 'example3': 'my follow up'},
+                {},
+                {'example2': 'Third Need example2 response'}
+            ],
+            "nonDynamicKey": 'data'
+        }
+        expected = {
+            "example2-0": 'First Need example 2 response',
+            "example3-0": 'my follow up',
+            "example2-2": 'Third Need example2 response',
+            "nonDynamicKey": 'data'
+        }
+
+        assert question.unformat_data(data) == expected
+
     def test_get_error_messages_unknown_key(self):
         question = self.question().filter(self.context())
         assert question.get_error_messages({'example1': 'answer_required'}) == {}
