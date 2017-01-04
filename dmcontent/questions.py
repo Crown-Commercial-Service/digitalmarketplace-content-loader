@@ -350,7 +350,12 @@ class DynamicList(Multiquestion):
         if self.id not in errors:
             return {}
 
-        question_errors = {}
+        # Assumes errors being passed in are ordered by 'index' key e.g.
+        # {'example': [
+        #     {'index': 0, 'error': 'answer_required'}
+        #     {'index': 1, 'error': 'answer_required'}
+        # ]}
+        question_errors = OrderedDict()
         for error in errors[self.id]:
             if 'field' in error:
                 input_name = '{}-{}'.format(error['field'], error['index'])

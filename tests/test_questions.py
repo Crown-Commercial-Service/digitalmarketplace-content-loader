@@ -1,4 +1,5 @@
 # coding=utf-8
+from collections import OrderedDict
 
 import pytest
 
@@ -349,27 +350,30 @@ class TestDynamicListQuestion(QuestionTest):
 
     def test_get_error_messages(self):
         question = self.question().filter(self.context())
-        assert question.get_error_messages({'example': [
+        ordered_dict = question.get_error_messages({'example': [
             {'field': 'example2', 'index': 0, 'error': 'answer_required'},
             {'field': 'example3', 'index': 0, 'error': 'answer_required'},
             {'index': 1, 'error': 'answer_required'}
-        ]}) == {
-            'example': {
-                'input_name': 'example',
-                'message': 'There was a problem with the answer to this question',
-                'question': 'Dynamic list'
-            },
-            'example2-0': {
+        ]})
+
+        errors = list(ordered_dict.items())
+        assert errors == [
+            ('example2-0', {
                 'input_name': 'example2-0',
                 'message': 'There was a problem with the answer to this question',
                 'question': u'First Need-2'
-            },
-            'example3-0': {
+            }),
+            ('example3-0', {
                 'input_name': 'example3-0',
                 'message': 'There was a problem with the answer to this question',
                 'question': u'First Need-3'
-            }
-        }
+            }),
+            ('example', {
+                'input_name': 'example',
+                'message': 'There was a problem with the answer to this question',
+                'question': 'Dynamic list'
+            })
+        ]
 
 
 class TestCheckboxes(QuestionTest):
