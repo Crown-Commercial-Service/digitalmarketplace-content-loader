@@ -275,15 +275,15 @@ class TestDynamicListQuestion(QuestionTest):
             "dynamic_field": "context.field",
             "questions": [
                 {
-                    "id": "example2",
-                    "question": TemplateField("{{ item }}-2"),
-                    "type": "text",
-                    "followup": "example3"
+                    "id": "yesno",
+                    "question": TemplateField("{{ item }}-yesno"),
+                    "type": "boolean",
+                    "followup": "evidence"
                 },
                 {
-                    "id": "example3",
-                    "question": TemplateField("{{ item }}-3"),
-                    "type": "number",
+                    "id": "evidence",
+                    "question": TemplateField("{{ item }}-evidence"),
+                    "type": "text",
                 }
             ]
         }
@@ -303,23 +303,24 @@ class TestDynamicListQuestion(QuestionTest):
     def test_get_data_malformed_submission_no_context_applied(self):
         question = self.question()  # no context applied
         with pytest.raises(ValueError):
-            question.get_data({'example2': 'value2', 'example3': 'value3'})
+            question.get_data({'yesno': True, 'evidence': 'example evidence'})
 
     def test_get_data(self):
         # must "filter" to apply context as without it, borkedness
         question = self.question().filter(self.context())
         assert question.get_data(
-            {'example2-0': 'First Need example2 response', 'example2-2': 'Third Need example2 response'}
+            {'yesno-0': True, 'evidence-0': 'some evidence', 'yesno-2': False}
         ) == {
             'example': [
                 {
-                    'example2': 'First Need example2 response'
+                    'yesno': True,
+                    'evidence': 'some evidence'
                 },
                 {
                     # missing second example (index 1) on purpose
                 },
                 {
-                    'example2': 'Third Need example2 response'
+                    'yesno': False
                 }
             ]
         }
@@ -329,16 +330,16 @@ class TestDynamicListQuestion(QuestionTest):
         question = self.question().filter(self.context())
         data = {
             "example": [
-                {'example2': 'First Need example 2 response', 'example3': 'my follow up'},
+                {'yesno': True, 'evidence': 'my evidence'},
                 {},
-                {'example2': 'Third Need example2 response'}
+                {'yesno': False}
             ],
             "nonDynamicKey": 'data'
         }
         expected = {
-            "example2-0": 'First Need example 2 response',
-            "example3-0": 'my follow up',
-            "example2-2": 'Third Need example2 response',
+            "yesno-0": True,
+            "evidence-0": 'my evidence',
+            "yesno-2": False,
             "nonDynamicKey": 'data'
         }
 
@@ -351,22 +352,22 @@ class TestDynamicListQuestion(QuestionTest):
     def test_get_error_messages(self):
         question = self.question().filter(self.context())
         ordered_dict = question.get_error_messages({'example': [
-            {'field': 'example2', 'index': 0, 'error': 'answer_required'},
-            {'field': 'example3', 'index': 0, 'error': 'answer_required'},
+            {'field': 'yesno', 'index': 0, 'error': 'answer_required'},
+            {'field': 'evidence', 'index': 0, 'error': 'answer_required'},
             {'index': 1, 'error': 'answer_required'}
         ]})
 
         errors = list(ordered_dict.items())
         assert errors == [
-            ('example2-0', {
-                'input_name': 'example2-0',
+            ('yesno-0', {
+                'input_name': 'yesno-0',
                 'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-2'
+                'question': u'First Need-yesno'
             }),
-            ('example3-0', {
-                'input_name': 'example3-0',
+            ('evidence-0', {
+                'input_name': 'evidence-0',
                 'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-3'
+                'question': u'First Need-evidence'
             }),
             ('example', {
                 'input_name': 'example',
