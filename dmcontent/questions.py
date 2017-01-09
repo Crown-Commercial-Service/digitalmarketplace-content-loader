@@ -340,7 +340,7 @@ class DynamicList(Multiquestion):
                 for question in self.questions:
                     # For each question e.g. evidence-0, find if data exists for it and insert it into our result
                     root, index = question.id.split('-')
-                    if data[self.id][int(index)].get(root):
+                    if root in data[self.id][int(index)]:
                         result[question.id] = data[self.id][int(index)].get(root)
             else:
                 result[key] = data[key]
