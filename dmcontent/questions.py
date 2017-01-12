@@ -133,6 +133,13 @@ class Question(object):
         return self.get('name') or self.question
 
     @property
+    def short_name(self):
+        try:
+            return self.__getattr__('short_name')
+        except AttributeError:
+            return self.label
+
+    @property
     def form_fields(self):
         return [self.id]
 

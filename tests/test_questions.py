@@ -46,6 +46,15 @@ class QuestionTest(object):
     def test_label_name_and_question(self):
         assert self.question(name='name', question='question').label == 'name'
 
+    def test_short_name(self):
+        assert self.question(short_name='foo', name='bar').short_name == 'foo'
+
+    def test_short_name_fallback(self):
+        assert self.question(name='bar', question='baz').short_name == 'bar'
+
+    def test_short_name_fallback_2(self):
+        assert self.question(question='baz').short_name == 'baz'
+
     def test_question_repr(self):
         assert 'data=' in repr(self.question())
 
