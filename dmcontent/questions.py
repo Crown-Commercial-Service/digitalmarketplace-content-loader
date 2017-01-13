@@ -270,8 +270,10 @@ class DynamicList(Multiquestion):
             "respondToEmailAddress": "paul@paul.paul",
             "yesno-0": "true",
             "yesno-1": "false",
+            "yesno-2": "false",
             "evidence-0": "Yes, I did.",
             "evidence-1": ""
+            "evidence-2": "to be removed"
         }
 
         # OUT
@@ -280,6 +282,9 @@ class DynamicList(Multiquestion):
             [{
                 "yesno": True,
                 "evidence": "Yes, I did."
+            },
+            {
+                "yesno": False
             },
             {
                 "yesno": False
@@ -295,6 +300,12 @@ class DynamicList(Multiquestion):
             return {self.id: []}
         elif self._context is None:
             raise ValueError("DynamicList question requires correct .filter context to parse form data")
+
+        # Remove any follow up answer if the question that requires followup has been answered `False`
+        for question in self.questions:
+            if question.get('followup'):
+                if q_data.get(question.id) is False:
+                    q_data.pop(question.followup, None)
 
         answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 
