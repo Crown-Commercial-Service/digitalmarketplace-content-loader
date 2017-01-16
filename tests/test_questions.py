@@ -265,7 +265,7 @@ class TestMultiquestion(QuestionTest):
 
 
 class TestDynamicListQuestion(QuestionTest):
-    default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need']}}
+    default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
 
     def question(self, **kwargs):
         data = {
@@ -308,8 +308,13 @@ class TestDynamicListQuestion(QuestionTest):
     def test_get_data(self):
         # must "filter" to apply context as without it, borkedness
         question = self.question().filter(self.context())
-        assert question.get_data(
-            {'yesno-0': True, 'evidence-0': 'some evidence', 'yesno-2': False}
+        assert question.get_data({
+            'yesno-0': True,
+            'evidence-0': 'some evidence',
+            'yesno-2': False,
+            'yesno-3': False,
+            'evidence-3': 'should be removed'
+        }
         ) == {
             'example': [
                 {
@@ -318,6 +323,9 @@ class TestDynamicListQuestion(QuestionTest):
                 },
                 {
                     # missing second example (index 1) on purpose
+                },
+                {
+                    'yesno': False
                 },
                 {
                     'yesno': False
@@ -332,7 +340,8 @@ class TestDynamicListQuestion(QuestionTest):
             "example": [
                 {'yesno': True, 'evidence': 'my evidence'},
                 {},
-                {'yesno': False}
+                {'yesno': False},
+                {}
             ],
             "nonDynamicKey": 'data'
         }
