@@ -750,6 +750,49 @@ class TestContentSection(object):
         })
         assert section.get_next_question_id() is None
 
+    def test_get_previous_question_id(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "name": "First section",
+            "questions": [{
+                "id": "first_question",
+                "question": "Boolean question",
+                "type": "boolean",
+            }, {
+                "id": "second_question",
+                "question": "Multi question",
+                "type": "multiquestion",
+                "questions": [
+                    {
+                        "id": "multiquestion-1",
+                        "type": "text"
+                    },
+                    {
+                        "id": "multiquestion-2",
+                        "type": "text"
+                    }
+                ]
+            }, {
+                "id": "third_question",
+                "question": "Text question",
+                "type": "text",
+            }]
+        })
+
+        assert section.get_previous_question_id("first_question") is None
+        assert section.get_previous_question_id("second_question") == "first_question"
+        assert section.get_previous_question_id("third_question") == "second_question"
+        assert section.get_previous_question_id("does_not_exist") is None
+        assert section.get_previous_question_id(None) is None
+
+    def test_get_previous_question_id_for_section_with_no_questions_returns_none(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "name": "First section",
+            "questions": []
+        })
+        assert section.get_previous_question_id(None) is None
+
     def test_get_question_as_section(self):
         section = ContentSection.create({
             "slug": "first_section",

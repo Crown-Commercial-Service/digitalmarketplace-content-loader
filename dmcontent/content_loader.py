@@ -232,6 +232,23 @@ class ContentSection(object):
 
         return None
 
+    def get_previous_question_id(self, question_id):
+        """Return the previous question id
+
+        If first question_id provided will return `None`
+        If question id does not exist in self.questions will return `None`
+        Will ignore any questions that are questions attributed to a multiquestion
+        """
+        return_next_questions_id = False
+        for question in reversed(self.questions):
+            if return_next_questions_id:
+                return question.id
+
+            if question.id == question_id:
+                return_next_questions_id = True
+
+        return None
+
     def get_data(self, form_data):
         """Extract data for a section from a submitted form
 
