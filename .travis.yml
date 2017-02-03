@@ -4,7 +4,6 @@ python:
   - "3.4"
 install:
   - pip install -r requirements_for_test.txt
-  - pip install -e .
 script:
   - PYTEST_ARGS='--cov=dmcontent --cov-report=term-missing' make test
 after_success:
