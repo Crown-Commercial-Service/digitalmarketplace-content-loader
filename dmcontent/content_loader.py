@@ -188,12 +188,24 @@ class ContentSection(object):
         question = self.get_question_by_slug(question_slug)
         if not question:
             return None
+
+        if question.get('questions'):  # multiquestion
+            return ContentSection(
+                slug=question.slug,
+                name=question.label,
+                editable=self.edit_questions,
+                edit_questions=False,
+                questions=question.questions,
+                description=question.get('hint'),
+                _context=self._context
+            )
+
         return ContentSection(
             slug=question.slug,
             name=question.label,
-            editable=self.edit_questions,
-            edit_questions=False,
-            questions=question.questions,
+            editable=self.editable,
+            edit_questions=self.edit_questions,
+            questions=[question],
             description=question.get('hint'),
             _context=self._context
         )
@@ -246,6 +258,41 @@ class ContentSection(object):
 
             if question.id == question_id:
                 return_next_questions_id = True
+
+        return None
+
+    def get_next_question_slug(self, question_slug=None):
+        """Return the next question slug
+
+        If no question_slug provided will return the first question
+        If last question slug provided will return `None`
+        Will ignore any questions that are questions attributed to a multiquestion
+        """
+        return_next_questions_slug = question_slug is None
+
+        for question in self.questions:
+            if return_next_questions_slug:
+                return question.slug
+
+            if question.slug == question_slug:
+                return_next_questions_slug = True
+
+        return None
+
+    def get_previous_question_slug(self, question_slug):
+        """Return the previous question slug
+
+        If first question_slug provided will return `None`
+        If question slug does not exist in self.questions will return `None`
+        Will ignore any questions that are questions attributed to a multiquestion
+        """
+        return_next_questions_slug = False
+        for question in reversed(self.questions):
+            if return_next_questions_slug:
+                return question.slug
+
+            if question.slug == question_slug:
+                return_next_questions_slug = True
 
         return None
 
@@ -514,6 +561,10 @@ class ContentLoader(object):
             ]
             if not section_or_question.get('slug'):
                 section_or_question['slug'] = _make_slug(section_or_question['name'])
+
+        else:
+            if not section_or_question.get('slug'):
+                section_or_question['slug'] = _make_slug(section_or_question['id'])
 
         return section_or_question
 
