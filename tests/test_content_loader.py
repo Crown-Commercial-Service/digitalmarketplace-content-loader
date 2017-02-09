@@ -922,16 +922,17 @@ class TestContentSection(object):
     def test_get_non_multiquestion_question_as_section(self):
         section = ContentSection.create({
             "slug": "first_section",
-            "edit_questions": False,
+            "edit_questions": True,
             "name": "First section",
-            "questions": [{"id": "q1", "slug": "q1-slug", "question": "Q1", "hint": "Some description"},
-                          {"id": "q2", "slug": "q2-slug", "question": "Q2", "hint": "Some description"}]
+            "questions": [{"id": "q1", "type": "text", "slug": "q1-slug", "question": "Q1", "hint": "Some description"},
+                          {"id": "q2", "type": "text", "slug": "q2-slug", "question": "Q2", "hint": "Some description"}]
         }).filter({})
 
         question_section = section.get_question_as_section('q1-slug')
         assert question_section.slug == "q1-slug"
         assert question_section.description == "Some description"
-        assert question_section.editable == section.editable
+        assert question_section.editable == section.edit_questions
+        assert question_section.edit_questions is False
 
     def test_get_question_as_section_missing_question(self):
         section = ContentSection.create({

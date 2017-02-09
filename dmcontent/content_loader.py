@@ -189,23 +189,12 @@ class ContentSection(object):
         if not question:
             return None
 
-        if question.get('questions'):  # multiquestion
-            return ContentSection(
-                slug=question.slug,
-                name=question.label,
-                editable=self.edit_questions,
-                edit_questions=False,
-                questions=question.questions,
-                description=question.get('hint'),
-                _context=self._context
-            )
-
         return ContentSection(
             slug=question.slug,
             name=question.label,
-            editable=self.editable,
-            edit_questions=self.edit_questions,
-            questions=[question],
+            editable=self.edit_questions,
+            edit_questions=False,
+            questions=question.get('questions', [question]),
             description=question.get('hint'),
             _context=self._context
         )
