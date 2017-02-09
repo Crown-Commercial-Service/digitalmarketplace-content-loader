@@ -793,10 +793,106 @@ class TestContentSection(object):
         })
         assert section.get_previous_question_id(None) is None
 
-    def test_get_question_as_section(self):
+    def test_get_next_question_slug(self):
         section = ContentSection.create({
             "slug": "first_section",
-            "edit_questions": False,
+            "name": "First section",
+            "questions": [{
+                "id": "first_question",
+                "slug": "first_question_slug",
+                "question": "Boolean question",
+                "type": "boolean",
+            }, {
+                "id": "second_question",
+                "slug": "second_question_slug",
+                "question": "Multi question",
+                "type": "multiquestion",
+                "questions": [
+                    {
+                        "id": "multiquestion-1",
+                        "slug": "multiquestion_1_slug",
+                        "type": "text"
+                    },
+                    {
+                        "id": "multiquestion-2",
+                        "slug": "multiquestion_2_slug",
+                        "type": "text"
+                    }
+                ]
+            }, {
+                "id": "third_question",
+                "slug": "third_question_slug",
+                "question": "Text question",
+                "type": "text",
+            }]
+        })
+
+        assert section.get_next_question_slug() == "first_question_slug"
+        assert section.get_next_question_slug("first_question_slug") == "second_question_slug"
+        assert section.get_next_question_slug("second_question_slug") == "third_question_slug"
+        assert section.get_next_question_slug("third_question_slug") is None
+
+    def test_get_next_question_slug_for_section_with_no_questions_returns_none(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "name": "First section",
+            "questions": []
+        })
+        assert section.get_next_question_slug() is None
+
+    def test_get_previous_question_slug(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "name": "First section",
+            "questions": [{
+                "id": "first_question",
+                "slug": "first_question_slug",
+                "question": "Boolean question",
+                "type": "boolean",
+            }, {
+                "id": "second_question",
+                "slug": "second_question_slug",
+                "question": "Multi question",
+                "type": "multiquestion",
+                "questions": [
+                    {
+                        "id": "multiquestion-1",
+                        "slug": "multiquestion_1_slug",
+                        "type": "text"
+                    },
+                    {
+                        "id": "multiquestion-2",
+                        "slug": "multiquestion_2_slug",
+                        "type": "text"
+                    }
+                ]
+            }, {
+                "id": "third_question",
+                "slug": "third_question_slug",
+                "question": "Text question",
+                "type": "text",
+            }]
+        })
+
+        assert section.get_previous_question_slug("first_question_slug") is None
+        assert section.get_previous_question_slug("second_question_slug") == "first_question_slug"
+        assert section.get_previous_question_slug("third_question_slug") == "second_question_slug"
+        assert section.get_previous_question_slug("does_not_exist") is None
+        assert section.get_previous_question_slug(None) is None
+
+    def test_get_previous_question_slug_for_section_with_no_questions_returns_none(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "name": "First section",
+            "questions": []
+        })
+        assert section.get_previous_question_slug(None) is None
+
+    def test_get_multiquestion_as_section(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "edit_questions": True,
+            "editable": True,
             "name": "First section",
             "questions": [{
                 "id": "q0",
@@ -822,6 +918,21 @@ class TestContentSection(object):
         assert question_section.description == "Some description"
         assert question_section.editable == section.edit_questions
         assert question_section.get_question_ids() == ['q2', 'q3']
+
+    def test_get_non_multiquestion_question_as_section(self):
+        section = ContentSection.create({
+            "slug": "first_section",
+            "edit_questions": True,
+            "name": "First section",
+            "questions": [{"id": "q1", "type": "text", "slug": "q1-slug", "question": "Q1", "hint": "Some description"},
+                          {"id": "q2", "type": "text", "slug": "q2-slug", "question": "Q2", "hint": "Some description"}]
+        }).filter({})
+
+        question_section = section.get_question_as_section('q1-slug')
+        assert question_section.slug == "q1-slug"
+        assert question_section.description == "Some description"
+        assert question_section.editable == section.edit_questions
+        assert question_section.edit_questions is False
 
     def test_get_question_as_section_missing_question(self):
         section = ContentSection.create({
@@ -1570,14 +1681,14 @@ class TestContentLoader(object):
             {'name': TemplateField("section1"),
                 'questions': [
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': TemplateField('question1'), 'id': 'question1'},
+                     'name': TemplateField('question1'), 'slug': 'question1', 'id': 'question1'},
                     {'depends': [{'being': 'SaaS', 'on': 'lot'}],
-                     'name': TemplateField('question2'), 'id': 'q2'}],
+                     'name': TemplateField('question2'), 'slug': 'q2', 'id': 'q2'}],
                 'slug': 'section1'},
             {'name': TemplateField('section2'),
              'questions': [
                  {'depends': [{'being': 'IaaS', 'on': 'lot'}],
-                  'name': TemplateField('question3'), 'id': 'question3'}],
+                  'name': TemplateField('question3'), 'slug': 'question3', 'id': 'question3'}],
              'slug': 'section-2'}
         ]
         read_yaml_mock.assert_has_calls([
@@ -1622,7 +1733,7 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': TemplateField('question1'), 'id': 'question1'
+            'name': TemplateField('question1'), 'slug': 'question1', 'id': 'question1'
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')
@@ -1661,6 +1772,7 @@ class TestContentLoader(object):
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question1') == {
             "id": "question1",
             "name": TemplateField("question1"),
+            "slug": "question1",
             "question": TemplateField("Question one"),
             "question_advice": TemplateField("This is the first question"),
             "hint": TemplateField("100 character limit"),
@@ -1676,7 +1788,7 @@ class TestContentLoader(object):
 
         assert yaml_loader.get_question('framework-slug', 'question-set', 'question2') == {
             'depends': [{'being': 'SaaS', 'on': 'lot'}],
-            'name': TemplateField('question2'), 'id': 'q2'
+            'name': TemplateField('question2'), 'id': 'q2', 'slug': 'q2'
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question2.yml')
@@ -1696,8 +1808,9 @@ class TestContentLoader(object):
             "name": TemplateField("question1"),
             "type": "multiquestion",
             "questions": [
-                {"id": "question10", "name": TemplateField("question10"), "type": "text"},
-                {"id": "question20", "name": TemplateField("question20"), "type": "checkboxes"}
+                {"id": "question10", "name": TemplateField("question10"), "slug": "question10", "type": "text"},
+                {"id": "question20", "name": TemplateField("question20"), "slug": "question20",
+                 "type": "checkboxes"}
             ]
         }
 
