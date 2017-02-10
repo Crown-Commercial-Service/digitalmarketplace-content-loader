@@ -12,6 +12,7 @@ class TestFilterContentSection(object):
             slug='section',
             name=TemplateField('Section'),
             description=TemplateField('just a string'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -19,11 +20,13 @@ class TestFilterContentSection(object):
 
         assert section.filter({}).name == 'Section'
         assert section.filter({}).description == 'just a string'
+        assert section.filter({}).prefill is True
 
     def test_question_fields_without_template_tags_are_unchanged(self):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({'name': 'Question'})]
@@ -35,6 +38,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='# {{ section }}',
             name=TemplateField('Section'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -46,6 +50,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -58,6 +63,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -69,6 +75,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -80,6 +87,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({})],
@@ -92,6 +100,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({})]
@@ -103,6 +112,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('{% if True %}Section one{% else %}Section two{% endif %}'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Question({})],
@@ -121,6 +131,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({'name': 'Question'})]
@@ -129,6 +140,8 @@ class TestFilterContentSection(object):
 
         copied_section = section.copy()
         assert copied_section._context == section._context
+        assert copied_section.prefill is False
+        assert copied_section.editable is False
 
     def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self):
         multiquestion_data = {
@@ -151,6 +164,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
+            prefill=True,
             editable=False,
             edit_questions=False,
             questions=[Multiquestion(multiquestion_data)]
@@ -165,6 +179,7 @@ class TestFilterContentSection(object):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
+            prefill=False,
             editable=False,
             edit_questions=False,
             questions=[Question({})],

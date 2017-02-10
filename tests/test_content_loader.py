@@ -633,6 +633,7 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
+            "prefill": False,
             "questions": [{
                 "id": "q1",
                 "question": "Boolean question",
@@ -844,6 +845,7 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
+            "prefill": False,
             "questions": [{
                 "id": "first_question",
                 "slug": "first_question_slug",
@@ -891,6 +893,7 @@ class TestContentSection(object):
     def test_get_multiquestion_as_section(self):
         section = ContentSection.create({
             "slug": "first_section",
+            "prefill": True,
             "edit_questions": True,
             "editable": True,
             "name": "First section",
@@ -916,6 +919,7 @@ class TestContentSection(object):
         question_section = section.get_question_as_section('q0-slug')
         assert question_section.name == "Q0"
         assert question_section.description == "Some description"
+        assert question_section.prefill is True
         assert question_section.editable == section.edit_questions
         assert question_section.get_question_ids() == ['q2', 'q3']
 
@@ -931,6 +935,7 @@ class TestContentSection(object):
         question_section = section.get_question_as_section('q1-slug')
         assert question_section.slug == "q1-slug"
         assert question_section.description == "Some description"
+        assert question_section.prefill is None
         assert question_section.editable == section.edit_questions
         assert question_section.edit_questions is False
 
@@ -1375,6 +1380,7 @@ class TestContentSection(object):
         section = ContentSection.create({
             "slug": "second_section",
             "name": "Second section",
+            "prefill": True,
             "questions": [{
                 "id": "q2",
                 "question": "Second question",
@@ -1658,7 +1664,7 @@ class TestContentLoader(object):
     def manifest1(self):
         return [
             {"name": "section1", "questions": ["question1", "question2"]},
-            {"name": "section2", "slug": "section-2", "questions": ["question3"]}
+            {"name": "section2", "slug": "section-2", "prefill": True, "questions": ["question3"]}
         ]
 
     def question1(self):
@@ -1686,6 +1692,7 @@ class TestContentLoader(object):
                      'name': TemplateField('question2'), 'slug': 'q2', 'id': 'q2'}],
                 'slug': 'section1'},
             {'name': TemplateField('section2'),
+             'prefill': True,
              'questions': [
                  {'depends': [{'being': 'IaaS', 'on': 'lot'}],
                   'name': TemplateField('question3'), 'slug': 'question3', 'id': 'question3'}],
@@ -1746,6 +1753,7 @@ class TestContentLoader(object):
         section = yaml_loader._process_section('framework-slug', 'question-set', {
             "name": "section1",
             "description": "This is the first section",
+            "prefill": False,
             "editable": True,
             "questions": []
         })
@@ -1754,6 +1762,7 @@ class TestContentLoader(object):
             "name": TemplateField("section1"),
             "slug": "section1",
             "description": TemplateField("This is the first section"),
+            "prefill": False,
             "editable": True,
             "questions": []
         }
