@@ -1,5 +1,4 @@
-from collections import OrderedDict, defaultdict
-
+from collections import OrderedDict, defaultdict, namedtuple
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
@@ -480,6 +479,87 @@ class List(Question):
         return ListSummary(self, service_data)
 
 
+class Taxonomy(List):
+    """
+    For our purposes, a Taxonomy is like a List, except the entries
+    are potentially related to each other in a "subsumptive
+    containment hierarchy". Every service that is a member of a
+    child category is _by definition_ also a member of its parent
+    category as well, and we can add those parent categories as a
+    denormalization to make searching more efficient.
+    """
+
+    def __init__(self, data, *args, **kwargs):
+        super(Taxonomy, self).__init__(data, *args, **kwargs)
+        self._options = None  # lazy-load
+
+    def _get_data(self, form_data):
+        if self.id not in form_data:
+            return {self.id: None}
+
+        value_list = form_data.getlist(self.id)
+        value_list.extend(self._get_missing_values(value_list))
+        return {self.id: value_list or None}
+
+    def summary(self, service_data):
+        return ListSummary(self, service_data)
+
+    def _get_missing_values(self, selected_values):
+        """
+        Recursively retrieves un-selected parent categories of the
+        passed-in selection, as a set of 'value' strings.
+        :param selected_values: initially-selected categories (e.g. by the user)
+        :return: additional values that should also be selected
+        """
+        selected_values_set = set(selected_values)
+        missing_values_set = set()
+
+        for selected_value in selected_values:
+            selected_or_ancestor_node = self._options_tree.index[selected_value]
+            while selected_or_ancestor_node is not None:
+                if selected_or_ancestor_node.value is not None \
+                        and selected_or_ancestor_node.value not in selected_values_set:
+                    missing_values_set.add(selected_or_ancestor_node.value)
+                selected_or_ancestor_node = selected_or_ancestor_node.parent
+
+        return missing_values_set
+
+    @property
+    def _options_tree(self):
+        """
+        :return: named tuple where 'root' is a HierarchicalOption and 'index' is a dict mapping values to
+        HierarchicalOption nodes within the tree
+        """
+        if self._options is None:
+            index = dict()
+            self._options = _RootNodeAndIndex(
+                HierarchicalOption(index, self._data.get('options', [])),
+                index
+            )
+        return self._options
+
+
+_RootNodeAndIndex = namedtuple('RootNodeAndIndex', ('root', 'index'))
+
+
+class HierarchicalOption(object):
+    def __init__(self, index_by_value, options_list, value=None, label=None, parent=None):
+        """ Load up from dict structure in framework def. """
+        self.children = list()
+        self.value = value
+        self.parent = parent
+
+        for option in options_list:
+            new_node = HierarchicalOption(
+                index_by_value,
+                option.get('options', []),
+                option.get('value'),
+                option.get('label'),
+                self)
+            index_by_value[new_node.value] = new_node
+            self.children.append(new_node)
+
+
 class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
@@ -624,6 +704,7 @@ QUESTION_TYPES = {
     'pricing': Pricing,
     'list': List,
     'checkboxes': List,
+    'checkbox_tree': Taxonomy,
 }
 
 
