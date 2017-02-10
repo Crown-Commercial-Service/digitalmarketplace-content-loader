@@ -199,7 +199,7 @@ class ContentSection(object):
             editable=self.edit_questions,
             edit_questions=False,
             questions=question.get('questions', [question]),
-            description=question.get('hint'),
+            description=question.get('hint') if question.get('questions') else '',
             _context=self._context
         )
 
