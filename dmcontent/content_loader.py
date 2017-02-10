@@ -134,7 +134,7 @@ class ContentSection(object):
                 prefill=section.get('prefill'),
                 editable=section.get('editable'),
                 edit_questions=section.get('edit_questions'),
-                questions=[ContentQuestion(question) for question in section['questions']],
+                questions=[ContentQuestion(question) for question in section.get('questions', [])],
                 description=section.get('description'),
                 summary_page_description=section.get('summary_page_description'),
                 step=section.get('step'))
