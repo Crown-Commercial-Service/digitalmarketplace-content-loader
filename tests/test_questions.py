@@ -281,7 +281,7 @@ class TestDynamicListQuestion(QuestionTest):
                     "id": "yesno",
                     "question": TemplateField("{{ item }}-yesno"),
                     "type": "boolean",
-                    "followup": "evidence"
+                    "followup": {"evidence": [True]}
                 },
                 {
                     "id": "evidence",
