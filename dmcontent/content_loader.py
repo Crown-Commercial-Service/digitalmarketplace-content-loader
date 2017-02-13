@@ -131,6 +131,7 @@ class ContentSection(object):
             return ContentSection(
                 slug=section['slug'],
                 name=section['name'],
+                prefill=section.get('prefill'),
                 editable=section.get('editable'),
                 edit_questions=section.get('edit_questions'),
                 questions=[ContentQuestion(question) for question in section['questions']],
@@ -142,6 +143,7 @@ class ContentSection(object):
             self,
             slug,
             name,
+            prefill,
             editable,
             edit_questions,
             questions,
@@ -153,6 +155,7 @@ class ContentSection(object):
         self.id = slug  # TODO deprecated, use `.slug` instead
         self.slug = slug
         self.name = name
+        self.prefill = prefill
         self.editable = editable
         self.edit_questions = edit_questions
         self.questions = questions
@@ -192,6 +195,7 @@ class ContentSection(object):
         return ContentSection(
             slug=question.slug,
             name=question.label,
+            prefill=self.prefill,
             editable=self.edit_questions,
             edit_questions=False,
             questions=question.get('questions', [question]),
