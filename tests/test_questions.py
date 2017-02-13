@@ -504,6 +504,60 @@ class TestCheckboxes(QuestionTest):
         ) == {'example': {'assurance': 'assurance value'}}
 
 
+class TestCheckboxTree(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "checkbox_tree",
+            "options": [
+                {
+                    "label": "Parent 1 Label",
+                    "value": "value_1",
+                    "options": [
+                        {
+                            "label": "Child 1.1 Label",
+                            "value": "value_1_1",
+                        },
+                        {
+                            "label": "Child 1.2 Label",
+                            "value": "value_1_2",
+                        },
+                    ]
+                },
+                {
+                    "label": "Parent 2 Label",
+                    "value": "value_2",
+                    "options": [
+                        {
+                            "label": "Child 2.1 Label",
+                            "value": "value_2_1",
+                        },
+                    ]
+                },
+                {
+                    "label": "Parent 3 Label",
+                    "value": "value_3",
+                },
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data(
+            OrderedMultiDict([('example', 'value_1'), ('example', 'value_2')])
+        ) == {'example': ['value_1', 'value_2']}
+
+    def test_automatic_parent(self):
+        assert set(self.question().get_data(
+            OrderedMultiDict([('example', 'value_1_2'), ('example', 'value_2_1')])
+        ).get('example')) == set(('value_1', 'value_1_2', 'value_2', 'value_2_1', ))
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {'example': None}
+
+
 class QuestionSummaryTest(object):
     def test_value_missing(self):
         question = self.question().summary({})
