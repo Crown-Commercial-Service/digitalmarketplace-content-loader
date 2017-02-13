@@ -479,18 +479,18 @@ class List(Question):
         return ListSummary(self, service_data)
 
 
-class Taxonomy(List):
+class Hierarchy(List):
     """
-    For our purposes, a Taxonomy is like a List, except the entries
+    For our purposes, a Hierarchy is like a List, except the entries
     are potentially related to each other in a "subsumptive
-    containment hierarchy". Every service that is a member of a
-    child category is _by definition_ also a member of its parent
+    containment hierarchy". For example, every service that is a member
+    of a child category is _by definition_ also a member of its parent
     category as well, and we can add those parent categories as a
     denormalization to make searching more efficient.
     """
 
     def __init__(self, data, *args, **kwargs):
-        super(Taxonomy, self).__init__(data, *args, **kwargs)
+        super(Hierarchy, self).__init__(data, *args, **kwargs)
         self._options = None  # lazy-load
 
     def _get_data(self, form_data):
@@ -499,6 +499,7 @@ class Taxonomy(List):
 
         value_list = form_data.getlist(self.id)
         value_list.extend(self._get_missing_values(value_list))
+        value_list.sort()
         return {self.id: value_list or None}
 
     def summary(self, service_data):
@@ -710,7 +711,7 @@ QUESTION_TYPES = {
     'pricing': Pricing,
     'list': List,
     'checkboxes': List,
-    'checkbox_tree': Taxonomy,
+    'checkbox_tree': Hierarchy,
 }
 
 
