@@ -17,7 +17,7 @@ class Question(object):
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
 
-    def filter(self, context):
+    def filter(self, context, static=False):
         if not self._should_be_shown(context):
             return None
 
@@ -208,13 +208,13 @@ class Multiquestion(Question):
     def summary(self, service_data):
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context):
-        multi_question = super(Multiquestion, self).filter(context)
+    def filter(self, context, static=False):
+        multi_question = super(Multiquestion, self).filter(context, static)
         if not multi_question:
             return None
 
         multi_question.questions = list(filter(None, [
-            question.filter(context)
+            question.filter(context, static)
             for question in multi_question.questions
         ]))
 
@@ -256,8 +256,11 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context):
-        dynamic_list = super(Multiquestion, self).filter(context)
+    def filter(self, context, static=False):
+        if static:
+            return super(DynamicList, self).filter(context, static)
+
+        dynamic_list = super(Multiquestion, self).filter(context, static)
         if not dynamic_list:
             return None
 
