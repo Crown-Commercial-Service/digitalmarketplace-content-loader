@@ -527,37 +527,43 @@ class Taxonomy(List):
     @property
     def _options_tree(self):
         """
-        :return: named tuple where 'root' is a HierarchicalOption and 'index' is a dict mapping values to
-        HierarchicalOption nodes within the tree
+        :return: an IndexedTree i.e. an index-by-value and a root node
         """
+
         if self._options is None:
-            index = dict()
-            self._options = _RootNodeAndIndex(
-                HierarchicalOption(index, self._data.get('options', [])),
-                index
-            )
+            def _load_tree_node_from_dict(tree, options_list, value=None, label=None, parent=None):
+                node = tree.add_node(value, label, parent)
+                for option in options_list:
+                    child_node = _load_tree_node_from_dict(
+                        tree,
+                        option.get('options', []),
+                        option.get('value'),
+                        option.get('label'),
+                        node)
+                    node.children.append(child_node)
+                return node
+
+            self._options = IndexedTree(_load_tree_node_from_dict, self._data.get('options', []))
         return self._options
 
 
-_RootNodeAndIndex = namedtuple('RootNodeAndIndex', ('root', 'index'))
+class IndexedTree(object):
+    def __init__(self, create_node_callback, *args, **kwargs):
+        self.index = dict()
+        self.root = create_node_callback(self, *args, **kwargs)
+
+    def add_node(self, value, label, parent):
+        node = TreeNode(value, label, parent)
+        self.index[value] = node
+        return node
 
 
-class HierarchicalOption(object):
-    def __init__(self, index_by_value, options_list, value=None, label=None, parent=None):
-        """ Load up from dict structure in framework def. """
+class TreeNode(object):
+    def __init__(self, value=None, label=None, parent=None):
         self.children = list()
         self.value = value
+        self.label = label
         self.parent = parent
-
-        for option in options_list:
-            new_node = HierarchicalOption(
-                index_by_value,
-                option.get('options', []),
-                option.get('value'),
-                option.get('label'),
-                self)
-            index_by_value[new_node.value] = new_node
-            self.children.append(new_node)
 
 
 class QuestionSummary(Question):
