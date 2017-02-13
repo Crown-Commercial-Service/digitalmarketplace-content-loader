@@ -40,7 +40,10 @@ class TemplateField(object):
         return (self.source == other.source)
 
     def __repr__(self):
-        return '<{0.__class__.__name__}: "{0.source}">'.format(self)
+        return '<{}: "{}">'.format(
+            self.__class__.__name__,
+            self.source.encode('utf-8')
+        )
 
 
 def template_all(item):
