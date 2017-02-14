@@ -1998,6 +1998,7 @@ class TestContentLoader(object):
     ("The Title", "the-title"),
     ("This\nAnd\tThat ", "this-and-that"),
     ("This&That?", "this-that"),
+    (u"This\u00a0That\u202f", "this-that"),
 ])
 def test_make_slug(title, slug):
     assert _make_slug(title) == slug
