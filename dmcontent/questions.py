@@ -1,4 +1,4 @@
-from collections import OrderedDict, defaultdict, namedtuple
+from collections import OrderedDict, defaultdict
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
@@ -497,31 +497,31 @@ class Hierarchy(List):
         if self.id not in form_data:
             return {self.id: None}
 
-        value_list = form_data.getlist(self.id)
-        value_list.extend(self.get_missing_values(value_list))
-        value_list.sort()
-        return {self.id: value_list or None}
+        values = set(form_data.getlist(self.id))
+        values.update(self.get_missing_values(values))
+
+        return {self.id: sorted(values) or None}
 
     def summary(self, service_data):
         return HierarchySummary(self, service_data)
 
-    def get_missing_values(self, selected_values):
+    def get_missing_values(self, selected_values_set):
         """
         Recursively retrieves un-selected parent categories of the
         passed-in selection, as a set of 'value' strings.
-        :param selected_values: initially-selected categories (e.g. by the user)
+        :param selected_values_set: initially-selected categories (e.g. by the user)
         :return: additional values that should also be selected
         """
-        selected_values_set = set(selected_values)
         missing_values_set = set()
 
-        for selected_value in selected_values:
-            selected_or_ancestor_node = self._options_tree.index[selected_value]
-            while selected_or_ancestor_node is not None:
-                if selected_or_ancestor_node.value is not None \
-                        and selected_or_ancestor_node.value not in selected_values_set:
-                    missing_values_set.add(selected_or_ancestor_node.value)
-                selected_or_ancestor_node = selected_or_ancestor_node.parent
+        for selected_value in selected_values_set:
+            nodes_with_selected_value = self._options_tree.index[selected_value]
+            for selected_or_ancestor_node in nodes_with_selected_value:
+                while selected_or_ancestor_node is not None:
+                    if selected_or_ancestor_node.value is not None \
+                            and selected_or_ancestor_node.value not in selected_values_set:
+                        missing_values_set.add(selected_or_ancestor_node.value)
+                    selected_or_ancestor_node = selected_or_ancestor_node.parent
 
         return missing_values_set
 
@@ -550,12 +550,14 @@ class Hierarchy(List):
 
 class IndexedTree(object):
     def __init__(self, create_node_callback, *args, **kwargs):
-        self.index = dict()
+        # Maintain an index where key is the value of a node;
+        # Because several nodes in the tree may share the same value, point to a list.
+        self.index = defaultdict(list)
         self.root = create_node_callback(self, *args, **kwargs)
 
     def add_node(self, value, label, parent):
         node = TreeNode(value, label, parent)
-        self.index[value] = node
+        self.index[value].append(node)
         return node
 
 
