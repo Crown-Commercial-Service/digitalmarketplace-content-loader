@@ -498,14 +498,14 @@ class Hierarchy(List):
             return {self.id: None}
 
         value_list = form_data.getlist(self.id)
-        value_list.extend(self._get_missing_values(value_list))
+        value_list.extend(self.get_missing_values(value_list))
         value_list.sort()
         return {self.id: value_list or None}
 
     def summary(self, service_data):
-        return ListSummary(self, service_data)
+        return HierarchySummary(self, service_data)
 
-    def _get_missing_values(self, selected_values):
+    def get_missing_values(self, selected_values):
         """
         Recursively retrieves un-selected parent categories of the
         passed-in selection, as a set of 'value' strings.
@@ -693,7 +693,7 @@ class PricingSummary(QuestionSummary, Pricing):
 class ListSummary(QuestionSummary, List):
     @property
     def value(self):
-        # Look up display values for options that have different labels from values
+        # TODO look up display values for options that have different labels from values
         if self.has_assurance():
             value = self._service_data.get(self.id, {}).get('value', '')
         else:
@@ -703,6 +703,40 @@ class ListSummary(QuestionSummary, List):
             value = self.before_summary_value + (value or [])
 
         return value
+
+
+class HierarchySummary(QuestionSummary, Hierarchy):
+    def __init__(self, question, service_data):
+        self._hierarchy_question = question
+        QuestionSummary.__init__(self, question, service_data)
+
+    @property
+    def value(self):
+        selection = set(self._service_data.get(self.id, []))
+        # calling self.get_missing_values doesn't work, because Hierarchy.__init__ never called
+        missing_values = self._hierarchy_question.get_missing_values(selection)
+
+        def _get_options_recursive(options):
+            """
+            Filter the supplied options (and their child options) by the current selection
+            as stored in service_data. If options should be selected, but are not selected,
+            they will be annotated with a 'missing' flag. (That should never happen if the
+            data was written via the content loader, but it's possible for the hierarchy to
+            be rearranged, or for 'odd' data to be written direct to the API.)
+            :param options: a set of options from the framework data.
+            :return: filtered options
+            """
+            filtered_options = []
+            for option in options:
+                is_missing = option['value'] in missing_values
+                if option['value'] in selection or is_missing:
+                    option = option.copy()
+                    filtered_options.append(option)
+                    option['missing'] = is_missing
+                    option['options'] = _get_options_recursive(option.get('options', []))
+            return filtered_options
+
+        return _get_options_recursive(self._data.get('options', []))
 
 
 QUESTION_TYPES = {
