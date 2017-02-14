@@ -3,7 +3,7 @@ from collections import OrderedDict
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
-from .utils import TemplateField
+from .utils import TemplateField, drop_followups
 
 
 class Question(object):
@@ -234,7 +234,7 @@ class Multiquestion(Question):
         for question in self.questions:
             questions_data.update(question.get_data(form_data))
 
-        questions_data = self._drop_followups(questions_data)
+        questions_data = drop_followups(self, questions_data)
 
         return questions_data
 
@@ -251,20 +251,6 @@ class Multiquestion(Question):
 
     def get_question_ids(self, type=None):
         return [question.id for question in self.questions if type in [question.type, None]]
-
-    def _drop_followups(self, data):
-        # Remove any follow up answer if the question that requires followup has been answered
-        # with a non-followup value
-
-        data = data.copy()
-
-        for question in self.questions:
-            for followup_id, values in question.get('followup', {}).items():
-                if data.get(question.id) not in values:
-                    for field in self.get_question(followup_id).form_fields:
-                        data.pop(field, None)
-
-        return data
 
 
 class DynamicList(Multiquestion):
@@ -332,7 +318,7 @@ class DynamicList(Multiquestion):
         elif self._context is None:
             raise ValueError("DynamicList question requires correct .filter context to parse form data")
 
-        q_data = self._drop_followups(q_data)
+        q_data = drop_followups(self, q_data)
 
         answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 

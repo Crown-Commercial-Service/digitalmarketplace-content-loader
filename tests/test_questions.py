@@ -266,6 +266,24 @@ class TestMultiquestion(QuestionTest):
 
         assert question.get_question('example2').question == "Question one"
 
+    def test_nested_question_followup_get_data(self):
+        question = self.question(questions=[
+            {
+                "id": "lead",
+                "type": "boolean",
+                "followup": {"follow": [True]}
+            },
+            {
+                "id": "follow",
+                "type": "text",
+            }
+        ])
+
+        assert question.get_data({'lead': False}) == {'lead': False}
+        assert question.get_data({'lead': True}) == {'lead': True}
+        assert question.get_data({'lead': True, 'follow': 'a'}) == {'lead': True, 'follow': 'a'}
+        assert question.get_data({'lead': False, 'follow': 'a'}) == {'lead': False}
+
 
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}

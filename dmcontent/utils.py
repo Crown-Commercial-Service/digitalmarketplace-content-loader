@@ -58,3 +58,18 @@ def template_all(item):
         return result
     else:
         return item
+
+
+def drop_followups(question_or_section, data):
+    # Remove any follow up answer if the question that requires followup has been answered
+    # with a non-followup value
+
+    data = data.copy()
+
+    for question in question_or_section.questions:
+        for followup_id, values in question.get('followup', {}).items():
+            if data.get(question.id) not in values:
+                for field in question_or_section.get_question(followup_id).form_fields:
+                    data.pop(field, None)
+
+    return data

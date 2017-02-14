@@ -13,7 +13,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .messages import ContentMessage
-from .utils import TemplateField, template_all
+from .utils import TemplateField, template_all, drop_followups
 
 
 class ContentManifest(object):
@@ -314,6 +314,8 @@ class ContentSection(object):
         section_data = {}
         for question in self.questions:
             section_data.update(question.get_data(form_data))
+
+        section_data = drop_followups(self, section_data)
 
         return section_data
 
