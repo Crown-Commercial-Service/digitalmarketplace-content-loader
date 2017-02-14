@@ -181,6 +181,17 @@ class Question(object):
     def __getitem__(self, key):
         return getattr(self, key)
 
+    def get_source(self, key, default=None):
+        try:
+            field = self._data[key]
+        except KeyError:
+            return default
+
+        if isinstance(field, TemplateField):
+            return field.source
+        else:
+            return field
+
     def __repr__(self):
         return '<{0.__class__.__name__}: number={0.number}, data={0._data}>'.format(self)
 
