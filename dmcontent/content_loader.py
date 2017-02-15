@@ -75,12 +75,15 @@ class ContentManifest(object):
             all_data.update(section.get_data(form_data))
         return all_data
 
-    def get_next_section_id(self, section_id=None, only_editable=False):
+    def get_next_section_id(self, section_id=None, only_editable=False, only_edit_questions=False):
         previous_section_is_current = section_id is None
 
         for section in self.sections:
             if only_editable:
                 if previous_section_is_current and section.editable:
+                    return section.id
+            elif only_edit_questions:
+                if previous_section_is_current and section.edit_questions:
                     return section.id
             else:
                 if previous_section_is_current:
@@ -92,7 +95,10 @@ class ContentManifest(object):
         return None
 
     def get_next_editable_section_id(self, section_id=None):
-        return self.get_next_section_id(section_id, True)
+        return self.get_next_section_id(section_id, only_editable=True)
+
+    def get_next_edit_questions_section_id(self, section_id=None):
+        return self.get_next_section_id(section_id, only_edit_questions=True)
 
     def filter(self, context):
         """Return a new :class:`ContentManifest` filtered by service data
