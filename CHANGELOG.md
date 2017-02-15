@@ -2,6 +2,43 @@
 
 Records breaking changes from major version bumps
 
+## 3.0.0
+
+PR: [#25](https://github.com/alphagov/digitalmarketplace-content-loader/pull/25)
+
+### What changed
+
+Added support for `followup` questions inside multiquestions, radio questions with followups
+and multiple followups for a single question. This requires changing the question YAML file
+syntax for listing followups, so the content loader is modified to support the new format
+and will only work with an updated frameworks repo.
+
+
+### Example change
+
+#### Old
+```yaml
+# digitalmarketplace-frameworks question
+
+id: q1
+type: boolean
+followup: q2
+
+```
+
+#### New
+```yaml
+# digitalmarketplace-frameworks question
+
+id: q1
+type: boolean
+followup:
+  q2:
+    - True
+
+```
+
+
 ## 2.0.0
 
 PR: [#8](https://github.com/alphagov/digitalmarketplace-apiclient/pull/8)
