@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
@@ -135,6 +135,18 @@ class Question(object):
     @property
     def form_fields(self):
         return [self.id]
+
+    @property
+    def values_followup(self):
+        if not self.get('followup'):
+            return {}
+
+        followups = defaultdict(list)
+        for q, values in self.followup.items():
+            for value in values:
+                followups[value].append(q)
+
+        return dict(followups)
 
     @property
     def required_form_fields(self):

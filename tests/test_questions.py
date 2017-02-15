@@ -148,6 +148,25 @@ class TestText(QuestionTest):
         assert self.question().get_question_ids(type='text') == ['example']
 
 
+class TestBoolean(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "boolean"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_followup_values(self):
+        assert self.question(followup=OrderedDict(
+            [("q2", [True, False]), ("q3", [True])])
+        ).values_followup == {
+            True: ["q2", "q3"],
+            False: ["q2"]
+        }
+
+
 class TestPricing(QuestionTest):
     def question(self, **kwargs):
         data = {
