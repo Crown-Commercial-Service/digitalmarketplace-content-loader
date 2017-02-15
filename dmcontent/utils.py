@@ -60,9 +60,16 @@ def template_all(item):
         return item
 
 
-def drop_followups(question_or_section, data):
-    # Remove any follow up answer if the question that requires followup has been answered
-    # with a non-followup value
+def drop_followups(question_or_section, data, nested=False):
+    """Remove any follow up answer if the lead-in question value doesn't require a follow up.
+
+    For nested questions (eg questions insidea a dynamic list array) we remove the question field
+    completely, since the top-level data key will be replaced anyway.
+
+    For multiquestions that are serialized to separate top-level keys we set the follow-up value
+    to `None`, so that it's replaced if the question was previously answered with a follow-up.
+
+    """
 
     data = data.copy()
 
@@ -70,6 +77,9 @@ def drop_followups(question_or_section, data):
         for followup_id, values in question.get('followup', {}).items():
             if data.get(question.id) not in values:
                 for field in question_or_section.get_question(followup_id).form_fields:
-                    data.pop(field, None)
+                    if nested:
+                        data.pop(field, None)
+                    else:
+                        data[field] = None
 
     return data

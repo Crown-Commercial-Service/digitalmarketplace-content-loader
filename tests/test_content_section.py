@@ -205,10 +205,10 @@ class TestFilterContentSection(object):
         ).filter({})
 
         assert section.get_data(MultiDict([('q1', 'true')])) == {'q1': True}
-        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False}
+        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False, 'q2': None}
         assert section.get_data(
             MultiDict([('q1', 'true'), ('q2', 'true')])
         ) == {'q1': True, 'q2': True}
         assert section.get_data(
             MultiDict([('q1', 'false'), ('q2', 'true')])
-        ) == {'q1': False}
+        ) == {'q1': False, 'q2': None}

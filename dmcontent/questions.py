@@ -330,7 +330,7 @@ class DynamicList(Multiquestion):
         elif self._context is None:
             raise ValueError("DynamicList question requires correct .filter context to parse form data")
 
-        q_data = drop_followups(self, q_data)
+        q_data = drop_followups(self, q_data, nested=True)
 
         answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 

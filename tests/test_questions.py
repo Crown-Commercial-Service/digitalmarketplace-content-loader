@@ -298,10 +298,10 @@ class TestMultiquestion(QuestionTest):
             }
         ])
 
-        assert question.get_data({'lead': False}) == {'lead': False}
+        assert question.get_data({'lead': False}) == {'lead': False, 'follow': None}
         assert question.get_data({'lead': True}) == {'lead': True}
         assert question.get_data({'lead': True, 'follow': 'a'}) == {'lead': True, 'follow': 'a'}
-        assert question.get_data({'lead': False, 'follow': 'a'}) == {'lead': False}
+        assert question.get_data({'lead': False, 'follow': 'a'}) == {'lead': False, 'follow': None}
 
 
 class TestDynamicListQuestion(QuestionTest):
