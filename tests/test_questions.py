@@ -94,6 +94,9 @@ class QuestionTest(object):
         assert question.hint == "Hint two"
         assert question.question_advice == "Advice three"
 
+        assert question.get_source('name') == "Name {{ name }}"
+        assert question.get_source('question') == "Question {{ question }}"
+
     def test_question_fields_are_templated_on_access_if_filter_wasnt_called(self):
         question = self.question(
             name=TemplateField("Name {{ name }}"),
