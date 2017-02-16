@@ -75,7 +75,11 @@ def drop_followups(question_or_section, data, nested=False):
 
     for question in question_or_section.questions:
         for followup_id, values in question.get('followup', {}).items():
-            if data.get(question.id) not in values:
+            question_data = data.get(question.id)
+            if not isinstance(question_data, list):
+                question_data = [question_data]
+
+            if not set(question_data) & set(values):
                 for field in question_or_section.get_question(followup_id).form_fields:
                     if nested:
                         data.pop(field, None)

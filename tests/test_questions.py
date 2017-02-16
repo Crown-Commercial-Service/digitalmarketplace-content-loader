@@ -303,6 +303,47 @@ class TestMultiquestion(QuestionTest):
         assert question.get_data({'lead': True, 'follow': 'a'}) == {'lead': True, 'follow': 'a'}
         assert question.get_data({'lead': False, 'follow': 'a'}) == {'lead': False, 'follow': None}
 
+    def test_nested_checkboxes_question_followup_get_data(self):
+        question = self.question(questions=[
+            {
+                "id": "lead",
+                "type": "checkboxes",
+                "options": [
+                    {"label": "label1", "value": "yes"},
+                    {"label": "label2", "value": "no"},
+                    {"label": "label3", "value": "maybe not"},
+                    {"label": "label4", "value": "maybe"},
+                ],
+                "followup": {"follow": ["yes", "maybe"]}
+            },
+            {
+                "id": "follow",
+                "type": "text",
+            }
+        ])
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'no'),
+            ('lead', 'maybe not'),
+        ])) == {'lead': ['no', 'maybe not'], 'follow': None}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'yes'),
+            ('lead', 'maybe not'),
+        ])) == {'lead': ['yes', 'maybe not']}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'yes'),
+            ('lead', 'maybe not'),
+            ('follow', 'a')
+        ])) == {'lead': ['yes', 'maybe not'], 'follow': 'a'}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'no'),
+            ('lead', 'maybe not'),
+            ('follow', 'a')
+        ])) == {'lead': ['no', 'maybe not'], 'follow': None}
+
 
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
