@@ -200,15 +200,15 @@ class TestFilterContentSection(object):
             prefill=False,
             editable=False,
             edit_questions=False,
-            questions=[Question({'id': 'q1', 'followup': {'q2': [True]}, 'type': 'boolean'}),
+            questions=[Question({'id': 'q1', 'followup': {'q2': [False]}, 'type': 'boolean'}),
                        Question({'id': 'q2', 'type': 'boolean'})]
         ).filter({})
 
-        assert section.get_data(MultiDict([('q1', 'true')])) == {'q1': True}
-        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False, 'q2': None}
-        assert section.get_data(
-            MultiDict([('q1', 'true'), ('q2', 'true')])
-        ) == {'q1': True, 'q2': True}
+        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False}
+        assert section.get_data(MultiDict([('q1', 'true')])) == {'q1': True, 'q2': None}
         assert section.get_data(
             MultiDict([('q1', 'false'), ('q2', 'true')])
-        ) == {'q1': False, 'q2': None}
+        ) == {'q1': False, 'q2': True}
+        assert section.get_data(
+            MultiDict([('q1', 'true'), ('q2', 'true')])
+        ) == {'q1': True, 'q2': None}
