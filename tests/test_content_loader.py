@@ -18,6 +18,82 @@ except ImportError:
     import __builtin__ as builtins
 
 
+@pytest.fixture
+def manifest_with_sections():
+    return ContentManifest([
+        {
+            "slug": "first_section",
+            "name": "First section",
+            "editable": False,
+            "edit_questions": False,
+            "questions": [{
+                "id": "q1",
+                "question": 'First question',
+                "depends": [{
+                    "on": "lot",
+                    "being": ["SCS", "SaaS", "PaaS"]
+                }]
+            }]
+        },
+        {
+            "slug": "second_section",
+            "name": "Second section",
+            "editable": False,
+            "edit_questions": False,
+            "questions": [{
+                "id": "q2",
+                "question": 'Second question',
+                "depends": [{
+                    "on": "lot",
+                    "being": ["SCS", "SaaS", "PaaS"]
+                }]
+            }]
+        },
+        {
+            "slug": "third_section",
+            "name": "Third section",
+            "editable": True,
+            "edit_questions": False,
+            "questions": [{
+                "id": "q3",
+                "question": 'Third question',
+                "depends": [{
+                    "on": "lot",
+                    "being": ["SCS", "SaaS", "PaaS"]
+                }]
+            }]
+        },
+        {
+            "slug": "fourth_section",
+            "name": "Fourth section",
+            "editable": False,
+            "edit_questions": True,
+            "questions": [{
+                "id": "q4",
+                "question": 'Fourth question',
+                "depends": [{
+                    "on": "lot",
+                    "being": ["SCS", "SaaS", "PaaS"]
+                }]
+            }]
+        },
+        {
+            "slug": "fifth_section",
+            "name": "Fifth section",
+            "editable": True,
+            "edit_questions": True,
+            "questions": [{
+                "id": "q5",
+                "question": 'Fifth question',
+                "depends": [{
+                    "on": "lot",
+                    "being": ["SCS", "SaaS", "PaaS"]
+                }]
+            }]
+        },
+    ])
+
+
 class TestContentManifest(object):
     def test_content_builder_init(self):
         content = ContentManifest([])
@@ -423,55 +499,29 @@ class TestContentManifest(object):
 
         assert content.get_question_by_slug('section-two-question').get('id') == 'q2'
 
-    def test_get_next_section(self):
-        content = ContentManifest([
-            {
-                "slug": "first_section",
-                "name": "First section",
-                "questions": [{
-                    "id": "q1",
-                    "question": 'First question',
-                    "depends": [{
-                        "on": "lot",
-                        "being": ["SCS", "SaaS", "PaaS"]
-                    }]
-                }]
-            },
-            {
-                "slug": "second_section",
-                "name": "Second section",
-                "questions": [{
-                    "id": "q2",
-                    "question": 'First question',
-                    "depends": [{
-                        "on": "lot",
-                        "being": ["SCS", "SaaS", "PaaS"]
-                    }]
-                }]
-            },
-            {
-                "slug": "third_section",
-                "name": "Third section",
-                "editable": True,
-                "questions": [{
-                    "id": "q3",
-                    "question": 'First question',
-                    "depends": [{
-                        "on": "lot",
-                        "being": ["SCS", "SaaS", "PaaS"]
-                    }]
-                }]
-            },
-        ])
+    def test_get_next_section(self, manifest_with_sections):
+        assert manifest_with_sections.get_next_section_id() == "first_section"
+        assert manifest_with_sections.get_next_section_id("first_section") == "second_section"
+        assert manifest_with_sections.get_next_section_id("second_section") == "third_section"
+        assert manifest_with_sections.get_next_section_id("third_section") == "fourth_section"
+        assert manifest_with_sections.get_next_section_id("fourth_section") == "fifth_section"
+        assert manifest_with_sections.get_next_section_id("fifth_section") is None
 
-        assert content.get_next_section_id() == "first_section"
-        assert content.get_next_section_id("first_section") == "second_section"
-        assert content.get_next_section_id("second_section") == "third_section"
-        assert content.get_next_section_id("third_section") is None
+    def test_get_next_editable_section(self, manifest_with_sections):
+        assert manifest_with_sections.get_next_editable_section_id() == "third_section"
+        assert manifest_with_sections.get_next_editable_section_id("first_section") == "third_section"
+        assert manifest_with_sections.get_next_editable_section_id("second_section") == "third_section"
+        assert manifest_with_sections.get_next_editable_section_id("third_section") == "fifth_section"
+        assert manifest_with_sections.get_next_editable_section_id("fourth_section") == "fifth_section"
+        assert manifest_with_sections.get_next_editable_section_id("fifth_section") is None
 
-        assert content.get_next_editable_section_id() == "third_section"
-        assert content.get_next_editable_section_id(
-            "second_section") == "third_section"
+    def test_get_next_edit_questions_section(self, manifest_with_sections):
+        assert manifest_with_sections.get_next_edit_questions_section_id() == "fourth_section"
+        assert manifest_with_sections.get_next_edit_questions_section_id("first_section") == "fourth_section"
+        assert manifest_with_sections.get_next_edit_questions_section_id("second_section") == "fourth_section"
+        assert manifest_with_sections.get_next_edit_questions_section_id("third_section") == "fourth_section"
+        assert manifest_with_sections.get_next_edit_questions_section_id("fourth_section") == "fifth_section"
+        assert manifest_with_sections.get_next_edit_questions_section_id("fifth_section") is None
 
     def test_get_all_data(self):
         content = ContentManifest([
@@ -934,7 +984,7 @@ class TestContentSection(object):
 
         question_section = section.get_question_as_section('q1-slug')
         assert question_section.slug == "q1-slug"
-        assert question_section.description == "Some description"
+        assert question_section.description == ""
         assert question_section.prefill is None
         assert question_section.editable == section.edit_questions
         assert question_section.edit_questions is False
