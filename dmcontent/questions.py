@@ -138,6 +138,13 @@ class Question(object):
 
     @property
     def values_followup(self):
+        """Return a reversed (value->followups) followup mapping
+
+        Form templates need a reversed followup structure: a list of question
+        ids that follow a certain question value.
+
+        """
+
         if not self.get('followup'):
             return {}
 
