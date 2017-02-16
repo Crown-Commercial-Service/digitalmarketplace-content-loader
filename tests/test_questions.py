@@ -148,6 +148,25 @@ class TestText(QuestionTest):
         assert self.question().get_question_ids(type='text') == ['example']
 
 
+class TestBoolean(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "boolean"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_followup_values(self):
+        assert self.question(followup=OrderedDict(
+            [("q2", [True, False]), ("q3", [True])])
+        ).values_followup == {
+            True: ["q2", "q3"],
+            False: ["q2"]
+        }
+
+
 class TestPricing(QuestionTest):
     def question(self, **kwargs):
         data = {
@@ -266,6 +285,65 @@ class TestMultiquestion(QuestionTest):
 
         assert question.get_question('example2').question == "Question one"
 
+    def test_nested_question_followup_get_data(self):
+        question = self.question(questions=[
+            {
+                "id": "lead",
+                "type": "boolean",
+                "followup": {"follow": [True]}
+            },
+            {
+                "id": "follow",
+                "type": "text",
+            }
+        ])
+
+        assert question.get_data({'lead': False}) == {'lead': False, 'follow': None}
+        assert question.get_data({'lead': True}) == {'lead': True}
+        assert question.get_data({'lead': True, 'follow': 'a'}) == {'lead': True, 'follow': 'a'}
+        assert question.get_data({'lead': False, 'follow': 'a'}) == {'lead': False, 'follow': None}
+
+    def test_nested_checkboxes_question_followup_get_data(self):
+        question = self.question(questions=[
+            {
+                "id": "lead",
+                "type": "checkboxes",
+                "options": [
+                    {"label": "label1", "value": "yes"},
+                    {"label": "label2", "value": "no"},
+                    {"label": "label3", "value": "maybe not"},
+                    {"label": "label4", "value": "maybe"},
+                ],
+                "followup": {"follow": ["yes", "maybe"]}
+            },
+            {
+                "id": "follow",
+                "type": "text",
+            }
+        ])
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'no'),
+            ('lead', 'maybe not'),
+        ])) == {'lead': ['no', 'maybe not'], 'follow': None}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'yes'),
+            ('lead', 'maybe not'),
+        ])) == {'lead': ['yes', 'maybe not']}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'yes'),
+            ('lead', 'maybe not'),
+            ('follow', 'a')
+        ])) == {'lead': ['yes', 'maybe not'], 'follow': 'a'}
+
+        assert question.get_data(OrderedMultiDict([
+            ('lead', 'no'),
+            ('lead', 'maybe not'),
+            ('follow', 'a')
+        ])) == {'lead': ['no', 'maybe not'], 'follow': None}
+
 
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
@@ -281,7 +359,7 @@ class TestDynamicListQuestion(QuestionTest):
                     "id": "yesno",
                     "question": TemplateField("{{ item }}-yesno"),
                     "type": "boolean",
-                    "followup": "evidence"
+                    "followup": {"evidence": [True]}
                 },
                 {
                     "id": "evidence",

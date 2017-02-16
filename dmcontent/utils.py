@@ -40,7 +40,10 @@ class TemplateField(object):
         return (self.source == other.source)
 
     def __repr__(self):
-        return '<{0.__class__.__name__}: "{0.source}">'.format(self)
+        return '<{}: "{}">'.format(
+            self.__class__.__name__,
+            self.source.encode('utf-8')
+        )
 
 
 def template_all(item):
@@ -55,3 +58,32 @@ def template_all(item):
         return result
     else:
         return item
+
+
+def drop_followups(question_or_section, data, nested=False):
+    """Remove any follow up answer if the lead-in question value doesn't require a follow up.
+
+    For nested questions (eg questions insidea a dynamic list array) we remove the question field
+    completely, since the top-level data key will be replaced anyway.
+
+    For multiquestions that are serialized to separate top-level keys we set the follow-up value
+    to `None`, so that it's replaced if the question was previously answered with a follow-up.
+
+    """
+
+    data = data.copy()
+
+    for question in question_or_section.questions:
+        for followup_id, values in question.get('followup', {}).items():
+            question_data = data.get(question.id)
+            if not isinstance(question_data, list):
+                question_data = [question_data]
+
+            if not set(question_data) & set(values):
+                for field in question_or_section.get_question(followup_id).form_fields:
+                    if nested:
+                        data.pop(field, None)
+                    else:
+                        data[field] = None
+
+    return data

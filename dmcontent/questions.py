@@ -1,9 +1,9 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
-from .utils import TemplateField
+from .utils import TemplateField, drop_followups
 
 
 class Question(object):
@@ -17,7 +17,7 @@ class Question(object):
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
 
-    def filter(self, context):
+    def filter(self, context, dynamic=True):
         if not self._should_be_shown(context):
             return None
 
@@ -137,6 +137,25 @@ class Question(object):
         return [self.id]
 
     @property
+    def values_followup(self):
+        """Return a reversed (value->followups) followup mapping
+
+        Form templates need a reversed followup structure: a list of question
+        ids that follow a certain question value.
+
+        """
+
+        if not self.get('followup'):
+            return {}
+
+        followups = defaultdict(list)
+        for q, values in self.followup.items():
+            for value in values:
+                followups[value].append(q)
+
+        return dict(followups)
+
+    @property
     def required_form_fields(self):
         return [field for field in self.form_fields if field not in self._optional_form_fields]
 
@@ -208,13 +227,13 @@ class Multiquestion(Question):
     def summary(self, service_data):
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context):
-        multi_question = super(Multiquestion, self).filter(context)
+    def filter(self, context, dynamic=True):
+        multi_question = super(Multiquestion, self).filter(context, dynamic)
         if not multi_question:
             return None
 
         multi_question.questions = list(filter(None, [
-            question.filter(context)
+            question.filter(context, dynamic)
             for question in multi_question.questions
         ]))
 
@@ -233,6 +252,9 @@ class Multiquestion(Question):
         questions_data = {}
         for question in self.questions:
             questions_data.update(question.get_data(form_data))
+
+        questions_data = drop_followups(self, questions_data)
+
         return questions_data
 
     @property
@@ -256,8 +278,11 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context):
-        dynamic_list = super(Multiquestion, self).filter(context)
+    def filter(self, context, dynamic=True):
+        if not dynamic:
+            return super(DynamicList, self).filter(context, dynamic)
+
+        dynamic_list = super(Multiquestion, self).filter(context, dynamic)
         if not dynamic_list:
             return None
 
@@ -312,11 +337,7 @@ class DynamicList(Multiquestion):
         elif self._context is None:
             raise ValueError("DynamicList question requires correct .filter context to parse form data")
 
-        # Remove any follow up answer if the question that requires followup has been answered `False`
-        for question in self.questions:
-            if question.get('followup'):
-                if q_data.get(question.id) is False:
-                    q_data.pop(question.followup, None)
+        q_data = drop_followups(self, q_data, nested=True)
 
         answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 
@@ -403,8 +424,12 @@ class DynamicList(Multiquestion):
     def _make_dynamic_question(self, question, item, index):
         question = question.filter({'item': item})
         question._data['id'] = '{}-{}'.format(question.id, index)
-        if question.get('followup'):
-            question._data['followup'] = '{}-{}'.format(question.followup, index)
+
+        followups = {}
+        for followup, values in question.get('followup', {}).items():
+            followups['{}-{}'.format(followup, index)] = values
+
+        question._data['followup'] = followups
 
         return question
 

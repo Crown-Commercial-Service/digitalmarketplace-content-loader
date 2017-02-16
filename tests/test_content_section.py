@@ -1,5 +1,7 @@
 import pytest
 
+from werkzeug.datastructures import MultiDict
+
 from dmcontent.utils import TemplateField
 from dmcontent.questions import Question, Multiquestion
 from dmcontent.content_loader import ContentSection
@@ -190,3 +192,23 @@ class TestFilterContentSection(object):
 
         assert section.filter({"lot": "digital-specialists"}).description == "description for specialists"
         assert section.filter({"lot": "digital-outcomes"}).description == "description for outcomes"
+
+    def test_question_followup_get_data(self):
+        section = ContentSection(
+            slug='section',
+            name=TemplateField('Section one'),
+            prefill=False,
+            editable=False,
+            edit_questions=False,
+            questions=[Question({'id': 'q1', 'followup': {'q2': [False]}, 'type': 'boolean'}),
+                       Question({'id': 'q2', 'type': 'boolean'})]
+        ).filter({})
+
+        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False}
+        assert section.get_data(MultiDict([('q1', 'true')])) == {'q1': True, 'q2': None}
+        assert section.get_data(
+            MultiDict([('q1', 'false'), ('q2', 'true')])
+        ) == {'q1': False, 'q2': True}
+        assert section.get_data(
+            MultiDict([('q1', 'true'), ('q2', 'true')])
+        ) == {'q1': True, 'q2': None}

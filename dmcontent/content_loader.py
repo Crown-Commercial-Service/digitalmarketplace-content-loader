@@ -13,7 +13,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .messages import ContentMessage
-from .utils import TemplateField, template_all
+from .utils import TemplateField, template_all, drop_followups
 
 
 class ContentManifest(object):
@@ -100,14 +100,14 @@ class ContentManifest(object):
     def get_next_edit_questions_section_id(self, section_id=None):
         return self.get_next_section_id(section_id, only_edit_questions=True)
 
-    def filter(self, context):
+    def filter(self, context, dynamic=True):
         """Return a new :class:`ContentManifest` filtered by service data
 
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
         sections = filter(None, [
-            section.filter(context)
+            section.filter(context, dynamic)
             for section in self.sections
         ])
 
@@ -315,6 +315,8 @@ class ContentSection(object):
         for question in self.questions:
             section_data.update(question.get_data(form_data))
 
+        section_data = drop_followups(self, section_data)
+
         return section_data
 
     def has_changes_to_save(self, service, update_data):
@@ -393,12 +395,12 @@ class ContentSection(object):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
 
-    def filter(self, context):
+    def filter(self, context, dynamic=True):
         section = self.copy()
         section._context = context
 
         filtered_questions = list(filter(None, [
-            question.filter(context)
+            question.filter(context, dynamic)
             for question in self.questions
         ]))
 
