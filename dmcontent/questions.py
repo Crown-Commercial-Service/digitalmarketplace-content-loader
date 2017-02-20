@@ -557,15 +557,15 @@ class IndexedTree(object):
 
     def add_node(self, value, label, parent):
         node = TreeNode(value, label, parent)
-        self.index[value].append(node)
+        self.index[node.value].append(node)
         return node
 
 
 class TreeNode(object):
     def __init__(self, value=None, label=None, parent=None):
         self.children = list()
-        self.value = value
-        self.label = label
+        self.value = value or label
+        self.label = label or value
         self.parent = parent
 
 
@@ -730,8 +730,9 @@ class HierarchySummary(QuestionSummary, Hierarchy):
             """
             filtered_options = []
             for option in options:
-                is_missing = option['value'] in missing_values
-                if option['value'] in selection or is_missing:
+                value = option.get('value', option.get('label'))
+                is_missing = value in missing_values
+                if value in selection or is_missing:
                     option = option.copy()
                     filtered_options.append(option)
                     option['missing'] = is_missing
