@@ -489,10 +489,6 @@ class Hierarchy(List):
     denormalization to make searching more efficient.
     """
 
-    def __init__(self, data, *args, **kwargs):
-        super(Hierarchy, self).__init__(data, *args, **kwargs)
-        self._options = None  # lazy-load
-
     def _get_data(self, form_data):
         if self.id not in form_data:
             return {self.id: None}
@@ -512,61 +508,20 @@ class Hierarchy(List):
         :param selected_values_set: initially-selected categories (e.g. by the user)
         :return: additional values that should also be selected
         """
-        missing_values_set = set()
 
-        for selected_value in selected_values_set:
-            nodes_with_selected_value = self._options_tree.index[selected_value]
-            for selected_or_ancestor_node in nodes_with_selected_value:
-                while selected_or_ancestor_node is not None:
-                    if selected_or_ancestor_node.value is not None \
-                            and selected_or_ancestor_node.value not in selected_values_set:
-                        missing_values_set.add(selected_or_ancestor_node.value)
-                    selected_or_ancestor_node = selected_or_ancestor_node.parent
+        def update_expected_values(options, parents, expected_set):
+            for option in options:
+                value = option.get('value', option.get('label'))
+                if value in selected_values_set:
+                    expected_set.update(parents)
+                children = option.get('options')
+                if children:
+                    update_expected_values(children, parents + [value], expected_set)
 
-        return missing_values_set
+        expected_values = set()
+        update_expected_values(self._data.get('options', []), list(), expected_values)
 
-    @property
-    def _options_tree(self):
-        """
-        :return: an IndexedTree i.e. an index-by-value and a root node
-        """
-
-        if self._options is None:
-            def _load_tree_node_from_dict(tree, options_list, value=None, label=None, parent=None):
-                node = tree.add_node(value, label, parent)
-                for option in options_list:
-                    child_node = _load_tree_node_from_dict(
-                        tree,
-                        option.get('options', []),
-                        option.get('value'),
-                        option.get('label'),
-                        node)
-                    node.children.append(child_node)
-                return node
-
-            self._options = IndexedTree(_load_tree_node_from_dict, self._data.get('options', []))
-        return self._options
-
-
-class IndexedTree(object):
-    def __init__(self, create_node_callback, *args, **kwargs):
-        # Maintain an index where key is the value of a node;
-        # Because several nodes in the tree may share the same value, point to a list.
-        self.index = defaultdict(list)
-        self.root = create_node_callback(self, *args, **kwargs)
-
-    def add_node(self, value, label, parent):
-        node = TreeNode(value, label, parent)
-        self.index[node.value].append(node)
-        return node
-
-
-class TreeNode(object):
-    def __init__(self, value=None, label=None, parent=None):
-        self.children = list()
-        self.value = value or label
-        self.label = label or value
-        self.parent = parent
+        return expected_values - selected_values_set
 
 
 class QuestionSummary(Question):
@@ -707,7 +662,7 @@ class ListSummary(QuestionSummary, List):
         return value
 
 
-class HierarchySummary(QuestionSummary, Hierarchy):
+class HierarchySummary(QuestionSummary):
     def __init__(self, question, service_data):
         self._hierarchy_question = question
         QuestionSummary.__init__(self, question, service_data)
@@ -715,7 +670,6 @@ class HierarchySummary(QuestionSummary, Hierarchy):
     @property
     def value(self):
         selection = set(self._service_data.get(self.id, []))
-        # calling self.get_missing_values doesn't work, because Hierarchy.__init__ never called
         missing_values = self._hierarchy_question.get_missing_values(selection)
 
         def _get_options_recursive(options):
