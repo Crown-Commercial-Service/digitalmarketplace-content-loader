@@ -504,6 +504,60 @@ class TestCheckboxes(QuestionTest):
         ) == {'example': {'assurance': 'assurance value'}}
 
 
+class TestCheckboxTree(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "checkbox_tree",
+            "options": [
+                {
+                    "label": "Parent 1 Label",
+                    "value": "value_1",
+                    "options": [
+                        {
+                            "label": "Child 1.1 Label",
+                            "value": "value_1_1",
+                        },
+                        {
+                            "label": "Child 1.2 Label",
+                            "value": "value_1_2",
+                        },
+                    ]
+                },
+                {
+                    "label": "Parent 2 Label",
+                    "value": "value_2",
+                    "options": [
+                        {
+                            "label": "Child 2.1 Label",
+                            "value": "value_2_1",
+                        },
+                    ]
+                },
+                {
+                    "label": "Parent 3 Label",
+                    "value": "value_3",
+                },
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data(
+            OrderedMultiDict([('example', 'value_1'), ('example', 'value_2')])
+        ) == {'example': ['value_1', 'value_2']}
+
+    def test_automatic_parent(self):
+        assert set(self.question().get_data(
+            OrderedMultiDict([('example', 'value_1_2'), ('example', 'value_2_1')])
+        ).get('example')) == set(('value_1', 'value_1_2', 'value_2', 'value_2_1', ))
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {'example': None}
+
+
 class QuestionSummaryTest(object):
     def test_value_missing(self):
         question = self.question().summary({})
@@ -605,6 +659,65 @@ class TestCheckboxesSummary(QuestionSummaryTest):
     def test_value_with_before_summary_value_if_empty(self):
         question = self.question(before_summary_value=['value0']).summary({})
         assert question.value == ['value0']
+
+
+class TestCheckboxTreeSummary(QuestionSummaryTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "checkbox_tree",
+            "options": [
+                {
+                    "label": "Option 1",
+                    "value": "val1",
+                    "options": [
+                        {"label": "Option 1.1", "value": "val1.1"},
+                        {"label": "Option 1.2", "value": "val1.2"},
+                    ]
+                },
+                {
+                    "label": "Option 2",
+                    "value": "val2",
+                    "options": [
+                        {"label": "Option 2.1", "value": "val2.1"},
+                        {"label": "Option 2.2", "value": "val2.2"},
+                    ]
+                },
+
+                {"label": "Option 3", "value": "val3"},
+                {"label": "Option 4", "value": "val4"},
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_value(self):
+        question = self.question().summary({'example': ['val1', 'val1.1', 'val2.2', 'val4']})
+        assert question.value == [
+                {
+                    "label": "Option 1",
+                    "value": "val1",
+                    "missing": False,
+                    "options": [
+                        {"label": "Option 1.1", "value": "val1.1", "missing": False, "options": []},
+                    ]
+                },
+                {
+                    "label": "Option 2",
+                    "value": "val2",
+                    "missing": True,
+                    "options": [
+                        {"label": "Option 2.2", "value": "val2.2", "missing": False, "options": []},
+                    ]
+                },
+
+                {"label": "Option 4", "value": "val4", "missing": False, "options": []},
+            ]
+
+    def test_value_missing(self):
+        question = self.question().summary({})
+        assert question.value == []
 
 
 class TestNumberSummary(QuestionSummaryTest):
