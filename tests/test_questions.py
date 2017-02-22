@@ -644,17 +644,17 @@ class TestCheckboxesSummary(QuestionSummaryTest):
 
     def test_value(self):
         question = self.question().summary({'example': ['value1', 'value2']})
-        assert question.value == ['value1', 'value2']
+        assert question.value == ['Option label', 'Other label']
 
     def test_value_with_assurance(self):
         question = self.question(assuranceApproach='2answers-type1').summary(
             {'example': {'assurance': 'assurance value', 'value': ['value1', 'value2']}}
         )
-        assert question.value == ['value1', 'value2']
+        assert question.value == ['Option label', 'Other label']
 
     def test_value_with_before_summary_value(self):
         question = self.question(before_summary_value=['value0']).summary({'example': ['value1', 'value2']})
-        assert question.value == ['value0', 'value1', 'value2']
+        assert question.value == ['value0', 'Option label', 'Other label']
 
     def test_value_with_before_summary_value_if_empty(self):
         question = self.question(before_summary_value=['value0']).summary({})
