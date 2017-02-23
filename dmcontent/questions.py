@@ -650,11 +650,19 @@ class PricingSummary(QuestionSummary, Pricing):
 class ListSummary(QuestionSummary, List):
     @property
     def value(self):
-        # TODO look up display values for options that have different labels from values
         if self.has_assurance():
             value = self._service_data.get(self.id, {}).get('value', '')
         else:
             value = self._service_data.get(self.id, '')
+
+        # Look up display values for options that have different labels from values
+        options = self.get('options')
+        if options and value:
+            for i, v in enumerate(value):
+                for option in options:
+                    if 'label' in option and 'value' in option and v == option['value']:
+                        value[i] = option['label']
+                        break
 
         if self.get('before_summary_value'):
             value = self.before_summary_value + (value or [])
