@@ -1423,7 +1423,7 @@ class TestContentSection(object):
             }]
         })
 
-        expected = "There was a problem with the answer to this question"
+        expected = "There was a problem with the answer to this question."
         assert section.get_question('q2').get_error_message('other_error') == expected
 
     @pytest.mark.parametrize("question_descriptor_from", ("label", "question",))
