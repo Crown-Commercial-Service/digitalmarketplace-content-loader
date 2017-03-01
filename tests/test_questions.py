@@ -546,13 +546,8 @@ class TestCheckboxTree(QuestionTest):
 
     def test_get_data(self):
         assert self.question().get_data(
-            OrderedMultiDict([('example', 'value_1'), ('example', 'value_2')])
-        ) == {'example': ['value_1', 'value_2']}
-
-    def test_automatic_parent(self):
-        assert set(self.question().get_data(
-            OrderedMultiDict([('example', 'value_1_2'), ('example', 'value_2_1')])
-        ).get('example')) == set(('value_1', 'value_1_2', 'value_2', 'value_2_1', ))
+            OrderedMultiDict([('example', 'value_1_1'), ('example', 'value_2_1')])
+        ) == {'example': ['value_1_1', 'value_2_1']}
 
     def test_get_data_unknown_key(self):
         assert self.question().get_data({'other': 'other value'}) == {'example': None}
@@ -693,26 +688,24 @@ class TestCheckboxTreeSummary(QuestionSummaryTest):
         return ContentQuestion(data)
 
     def test_value(self):
-        question = self.question().summary({'example': ['val1', 'val1.1', 'val2.2', 'val4']})
+        question = self.question().summary({'example': ['val1.1', 'val2.2', 'val4']})
         assert question.value == [
                 {
                     "label": "Option 1",
                     "value": "val1",
-                    "missing": False,
                     "options": [
-                        {"label": "Option 1.1", "value": "val1.1", "missing": False, "options": []},
+                        {"label": "Option 1.1", "value": "val1.1", "options": []},
                     ]
                 },
                 {
                     "label": "Option 2",
                     "value": "val2",
-                    "missing": True,
                     "options": [
-                        {"label": "Option 2.2", "value": "val2.2", "missing": False, "options": []},
+                        {"label": "Option 2.2", "value": "val2.2", "options": []},
                     ]
                 },
 
-                {"label": "Option 4", "value": "val4", "missing": False, "options": []},
+                {"label": "Option 4", "value": "val4", "options": []},
             ]
 
     def test_value_missing(self):

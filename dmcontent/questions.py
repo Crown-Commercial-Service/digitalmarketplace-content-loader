@@ -483,10 +483,12 @@ class Hierarchy(List):
     """
     For our purposes, a Hierarchy is like a List, except the entries
     are potentially related to each other in a "subsumptive
-    containment hierarchy". For example, every service that is a member
-    of a child category is _by definition_ also a member of its parent
-    category as well, and we can add those parent categories as a
-    denormalization to make searching more efficient.
+    containment hierarchy". We don't store the parent categories
+    (that denormalization will have to be added for the search engine),
+    so the only real difference is that we gracefully handle
+    the same value being submitted several times. This can happen
+    because some leaf nodes (e.g. subcategories) can appear in multiple
+    places in the tree (i.e. in multiple categories).
     """
 
     def _get_data(self, form_data):
@@ -494,7 +496,6 @@ class Hierarchy(List):
             return {self.id: None}
 
         values = set(form_data.getlist(self.id))
-        values.update(self.get_missing_values(values))
 
         return {self.id: sorted(values) or None}
 
@@ -506,7 +507,7 @@ class Hierarchy(List):
         Recursively retrieves un-selected parent categories of the
         passed-in selection, as a set of 'value' strings.
         :param selected_values_set: initially-selected categories (e.g. by the user)
-        :return: additional values that should also be selected
+        :return: additional values that should also be considered as selected
         """
 
         def update_expected_values(options, parents, expected_set):
@@ -678,26 +679,22 @@ class HierarchySummary(QuestionSummary):
     @property
     def value(self):
         selection = set(self._service_data.get(self.id, []))
-        missing_values = self._hierarchy_question.get_missing_values(selection)
+        parent_values_not_persisted = self._hierarchy_question.get_missing_values(selection)
 
         def _get_options_recursive(options):
             """
             Filter the supplied options (and their child options) by the current selection
-            as stored in service_data. If options should be selected, but are not selected,
-            they will be annotated with a 'missing' flag. (That should never happen if the
-            data was written via the content loader, but it's possible for the hierarchy to
-            be rearranged, or for 'odd' data to be written direct to the API.)
-            :param options: a set of options from the framework data.
+            as stored in service_data. Parent options - that we didn't store but can
+            be considered 'selected' because one of their children have been selected -
+            are also included.
             :return: filtered options
             """
             filtered_options = []
             for option in options:
                 value = option.get('value', option.get('label'))
-                is_missing = value in missing_values
-                if value in selection or is_missing:
+                if value in selection or value in parent_values_not_persisted:
                     option = option.copy()
                     filtered_options.append(option)
-                    option['missing'] = is_missing
                     option['options'] = _get_options_recursive(option.get('options', []))
             return filtered_options
 
