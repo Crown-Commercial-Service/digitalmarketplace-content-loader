@@ -454,6 +454,11 @@ class TestDynamicListQuestion(QuestionTest):
         assert question.get_error_messages({'example1': 'answer_required'}) == {}
 
     def test_get_error_messages(self):
+        """
+        Tests that for an 'answer_required' error, the content loader generates a suitable default,
+        and that for any other error it produces a generic message, and that the errors
+        come back in the right order.
+        """
         question = self.question().filter(self.context())
 
         errors_and_messages = {
