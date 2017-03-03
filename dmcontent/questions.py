@@ -126,7 +126,12 @@ class Question(object):
             if validation['name'] == message_key:
                 if validation.get('field', field_name) == field_name:
                     return validation['message']
-        return 'There was a problem with the answer to this question'
+
+        defaults = {
+            'answer_required': 'You need to answer this question.'
+        }
+
+        return defaults.get(message_key, 'There was a problem with the answer to this question.')
 
     @property
     def label(self):

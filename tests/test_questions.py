@@ -454,31 +454,45 @@ class TestDynamicListQuestion(QuestionTest):
         assert question.get_error_messages({'example1': 'answer_required'}) == {}
 
     def test_get_error_messages(self):
+        """
+        Tests that for an 'answer_required' error, the content loader generates a suitable default,
+        and that for any other error it produces a generic message, and that the errors
+        come back in the right order.
+        """
         question = self.question().filter(self.context())
-        ordered_dict = question.get_error_messages({'example': [
-            {'field': 'yesno', 'index': 0, 'error': 'answer_required'},
-            {'field': 'evidence', 'index': 0, 'error': 'answer_required'},
-            {'index': 1, 'error': 'answer_required'}
-        ]})
 
-        errors = list(ordered_dict.items())
-        assert errors == [
-            ('yesno-0', {
-                'input_name': 'yesno-0',
-                'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-yesno'
-            }),
-            ('evidence-0', {
-                'input_name': 'evidence-0',
-                'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-evidence'
-            }),
-            ('example', {
-                'input_name': 'example',
-                'message': 'There was a problem with the answer to this question',
-                'question': 'Dynamic list'
+        errors_and_messages = {
+            'answer_required': 'You need to answer this question.',
+            'some_unknown_error': 'There was a problem with the answer to this question.'
+        }
+
+        for error_key, expected_message in errors_and_messages.items():
+            ordered_dict = question.get_error_messages({
+                'example': [
+                    {'field': 'yesno', 'index': 0, 'error': error_key},
+                    {'field': 'evidence', 'index': 0, 'error': error_key},
+                    {'index': 1, 'error': error_key}
+                ]
             })
-        ]
+
+            errors = list(ordered_dict.items())
+            assert errors == [
+                ('yesno-0', {
+                    'input_name': 'yesno-0',
+                    'message': expected_message,
+                    'question': u'First Need-yesno'
+                }),
+                ('evidence-0', {
+                    'input_name': 'evidence-0',
+                    'message': expected_message,
+                    'question': u'First Need-evidence'
+                }),
+                ('example', {
+                    'input_name': 'example',
+                    'message': expected_message,
+                    'question': 'Dynamic list'
+                })
+            ]
 
 
 class TestCheckboxes(QuestionTest):
