@@ -7,6 +7,7 @@ from .utils import TemplateField, drop_followups
 
 class Question(object):
     TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
+    TEMPLATE_OPTIONS_FIELDS = ['description']
 
     def __init__(self, data, number=None, _context=None):
         self.number = number
@@ -125,7 +126,12 @@ class Question(object):
             if validation['name'] == message_key:
                 if validation.get('field', field_name) == field_name:
                     return validation['message']
-        return 'There was a problem with the answer to this question'
+
+        defaults = {
+            'answer_required': 'You need to answer this question.'
+        }
+
+        return defaults.get(message_key, 'There was a problem with the answer to this question.')
 
     @property
     def label(self):
@@ -193,6 +199,11 @@ class Question(object):
 
         if isinstance(field, TemplateField):
             return field.render(self._context)
+        elif key == 'options':
+            return [{k: (v.render(self._context) if isinstance(v, TemplateField) else v)
+                     for k, v in i.items()
+                     }
+                    for i in field]
         else:
             return field
 

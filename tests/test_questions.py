@@ -4,6 +4,7 @@ from collections import OrderedDict
 import pytest
 
 from werkzeug.datastructures import OrderedMultiDict
+from markupsafe import Markup
 from dmcontent.content_loader import ContentQuestion
 from dmcontent.utils import TemplateField
 from dmcontent import ContentTemplateError
@@ -107,6 +108,19 @@ class QuestionTest(object):
             question.name
 
         assert question.question == "Question"
+
+    def test_question_options_descriptions_render_template_fields(self):
+        """If the question has an options field, check that all TEMPLATE_OPTIONS_FIELDS are correctly rendered from
+        TemplateFields by passing in markup and ensuring they turn into Markup objects.
+        Does not recurse through options.options.[...] fields, e.g. for CheckboxTree"""
+        question = self.question()
+
+        if hasattr(question, 'options'):
+            options = question['options']
+            for subfield in question.TEMPLATE_OPTIONS_FIELDS:
+                for option in options:
+                    if subfield in option:
+                        assert type(option[subfield]) == Markup
 
 
 class TestText(QuestionTest):
@@ -440,31 +454,45 @@ class TestDynamicListQuestion(QuestionTest):
         assert question.get_error_messages({'example1': 'answer_required'}) == {}
 
     def test_get_error_messages(self):
+        """
+        Tests that for an 'answer_required' error, the content loader generates a suitable default,
+        and that for any other error it produces a generic message, and that the errors
+        come back in the right order.
+        """
         question = self.question().filter(self.context())
-        ordered_dict = question.get_error_messages({'example': [
-            {'field': 'yesno', 'index': 0, 'error': 'answer_required'},
-            {'field': 'evidence', 'index': 0, 'error': 'answer_required'},
-            {'index': 1, 'error': 'answer_required'}
-        ]})
 
-        errors = list(ordered_dict.items())
-        assert errors == [
-            ('yesno-0', {
-                'input_name': 'yesno-0',
-                'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-yesno'
-            }),
-            ('evidence-0', {
-                'input_name': 'evidence-0',
-                'message': 'There was a problem with the answer to this question',
-                'question': u'First Need-evidence'
-            }),
-            ('example', {
-                'input_name': 'example',
-                'message': 'There was a problem with the answer to this question',
-                'question': 'Dynamic list'
+        errors_and_messages = {
+            'answer_required': 'You need to answer this question.',
+            'some_unknown_error': 'There was a problem with the answer to this question.'
+        }
+
+        for error_key, expected_message in errors_and_messages.items():
+            ordered_dict = question.get_error_messages({
+                'example': [
+                    {'field': 'yesno', 'index': 0, 'error': error_key},
+                    {'field': 'evidence', 'index': 0, 'error': error_key},
+                    {'index': 1, 'error': error_key}
+                ]
             })
-        ]
+
+            errors = list(ordered_dict.items())
+            assert errors == [
+                ('yesno-0', {
+                    'input_name': 'yesno-0',
+                    'message': expected_message,
+                    'question': u'First Need-yesno'
+                }),
+                ('evidence-0', {
+                    'input_name': 'evidence-0',
+                    'message': expected_message,
+                    'question': u'First Need-evidence'
+                }),
+                ('example', {
+                    'input_name': 'example',
+                    'message': expected_message,
+                    'question': 'Dynamic list'
+                })
+            ]
 
 
 class TestCheckboxes(QuestionTest):
@@ -473,7 +501,8 @@ class TestCheckboxes(QuestionTest):
             "id": "example",
             "type": "checkboxes",
             "options": [
-                {"label": "Wrong label", "value": "value"},
+                {"label": "Wrong label", "value": "value", "description": TemplateField("some description"
+                                                                                        " [markup](links)")},
                 {"label": "Option label", "value": "value1"},
                 {"label": "Wrong label", "value": "value2"},
             ]
@@ -502,6 +531,36 @@ class TestCheckboxes(QuestionTest):
         assert self.question(assuranceApproach='2answers-type1').get_data(
             {'example--assurance': 'assurance value'}
         ) == {'example': {'assurance': 'assurance value'}}
+
+
+class TestRadios(TestCheckboxes):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "radios",
+            "options": [
+                {"label": "Wrong label", "value": "value", "description": TemplateField("some description"
+                                                                                        " [markup](links)")},
+                {"label": "Option label", "value": "value1"},
+                {"label": "Wrong label", "value": "value2"},
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data(
+            OrderedMultiDict([('example', 'value1')])
+        ) == {'example': 'value1'}
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {}
+
+    def test_get_data_with_assurance(self):
+        assert self.question(assuranceApproach='2answers-type1').get_data(
+            OrderedMultiDict([('example', 'value1'), ('example--assurance', 'assurance value')])
+        ) == {'example': {'value': 'value1', 'assurance': 'assurance value'}}
 
 
 class TestCheckboxTree(QuestionTest):
