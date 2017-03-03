@@ -86,7 +86,7 @@ class Question(object):
 
         return {self.id: value}
 
-    def get_error_messages(self, errors):
+    def get_error_messages(self, errors, question_descriptor_from="label"):
         error_fields = set(errors.keys()) & set(self.form_fields)
         if not error_fields:
             return {}
@@ -104,7 +104,7 @@ class Question(object):
 
             question_errors[error_key] = {
                 'input_name': error_key,
-                'question': question.label,
+                'question': getattr(question, question_descriptor_from),
                 'message': validation_message,
             }
 
@@ -388,7 +388,7 @@ class DynamicList(Multiquestion):
                 result[key] = data[key]
         return result
 
-    def get_error_messages(self, errors):
+    def get_error_messages(self, errors, question_descriptor_from="label"):
         if self.id not in errors:
             return {}
 
@@ -407,7 +407,7 @@ class DynamicList(Multiquestion):
             question = self.get_question(input_name)
             question_errors[input_name] = {
                 'input_name': input_name,
-                'question': question.label,
+                'question': getattr(question, question_descriptor_from),
                 'message':  question.get_error_message(error['error']),
             }
 
@@ -538,9 +538,12 @@ class QuestionSummary(Question):
     def _default_for_field(self, field_key):
         return self.get('field_defaults', {}).get(field_key)
 
-    def get_error_messages(self, errors):
+    def get_error_messages(self, errors, question_descriptor_from="label"):
 
-        question_errors = super(QuestionSummary, self).get_error_messages(errors)
+        question_errors = super(QuestionSummary, self).get_error_messages(
+            errors,
+            question_descriptor_from=question_descriptor_from,
+        )
 
         boolean_list_questions = self.get('boolean_list_questions')
         boolean_list_values = self.get('value') or []

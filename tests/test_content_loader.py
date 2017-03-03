@@ -1426,7 +1426,8 @@ class TestContentSection(object):
         expected = "There was a problem with the answer to this question"
         assert section.get_question('q2').get_error_message('other_error') == expected
 
-    def test_get_error_messages(self):
+    @pytest.mark.parametrize("question_descriptor_from", ("label", "question",))
+    def test_get_error_messages(self, question_descriptor_from):
         section = ContentSection.create({
             "slug": "second_section",
             "name": "Second section",
@@ -1481,11 +1482,11 @@ class TestContentSection(object):
             "priceString-min": "answer_required",
         }
 
-        result = section.get_error_messages(errors)
+        result = section.get_error_messages(errors, question_descriptor_from=question_descriptor_from)
 
         assert result['priceString']['message'] == "No min price"
         assert result['q2']['message'] == "This is the error message"
-        assert result['q2']['question'] == "second"
+        assert result['q2']['question'] == "Second question" if question_descriptor_from == "question" else "second"
         assert result['q3--assurance']['message'] == "There there, it'll be ok."
         assert result['serviceTypes']['message'] == "This is the error message"
 
