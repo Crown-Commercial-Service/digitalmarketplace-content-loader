@@ -503,6 +503,13 @@ class ContentLoader(object):
             if field in question_data:
                 question_data[field] = TemplateField(question_data[field])
 
+        # We also want to support TemplateFields as subfields of entries in options (e.g. for lot descriptions)
+        for subfield in Question.TEMPLATE_OPTIONS_FIELDS:
+            if 'options' in question_data:
+                for i, option in enumerate(question_data['options']):
+                    if subfield in option:
+                        question_data['options'][i][subfield] = TemplateField(question_data['options'][i][subfield])
+
         self._questions[framework_slug][question_set][question] = question_data
 
         return self._questions[framework_slug][question_set][question].copy()
