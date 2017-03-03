@@ -692,6 +692,14 @@ class HierarchySummary(QuestionSummary):
             filtered_options = []
             for option in options:
                 value = option.get('value', option.get('label'))
+                # note: test below causes confusion if a non-selected child option has
+                # the same name as a parent option - that child will _appear_ selected
+                # if any of its siblings are selected.  Could refactor this
+                # if we wanted to have (e.g.) sub-cats named that way - right now
+                # we don't, and it's hard to see that making much sense. We've
+                # found more clear ways of expressing those kinds of special 'other'
+                # or 'general' sub-cats than naming them identically to their parents,
+                # anyway.
                 if value in selection or value in parent_values_not_persisted:
                     option = option.copy()
                     filtered_options.append(option)
