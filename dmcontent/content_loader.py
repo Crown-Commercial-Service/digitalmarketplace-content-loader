@@ -589,7 +589,7 @@ def _load_question(question, directory):
 
 def _make_slug(name):
     return inflection.underscore(
-        re.sub(r"[\s&?]", "_", name, flags=re.UNICODE).strip("_")
+        re.sub(r"[^\w]+", "_", name, flags=re.UNICODE).strip("_")
     ).replace('_', '-')
 
 
