@@ -297,9 +297,7 @@ class DynamicList(Multiquestion):
             return None
 
         # dynamic_field: 'brief.essentialRequirements'
-        dynamic_questions = context
-        for key in self.dynamic_field.split('.'):
-            dynamic_questions = dynamic_questions[key]
+        dynamic_questions = self.get_dynamic_questions(context)
 
         dynamic_list.questions = list(filter(None, [
             self._make_dynamic_question(question, item, index)
@@ -308,6 +306,13 @@ class DynamicList(Multiquestion):
         ]))
 
         return dynamic_list
+
+    def get_dynamic_questions(self, context):
+        """ Returns the value of the dynamic.field from the context """
+        dynamic_questions = context
+        for key in self.dynamic_field.split('.'):
+            dynamic_questions = dynamic_questions[key]
+        return dynamic_questions
 
     def get_data(self, form_data):
         """
@@ -351,7 +356,7 @@ class DynamicList(Multiquestion):
 
         answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
 
-        questions_data = [{} for i in range(1 + (answers[-1][0]))]
+        questions_data = [{} for i in range(len(self.get_dynamic_questions(self._context)))]
         for index, question, value in answers:
             if value is not None:
                 questions_data[index][question] = value

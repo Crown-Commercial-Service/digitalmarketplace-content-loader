@@ -406,7 +406,9 @@ class TestDynamicListQuestion(QuestionTest):
         assert question.get_data({
             'yesno-0': True,
             'evidence-0': 'some evidence',
+            'evidence-1': '',
             'yesno-2': False,
+            'evidence-2': '',
             'yesno-3': False,
             'evidence-3': 'should be removed'
         }
@@ -425,6 +427,40 @@ class TestDynamicListQuestion(QuestionTest):
                 {
                     'yesno': False
                 }
+            ]
+        }
+
+        assert question.get_data({
+            'evidence-2': '',
+            'evidence-1': '',
+            'evidence-0': '',
+            'evidence-3': ''
+        }
+        ) == {
+            'example': [
+                {},
+                {},
+                {},
+                {}
+            ]
+        }
+
+        assert question.get_data({
+            'evidence-2': 'some evidence',
+            'evidence-1': '',
+            'evidence-0': '',
+            'yesno-2': True,
+            'evidence-3': ''
+        }
+        ) == {
+            'example': [
+                {},
+                {},
+                {
+                    'yesno': True,
+                    'evidence': 'some evidence'
+                },
+                {}
             ]
         }
 
