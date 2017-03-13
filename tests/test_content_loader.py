@@ -341,7 +341,10 @@ class TestContentManifest(object):
                     "type": "multiquestion",
                     "questions": [
                         {"id": "q2", "type": "text"},
-                        {"id": "q3", "type": "text"}
+                        {"id": "q3", "type": "text"},
+                        {"id": "q12", "type": "boolean", "followup": {"q13": [True], "q14": [True]}},
+                        {"id": "q13", "type": "text"},
+                        {"id": "q14", "type": "text", "optional": True}
                     ]
                 },
                 {"id": "q4", "type": "text", "optional": True},
@@ -416,6 +419,10 @@ class TestContentManifest(object):
         assert not summary.get_question('q9').answer_required
         assert summary.get_question('q10').value is True
         assert summary.get_question('q10').assurance == 'Service provider assertion'
+
+        assert summary.get_question('q12').answer_required
+        assert summary.get_question('q13').answer_required
+        assert not summary.get_question('q14').answer_required
 
     def test_get_question(self):
         content = ContentManifest([
