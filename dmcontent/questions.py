@@ -634,10 +634,30 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
 
     @property
     def answer_required(self):
+        """Checks all sub-questions and returns true if any questions which are required, still require answers.
+        Appropriately checks/ignores followup questions based on current answers."""
         if self.get('optional'):
             return False
 
-        return any(question.answer_required for question in self.questions)
+        lookup_question_by_id = {q.id: q for q in self.questions}
+        followup_questions = set()
+
+        for question in [q for q in self.questions if q.get('followup', {})]:
+            if question.id not in followup_questions and question.answer_required:
+                return True
+
+            followup_questions.add(question.id)
+
+            answers_provided = question.value if isinstance(question.value, list) else [question.value]
+
+            for followup_id, answers_triggering_followup in question.get('followup', {}).items():
+                followup_questions.add(followup_id)
+
+                if set(answers_provided) & set(answers_triggering_followup) and \
+                        lookup_question_by_id[followup_id].answer_required:
+                    return True
+
+        return any(q.answer_required for q in self.questions if q.id not in followup_questions)
 
 
 class DynamicListSummary(MultiquestionSummary, DynamicList):

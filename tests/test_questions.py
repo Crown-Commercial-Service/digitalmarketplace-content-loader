@@ -930,6 +930,24 @@ class TestMultiquestionSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
+    def question_with_followups(self, **kwargs):
+        data = {
+            "id": "q1",
+            "type": "multiquestion",
+            "questions": [
+                {"id": "q2", "type": "text"},
+                {"id": "q3", "type": "boolean", "followup": {"q4": [True], "q5": [True]}},
+                {"id": "q4", "type": "text", "optional": True},
+                {"id": "q5", "type": "radios", "options": [{"label": "one"}, {"label": "two"}],
+                 "followup": {"q6": ["one"], "q7": ["one"]}},
+                {"id": "q6", "type": "text"},
+                {"id": "q7", "type": "text", "optional": True}
+            ]
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
     def test_value(self):
         question = self.question().summary({'example2': 'value2', 'example3': 'value3'})
         assert question.value == question.questions
@@ -953,6 +971,30 @@ class TestMultiquestionSummary(QuestionSummaryTest):
     def test_is_empty_partial(self):
         question = self.question().summary({'example2': 'value2'})
         assert not question.is_empty
+
+    def test_answer_required_if_question_with_followups_not_answered(self):
+        question = self.question_with_followups().summary({'q2': 'blah'})
+        assert question.answer_required
+
+    def test_answer_required_if_followup_not_answered(self):
+        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True})
+        assert question.answer_required
+
+    def test_answer_not_required_if_followups_not_required(self):
+        question = self.question_with_followups().summary({'q2': 'blah', 'q3': False})
+        assert not question.answer_required
+
+    def test_answer_required_if_followups_to_followup_not_answered(self):
+        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'one'})
+        assert question.answer_required
+
+    def test_answer_not_required_if_followups_to_followup_not_required(self):
+        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'two'})
+        assert not question.answer_required
+
+    def test_answer_not_required_if_optional_followups_not_answered(self):
+        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'one', 'q6': 'blah'})
+        assert not question.answer_required
 
 
 class TestDynamicListSummary(QuestionSummaryTest):
