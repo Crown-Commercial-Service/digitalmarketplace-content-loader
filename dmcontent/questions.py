@@ -1,8 +1,11 @@
 from collections import OrderedDict, defaultdict
+from datetime import datetime
+
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
 from .utils import TemplateField, drop_followups
+
 
 
 class Question(object):
@@ -181,6 +184,10 @@ class Question(object):
 
     def has_assurance(self):
         return True if self.get('assuranceApproach') else False
+
+    @property
+    def is_date(self):
+        return False
 
     def get_question_ids(self, type=None):
         return [self.id] if type in [self.type, None] else []
@@ -544,6 +551,34 @@ class Hierarchy(List):
         return expected_values - selected_values_set
 
 
+class Date(Question):
+    """Class used as an interface for date data between forms, backend and summary pages."""
+
+    FIELDS = ('year', 'month', 'day')
+
+    @property
+    def is_date(self):
+        return True
+
+    def summary(self, service_data):
+        return DateSummary(self, service_data)
+
+    def get_data(self, form_data):
+        """Retreive the fields from the POST data (form_data).
+
+        The d, m, y should be in the post as 'questionName-day', questionName-month ...
+        Extract them and format as 'YYYY-MM-DD'.
+        https://code.tutsplus.com/tutorials/validating-data-with-json-schema-part-1--cms-25343
+        """
+        parts = []
+        for key in self.FIELDS:
+            identifier = '-'.join([self.id, key])
+            parts.append(form_data.get(identifier, None))
+        if not all(parts):
+            return {}
+        return {self.id: '-'.join(parts)}
+
+
 class QuestionSummary(Question):
     def __init__(self, question, service_data):
         self.number = question.number
@@ -624,6 +659,20 @@ class QuestionSummary(Question):
             return False
         else:
             return self.is_empty
+
+
+class DateSummary(QuestionSummary):
+
+    def __init__(self, question, service_data):
+        super(DateSummary, self).__init__(question, service_data)
+        self._value = self._service_data.get(self.id, '')
+
+    @property
+    def value(self):
+        try:
+            return datetime.strptime(self._value, '%Y-%m-%d').strftime('%-d %B %Y')
+        except ValueError:
+            return self._value
 
 
 class MultiquestionSummary(QuestionSummary, Multiquestion):
@@ -758,6 +807,7 @@ QUESTION_TYPES = {
     'list': List,
     'checkboxes': List,
     'checkbox_tree': Hierarchy,
+    'date': Date
 }
 
 

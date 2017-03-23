@@ -11,7 +11,7 @@ from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
-from .questions import Question, ContentQuestion
+from .questions import Question, ContentQuestion, Date
 from .messages import ContentMessage
 from .utils import TemplateField, template_all, drop_followups
 
@@ -353,7 +353,22 @@ class ContentSection(object):
 
         return errors_map
 
+    @staticmethod
+    def unformat_assurance(key, data):
+        return {
+            key + '--assurance': data[key].get('assurance', None),
+            key: data[key].get('value', None)
+        }
+
+    @staticmethod
+    def unformat_date(key, data):
+        result = {}
+        for value, field in zip(data[key].split('-'), Date.FIELDS):
+            result['-'.join([key, field])] = value
+        return result
+
     def unformat_data(self, data):
+
         """Unpack assurance information to be used in a form
 
         :param data: the service data as returned from the data API
@@ -372,8 +387,10 @@ class ContentSection(object):
         result = {}
         for key in data:
             if self._has_assurance(key):
-                result[key + '--assurance'] = data[key].get('assurance', None)
-                result[key] = data[key].get('value', None)
+                result.update(self.unformat_assurance(key, data))
+            elif self._is_date(key):
+                result.update(self.unformat_date(key, data))
+
             else:
                 result[key] = data[key]
         return result
@@ -417,6 +434,10 @@ class ContentSection(object):
         """Return True if a question has an assurance component"""
         question = self.get_question(key)
         return bool(question) and question.has_assurance()
+
+    def _is_date(self, key):
+        question = self.get_question(key)
+        return question and question.is_date
 
     @property
     def has_summary_page(self):

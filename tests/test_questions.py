@@ -676,6 +676,24 @@ class QuestionSummaryTest(object):
         assert question.is_empty
 
 
+class TestDateSummary(QuestionSummaryTest):
+
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "date"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_invalid_string(self):
+        non_date_string = 'not-a-date-formatted-string'
+        question = self.question().summary({'example': non_date_string})
+
+        assert question.value == ''+non_date_string
+
+
 class TestTextSummary(QuestionSummaryTest):
     def question(self, **kwargs):
         data = {
