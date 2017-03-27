@@ -136,6 +136,12 @@ class TestText(QuestionTest):
     def test_get_data(self):
         assert self.question().get_data({'example': 'value'}) == {'example': 'value'}
 
+    def test_in(self):
+        assert "compton" in self.question(compton=None)
+
+    def test_not_in(self):
+        assert "compton" not in self.question(carr=None)
+
     def test_get_data_with_assurance(self):
         assert self.question(assuranceApproach='2answers-type1').get_data(
             {'example': 'value1', 'example--assurance': 'assurance value'}
