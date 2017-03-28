@@ -168,6 +168,43 @@ class TestText(QuestionTest):
         assert self.question().get_question_ids(type='text') == ['example']
 
 
+class TestDates(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "date"
+        }
+        data.update(kwargs)
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '2017',
+        }) == {'example': '2017-03-19'}
+
+        # TODO confirm what behaviour should happen for the following cases
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+        }) == {}
+
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': ' ',
+        }) == {}
+
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '',
+        }) == {}
+
+        assert self.question().get_data({}) == {}
+
+
 class TestBoolean(QuestionTest):
     def question(self, **kwargs):
         data = {
