@@ -687,11 +687,29 @@ class TestDateSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_invalid_string(self):
+    def test_date_is_formatted_into_user_friendly_format(self):
+        question = self.question().summary({'example': '2016-02-18'})
+        assert question.value == '18 February 2016'
+
+    def test_not_a_date_format_falls_back_to_raw_string(self):
         non_date_string = 'not-a-date-formatted-string'
         question = self.question().summary({'example': non_date_string})
 
-        assert question.value == ''+non_date_string
+        assert question.value == non_date_string
+
+    def test_answer_not_required_if_non_empty_string_exists(self):
+        question = self.question().summary({'example': 'a string'})
+        assert not question.answer_required
+
+        question = self.question().summary({'example': '2016-02-18'})
+        assert not question.answer_required
+
+    def test_is_not_empty_if_not_empty_string_exists(self):
+        question = self.question().summary({'example': 'a string'})
+        assert not question.is_empty
+
+        question = self.question().summary({'example': '2016-02-18'})
+        assert not question.is_empty
 
 
 class TestTextSummary(QuestionSummaryTest):
