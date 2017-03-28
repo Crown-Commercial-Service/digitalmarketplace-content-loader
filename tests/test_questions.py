@@ -185,12 +185,25 @@ class TestDates(QuestionTest):
         }) == {'example': '2017-03-19'}
 
 
-    def test_get_data_with_blank_year(self):
+    def test_get_data_with_blank_data(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+        }) == {}
+
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': ' ',
+        }) == {}
+
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': '',
         }) == {}
+
+        assert self.question().get_data({}) == {}
 
 
 class TestBoolean(QuestionTest):
