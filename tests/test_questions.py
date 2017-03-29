@@ -197,13 +197,12 @@ class TestDates(QuestionTest):
             'example-year': ' ',
         }) == {}
 
+    def test_get_data_with_blank_year(self):
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': '',
         }) == {}
-
-        assert self.question().get_data({}) == {}
 
 
 class TestBoolean(QuestionTest):
