@@ -184,25 +184,13 @@ class TestDates(QuestionTest):
             'example-year': '2017',
         }) == {'example': '2017-03-19'}
 
-        # TODO confirm what behaviour should happen for the following cases
-        assert self.question().get_data({
-            'example-day': '19',
-            'example-month': '03',
-        }) == {}
 
-        assert self.question().get_data({
-            'example-day': '19',
-            'example-month': '03',
-            'example-year': ' ',
-        }) == {}
-
+    def test_get_data_with_blank_year(self):
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': '',
         }) == {}
-
-        assert self.question().get_data({}) == {}
 
 
 class TestBoolean(QuestionTest):
