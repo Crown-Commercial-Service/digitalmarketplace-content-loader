@@ -573,9 +573,11 @@ class Date(Question):
         parts = []
         for key in self.FIELDS:
             identifier = '-'.join([self.id, key])
-            parts.append(form_data.get(identifier, None))
-        if not all(parts):
-            return {}
+            value = form_data.get(identifier, '').strip()
+            if not value:
+                return {self.id: None}
+            parts.append(value.strip())
+
         return {self.id: '-'.join(parts)}
 
 
