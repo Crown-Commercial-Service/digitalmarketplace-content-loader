@@ -672,7 +672,7 @@ class DateSummary(QuestionSummary):
     @property
     def value(self):
         try:
-            return datetime.strptime(self._value, '%Y-%m-%d').strftime('%-d %B %Y')
+            return datetime.strptime(self._value, '%Y-%m-%d').strftime('%A %-d %B %Y')
         except ValueError:
             return self._value
 
