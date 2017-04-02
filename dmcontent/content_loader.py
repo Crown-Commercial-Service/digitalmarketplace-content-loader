@@ -363,8 +363,10 @@ class ContentSection(object):
     @staticmethod
     def unformat_date(key, data):
         result = {}
-        for value, field in zip(data[key].split('-'), Date.FIELDS):
-            result['-'.join([key, field])] = value
+        value = data[key]
+        if data[key]:
+            for partial_value, field in zip(value.split('-'), Date.FIELDS):
+                result['-'.join([key, field])] = partial_value
         return result
 
     def unformat_data(self, data):
