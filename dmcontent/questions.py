@@ -7,7 +7,6 @@ from .formats import format_price
 from .utils import TemplateField, drop_followups
 
 
-
 class Question(object):
     TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
     TEMPLATE_OPTIONS_FIELDS = ['description']

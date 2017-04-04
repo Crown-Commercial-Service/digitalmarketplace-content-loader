@@ -184,25 +184,27 @@ class TestDates(QuestionTest):
             'example-year': '2017',
         }) == {'example': '2017-03-19'}
 
-
     def test_get_data_with_blank_data(self):
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
-        }) == {}
+        }) == {'example': None}
 
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': ' ',
-        }) == {}
+        }) == {'example': None}
 
     def test_get_data_with_blank_year(self):
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': '',
-        }) == {}
+        }) == {'example': None}
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {'example': None}
 
 
 class TestBoolean(QuestionTest):
@@ -726,7 +728,7 @@ class TestDateSummary(QuestionSummaryTest):
 
     def test_date_is_formatted_into_user_friendly_format(self):
         question = self.question().summary({'example': '2016-02-18'})
-        assert question.value == '18 February 2016'
+        assert question.value == 'Thursday 18 February 2016'
 
     def test_not_a_date_format_falls_back_to_raw_string(self):
         non_date_string = 'not-a-date-formatted-string'
