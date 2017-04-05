@@ -98,7 +98,6 @@ class Question(object):
         for field_name in sorted(error_fields):
             question = self.get_question(field_name)
             message_key = errors[field_name]
-
             validation_message = question.get_error_message(message_key, field_name)
 
             error_key = question.id
@@ -566,18 +565,16 @@ class Date(Question):
         """Retreive the fields from the POST data (form_data).
 
         The d, m, y should be in the post as 'questionName-day', questionName-month ...
-        Extract them and format as 'YYYY-MM-DD'.
+        Extract them and format as '\d\d\d\d-\d{1,2}-\d{1,2}'.
         https://code.tutsplus.com/tutorials/validating-data-with-json-schema-part-1--cms-25343
         """
         parts = []
         for key in self.FIELDS:
             identifier = '-'.join([self.id, key])
             value = form_data.get(identifier, '').strip()
-            if not value:
-                return {self.id: None}
-            parts.append(value.strip())
+            parts.append(value.strip() or '')
 
-        return {self.id: '-'.join(parts)}
+        return {self.id: '-'.join(parts) if any(parts) else None}
 
 
 class QuestionSummary(Question):
