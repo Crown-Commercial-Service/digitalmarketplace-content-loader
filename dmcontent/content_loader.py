@@ -360,15 +360,6 @@ class ContentSection(object):
             key: data[key].get('value', None)
         }
 
-    @staticmethod
-    def unformat_date(key, data):
-        result = {}
-        value = data[key]
-        if data[key]:
-            for partial_value, field in zip(value.split('-'), Date.FIELDS):
-                result['-'.join([key, field])] = partial_value
-        return result
-
     def unformat_data(self, data):
 
         """Unpack assurance information to be used in a form
@@ -389,12 +380,16 @@ class ContentSection(object):
         result = {}
         for key in data:
             if self._has_assurance(key):
+                # If it's an assurance question do the unformatting here.
                 result.update(self.unformat_assurance(key, data))
-            elif self._is_date(key):
-                result.update(self.unformat_date(key, data))
-
             else:
-                result[key] = data[key]
+                question = self.get_question(key)
+                if question:
+                    # Otherwise if it is a legitimate question use the unformat method on the question.
+                    result.update(question.unformat_data(data))
+                else:
+                    # Otherwise it's not a question, default to returning the k: v pair.
+                    result[key] = data[key]
         return result
 
     def get_question(self, field_name):
@@ -436,10 +431,6 @@ class ContentSection(object):
         """Return True if a question has an assurance component"""
         question = self.get_question(key)
         return bool(question) and question.has_assurance()
-
-    def _is_date(self, key):
-        question = self.get_question(key)
-        return question and question.is_date
 
     @property
     def has_summary_page(self):

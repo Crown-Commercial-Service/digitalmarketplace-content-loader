@@ -573,10 +573,19 @@ class Date(Question):
         parts = []
         for key in self.FIELDS:
             identifier = '-'.join([self.id, key])
-            value = form_data.get(identifier, '').strip()
-            parts.append(value.strip() or '')
+            value = form_data.get(identifier, '').replace('-', '').strip()
+            parts.append(value or '')
 
         return {self.id: '-'.join(parts) if any(parts) else None}
+
+    def unformat_data(self, data):
+
+        result = {}
+        value = data[self.id]
+        if data[self.id]:
+            for partial_value, field in zip(value.split('-'), self.FIELDS):
+                result['-'.join([self.id, field])] = partial_value
+        return result
 
 
 class QuestionSummary(Question):
@@ -672,6 +681,8 @@ class DateSummary(QuestionSummary):
         try:
             return datetime.strptime(self._value, DATE_FORMAT).strftime(DISPLAY_DATE_FORMAT)
         except ValueError:
+            # We may need to fall back to displaying a plain string value in the case of briefs in draft before
+            # the date field was introduced.
             return self._value
 
 

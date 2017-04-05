@@ -188,13 +188,13 @@ class TestDates(QuestionTest):
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
-        }) == {'example': None}
+        }) == {'example': '-03-19'}
 
         assert self.question().get_data({
             'example-day': '19',
             'example-month': '03',
             'example-year': ' ',
-        }) == {'example': None}
+        }) == {'example': '-03-19'}
 
     def test_get_data_with_blank_year(self):
         assert self.question().get_data({
@@ -729,6 +729,10 @@ class TestDateSummary(QuestionSummaryTest):
     def test_date_is_formatted_into_user_friendly_format(self):
         question = self.question().summary({'example': '2016-02-18'})
         assert question.value == 'Thursday 18 February 2016'
+
+    def test_unpadded_date_is_formatted_into_user_friendly_format(self):
+        question = self.question().summary({'example': '2003-2-1'})
+        assert question.value == 'Saturday 1 February 2003'
 
     def test_not_a_date_format_falls_back_to_raw_string(self):
         non_date_string = 'not-a-date-formatted-string'
