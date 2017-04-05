@@ -1,6 +1,8 @@
 from collections import OrderedDict, defaultdict
 from datetime import datetime
 
+from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
+
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
@@ -668,7 +670,7 @@ class DateSummary(QuestionSummary):
     @property
     def value(self):
         try:
-            return datetime.strptime(self._value, '%Y-%m-%d').strftime('%A %-d %B %Y')
+            return datetime.strptime(self._value, DATE_FORMAT).strftime(DISPLAY_DATE_FORMAT)
         except ValueError:
             return self._value
 
