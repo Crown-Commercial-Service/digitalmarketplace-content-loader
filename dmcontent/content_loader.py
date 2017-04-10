@@ -361,8 +361,7 @@ class ContentSection(object):
         }
 
     def unformat_data(self, data):
-
-        """Unpack assurance information to be used in a form
+        """Method to process form data, special assurance case or individual question level unformat.
 
         :param data: the service data as returned from the data API
         :type data: dict
