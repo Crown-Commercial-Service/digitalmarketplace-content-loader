@@ -221,14 +221,14 @@ class TestDates(QuestionTest):
         }) == {'example': None}
 
     def test_unformat_data(self):
-        assert self.question().unformat_data('example', '{'example': '2017-02-01'}) == {
+        assert self.question().unformat_data('example', {'example': '2017-02-01'}) == {
             'example-day': '01',
             'example-month': '02',
             'example-year': '2017',
         }
 
     def test_unformat_data_for_error(self):
-        assert self.question().unformat_data('example', '{'example': '2017-bb-01'}) == {
+        assert self.question().unformat_data('example', {'example': '2017-bb-01'}) == {
             'example-day': '01',
             'example-month': 'bb',
             'example-year': '2017',
