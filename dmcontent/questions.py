@@ -185,10 +185,6 @@ class Question(object):
     def has_assurance(self):
         return True if self.get('assuranceApproach') else False
 
-    @property
-    def is_date(self):
-        return False
-
     def get_question_ids(self, type=None):
         return [self.id] if type in [self.type, None] else []
 
@@ -556,10 +552,6 @@ class Date(Question):
 
     FIELDS = ('year', 'month', 'day')
 
-    @property
-    def is_date(self):
-        return True
-
     def summary(self, service_data):
         return DateSummary(self, service_data)
 
@@ -579,7 +571,6 @@ class Date(Question):
         return {self.id: '-'.join(parts) if any(parts) else None}
 
     def unformat_data(self, data):
-
         result = {}
         value = data[self.id]
         if data[self.id]:
