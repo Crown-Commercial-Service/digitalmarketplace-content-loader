@@ -27,7 +27,4 @@ setup(
         'inflection==0.3.1',
         'six==1.10.0'
     ],
-    dependency_links=[
-        'git+https://github.com/alphagov/digitalmarketplace-utils.git@25.0.1#egg=digitalmarketplace-utils==25.0.1'
-    ]
 )
