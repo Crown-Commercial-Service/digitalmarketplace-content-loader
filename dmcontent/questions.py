@@ -114,8 +114,8 @@ class Question(object):
 
         return question_errors
 
-    def unformat_data(self, data):
-        return data
+    def unformat_data(self, key, data):
+        return {key: data[key]}
 
     def get_error_message(self, message_key, field_name=None):
         """Return a single error message.
@@ -369,7 +369,7 @@ class DynamicList(Multiquestion):
 
         return {self.id: questions_data}
 
-    def unformat_data(self, data):
+    def unformat_data(self, key, data):
         """ Unpack service data to be used in a form
 
         :param data: the service data as returned from the data API
@@ -558,7 +558,7 @@ class Date(Question):
     @staticmethod
     def process_value(value):
         """If there are any hyphens in the value then it does not validate."""
-        value = value.strip()
+        value = value.strip() if value else ''
         if not value or '-' in value:
             return ''
         return value
@@ -578,7 +578,7 @@ class Date(Question):
 
         return {self.id: '-'.join(parts) if any(parts) else None}
 
-    def unformat_data(self, data):
+    def unformat_data(self, key, data):
         result = {}
         value = data[self.id]
         if data[self.id]:

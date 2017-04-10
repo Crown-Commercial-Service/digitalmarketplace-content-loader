@@ -386,7 +386,7 @@ class ContentSection(object):
                 question = self.get_question(key)
                 if question:
                     # Otherwise if it is a legitimate question use the unformat method on the question.
-                    result.update(question.unformat_data(data))
+                    result.update(question.unformat_data(key, data))
                 else:
                     # Otherwise it's not a question, default to returning the k: v pair.
                     result[key] = data[key]

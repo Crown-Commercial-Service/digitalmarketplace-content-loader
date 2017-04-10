@@ -201,11 +201,45 @@ class TestDates(QuestionTest):
             'example-day': '19',
             'example-month': '03',
             'example-year': '',
-        }) == {'example': None}
+        }) == {'example': '-03-19'}
 
     def test_get_data_unknown_key(self):
         assert self.question().get_data({'other': 'other value'}) == {'example': None}
 
+    def test_get_data_with_hyphens(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '--',
+        }) == {'example': '-03-19'}
+
+    def test_get_data_with_hyphens(self):
+        assert self.question().get_data({
+            'example-day': '--',
+            'example-month': '--',
+            'example-year': '--',
+        }) == {'example': None}
+
+    def test_unformat_data(self):
+        assert self.question().unformat_data('example', '{'example': '2017-02-01'}) == {
+            'example-day': '01',
+            'example-month': '02',
+            'example-year': '2017',
+        }
+
+    def test_unformat_data_for_error(self):
+        assert self.question().unformat_data('example', '{'example': '2017-bb-01'}) == {
+            'example-day': '01',
+            'example-month': 'bb',
+            'example-year': '2017',
+        }
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        (("11", "11"), ('a', 'a'), ('a ', 'a'), ('01', '01'), (' 0', '0'), ('--', ''), ('-1', ''), ('', ''), (None, ''))
+    )
+    def test_process_value(self, value, expected):
+        assert self.question().process_value(value) == expected
 
 class TestBoolean(QuestionTest):
     def question(self, **kwargs):
@@ -528,7 +562,7 @@ class TestDynamicListQuestion(QuestionTest):
             "nonDynamicKey": 'data'
         }
 
-        assert question.unformat_data(data) == expected
+        assert question.unformat_data('example', data) == expected
 
     def test_get_error_messages_unknown_key(self):
         question = self.question().filter(self.context())
@@ -753,6 +787,12 @@ class TestDateSummary(QuestionSummaryTest):
 
         question = self.question().summary({'example': '2016-02-18'})
         assert not question.is_empty
+
+    def test_date_before_1900(self):
+        old_date_string = '1899-01-01'
+        question = self.question().summary({'example': old_date_string})
+
+        assert question.value == old_date_string
 
 
 class TestTextSummary(QuestionSummaryTest):
