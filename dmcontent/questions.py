@@ -555,6 +555,14 @@ class Date(Question):
     def summary(self, service_data):
         return DateSummary(self, service_data)
 
+    @staticmethod
+    def process_value(value):
+        """If there are any hyphens in the value then it does not validate."""
+        value = value.strip()
+        if not value or '-' in value:
+            return ''
+        return value
+
     def get_data(self, form_data):
         """Retreive the fields from the POST data (form_data).
 
@@ -565,8 +573,8 @@ class Date(Question):
         parts = []
         for key in self.FIELDS:
             identifier = '-'.join([self.id, key])
-            value = form_data.get(identifier, '').replace('-', '').strip()
-            parts.append(value or '')
+            value = form_data.get(identifier, '')
+            parts.append(self.process_value(value))
 
         return {self.id: '-'.join(parts) if any(parts) else None}
 
