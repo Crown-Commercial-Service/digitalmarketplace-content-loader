@@ -213,7 +213,7 @@ class TestDates(QuestionTest):
             'example-year': '--',
         }) == {'example': '-03-19'}
 
-    def test_get_data_with_hyphens(self):
+    def test_get_data_with_all_hyphens(self):
         assert self.question().get_data({
             'example-day': '--',
             'example-month': '--',
@@ -240,6 +240,7 @@ class TestDates(QuestionTest):
     )
     def test_process_value(self, value, expected):
         assert self.question().process_value(value) == expected
+
 
 class TestBoolean(QuestionTest):
     def question(self, **kwargs):
