@@ -1,10 +1,11 @@
 # coding=utf-8
 from collections import OrderedDict
 
-import pytest
-
-from werkzeug.datastructures import OrderedMultiDict
 from markupsafe import Markup
+import pytest
+import six
+from werkzeug.datastructures import OrderedMultiDict
+
 from dmcontent.content_loader import ContentQuestion
 from dmcontent.utils import TemplateField
 from dmcontent import ContentTemplateError
@@ -790,7 +791,8 @@ class TestDateSummary(QuestionSummaryTest):
         assert not question.is_empty
 
     def test_date_before_1900(self):
-        old_date_string = '1899-01-01'
+
+        old_date_string = '1899-01-01' if six.PY2 else 'Sunday 1 January 1899'
         question = self.question().summary({'example': old_date_string})
 
         assert question.value == old_date_string
