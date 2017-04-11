@@ -1699,7 +1699,7 @@ class TestContentSection(object):
 
 
 class TestReadYaml(object):
-    @ mock.patch('dmcontent.content_loader.open', return_value=io.StringIO(u'foo: bar'))
+    @mock.patch('dmcontent.content_loader.open', return_value=io.StringIO(u'foo: bar'))
     def test_loading_existant_file(self, mocked_open):
         assert read_yaml('anything.yml') == {'foo': 'bar'}
 
