@@ -114,8 +114,8 @@ class Question(object):
 
         return question_errors
 
-    def unformat_data(self, key, data):
-        return {key: data[key]}
+    def unformat_data(self, data):
+        return {self.id: data[self.id]}
 
     def get_error_message(self, message_key, field_name=None):
         """Return a single error message.
@@ -369,7 +369,7 @@ class DynamicList(Multiquestion):
 
         return {self.id: questions_data}
 
-    def unformat_data(self, key, data):
+    def unformat_data(self, data):
         """ Unpack service data to be used in a form
 
         :param data: the service data as returned from the data API
@@ -466,6 +466,9 @@ class Pricing(Question):
     def get_question(self, field_name):
         if self.id == field_name or field_name in self.fields.values():
             return self
+
+    def unformat_data(self, data):
+        return self.get_data(data)
 
     def get_data(self, form_data):
         return {
@@ -578,7 +581,7 @@ class Date(Question):
 
         return {self.id: '-'.join(parts) if any(parts) else None}
 
-    def unformat_data(self, key, data):
+    def unformat_data(self, data):
         result = {}
         value = data[self.id]
         if data[self.id]:
