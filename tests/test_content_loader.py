@@ -1703,7 +1703,7 @@ class TestReadYaml(object):
     def test_loading_existant_file(self, mocked_open):
         assert read_yaml('anything.yml') == {'foo': 'bar'}
 
-    @ mock.patch('dmcontent.content_loader.open', side_effect=IOError)
+    @mock.patch('dmcontent.content_loader.open', side_effect=IOError)
     def test_file_not_found(self, mocked_open):
         with pytest.raises(IOError):
             assert read_yaml('something.yml')
