@@ -468,14 +468,16 @@ class Pricing(Question):
             return self
 
     def unformat_data(self, data):
-        return self.get_data(data)
+        """Get values from api data whose keys are in self.fields; this indicates they are related to this question."""
+        return {key: data[key] for key in data if key in self.fields.values()}
 
     def get_data(self, form_data):
-        return {
-            key: form_data[key] if form_data[key] else None
-            for key in self.fields.values()
-            if key in form_data
-        }
+        """
+        Return a subset of form_data containing only those key: value pairs whose key appears in the self.fields of
+        this question (therefore only those pairs relevant to this question).
+        Filter 0/ False values here and replace with None as they are handled with the optional flag.
+        """
+        return {key: form_data[key] or None for key in self.fields.values() if key in form_data}
 
     @property
     def form_fields(self):
