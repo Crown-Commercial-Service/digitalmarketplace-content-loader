@@ -11,7 +11,7 @@ from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .errors import ContentNotFoundError, QuestionNotFoundError
-from .questions import Question, ContentQuestion, Date
+from .questions import Question, ContentQuestion
 from .messages import ContentMessage
 from .utils import TemplateField, template_all, drop_followups
 

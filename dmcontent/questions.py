@@ -115,7 +115,7 @@ class Question(object):
         return question_errors
 
     def unformat_data(self, data):
-        return {self.id: data[self.id]}
+        return {self.id: data.get(self.id, None)}
 
     def get_error_message(self, message_key, field_name=None):
         """Return a single error message.
@@ -395,19 +395,19 @@ class DynamicList(Multiquestion):
             "yesno-0": True,
             "yesno-1": False,
             "evidence-0": "Yes, I did."
-            "nonDynamicListKey": 'other data'
         }
         """
         result = {}
-        for key in data:
-            if key == self.id:
-                for question in self.questions:
-                    # For each question e.g. evidence-0, find if data exists for it and insert it into our result
-                    root, index = question.id.split('-')
-                    if root in data[self.id][int(index)]:
-                        result[question.id] = data[self.id][int(index)].get(root)
-            else:
-                result[key] = data[key]
+        dynamic_list_data = data.get(self.id, None)
+        if not dynamic_list_data:
+            return result
+        for question in self.questions:
+            # For each question e.g. evidence-0, find if data exists for it and insert it into our result
+            root, index = question.id.split('-')
+            question_data = dynamic_list_data[int(index)]
+            if root in question_data:
+                result.update({question.id: question_data.get(root)})
+
         return result
 
     def get_error_messages(self, errors, question_descriptor_from="label"):
@@ -586,7 +586,7 @@ class Date(Question):
     def unformat_data(self, data):
         result = {}
         value = data[self.id]
-        if data[self.id]:
+        if value:
             for partial_value, field in zip(value.split('-'), self.FIELDS):
                 result['-'.join([self.id, field])] = partial_value
         return result

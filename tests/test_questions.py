@@ -561,7 +561,6 @@ class TestDynamicListQuestion(QuestionTest):
             "yesno-0": True,
             "evidence-0": 'my evidence',
             "yesno-2": False,
-            "nonDynamicKey": 'data'
         }
 
         assert question.unformat_data(data) == expected
