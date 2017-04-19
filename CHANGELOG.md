@@ -2,6 +2,29 @@
 
 Records breaking changes from major version bumps
 
+## 4.0.0
+
+PR: [#36](https://github.com/alphagov/digitalmarketplace-content-loader/pull/36/files)
+
+### What changed
+
+New question type `Date` and non-backwards compatible change to `Question.unformat_data` which now returns only data
+relevant to the given question.
+
+### Example Change
+
+#### Old
+```
+        >>> question.unformat_data({"thisQuestion": 'some data', "notThisQuestion": 'other data'})
+        {"thisQuestion": 'some data changed by unformat method', "notThisQuestion": 'other data'}
+```
+#### New
+```
+        >>> question.unformat_data({"thisQuestion": 'some data', "notThisQuestion": 'other data'})
+        {"thisQuestion": 'some data changed by unformat method'}
+```
+
+
 ## 3.0.0
 
 PR: [#25](https://github.com/alphagov/digitalmarketplace-content-loader/pull/25)
@@ -12,7 +35,6 @@ Added support for `followup` questions inside multiquestions, radio questions wi
 and multiple followups for a single question. This requires changing the question YAML file
 syntax for listing followups, so the content loader is modified to support the new format
 and will only work with an updated frameworks repo.
-
 
 ### Example change
 

@@ -353,8 +353,15 @@ class ContentSection(object):
 
         return errors_map
 
+    @staticmethod
+    def unformat_assurance(key, data):
+        return {
+            key + '--assurance': data[key].get('assurance', None),
+            key: data[key].get('value', None)
+        }
+
     def unformat_data(self, data):
-        """Unpack assurance information to be used in a form
+        """Method to process data into format for form, special assurance case or individual question level unformat.
 
         :param data: the service data as returned from the data API
         :type data: dict
@@ -372,10 +379,16 @@ class ContentSection(object):
         result = {}
         for key in data:
             if self._has_assurance(key):
-                result[key + '--assurance'] = data[key].get('assurance', None)
-                result[key] = data[key].get('value', None)
+                # If it's an assurance question do the unformatting here.
+                result.update(self.unformat_assurance(key, data))
             else:
-                result[key] = data[key]
+                question = self.get_question(key)
+                if question:
+                    # Otherwise if it is a legitimate question use the unformat method on the question.
+                    result.update(question.unformat_data(data))
+                else:
+                    # Otherwise it's not a question, default to returning the k: v pair.
+                    result[key] = data[key]
         return result
 
     def get_question(self, field_name):

@@ -1,10 +1,11 @@
 # coding=utf-8
 from collections import OrderedDict
 
-import pytest
-
-from werkzeug.datastructures import OrderedMultiDict
 from markupsafe import Markup
+import pytest
+import six
+from werkzeug.datastructures import OrderedMultiDict
+
 from dmcontent.content_loader import ContentQuestion
 from dmcontent.utils import TemplateField
 from dmcontent import ContentTemplateError
@@ -166,6 +167,80 @@ class TestText(QuestionTest):
 
     def test_get_question_ids_by_type(self):
         assert self.question().get_question_ids(type='text') == ['example']
+
+
+class TestDates(QuestionTest):
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "date"
+        }
+        data.update(kwargs)
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '2017',
+        }) == {'example': '2017-03-19'}
+
+    def test_get_data_with_blank_data(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+        }) == {'example': '-03-19'}
+
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': ' ',
+        }) == {'example': '-03-19'}
+
+    def test_get_data_with_blank_year(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '',
+        }) == {'example': '-03-19'}
+
+    def test_get_data_unknown_key(self):
+        assert self.question().get_data({'other': 'other value'}) == {'example': None}
+
+    def test_get_data_with_hyphens(self):
+        assert self.question().get_data({
+            'example-day': '19',
+            'example-month': '03',
+            'example-year': '--',
+        }) == {'example': '-03-19'}
+
+    def test_get_data_with_all_hyphens(self):
+        assert self.question().get_data({
+            'example-day': '--',
+            'example-month': '--',
+            'example-year': '--',
+        }) == {'example': None}
+
+    def test_unformat_data(self):
+        assert self.question().unformat_data({'example': '2017-02-01'}) == {
+            'example-day': '01',
+            'example-month': '02',
+            'example-year': '2017',
+        }
+
+    def test_unformat_data_for_error(self):
+        assert self.question().unformat_data({'example': '2017-bb-01'}) == {
+            'example-day': '01',
+            'example-month': 'bb',
+            'example-year': '2017',
+        }
+
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        (("11", "11"), ('a', 'a'), ('a ', 'a'), ('01', '01'), (' 0', '0'), ('--', ''), ('-1', ''), ('', ''), (None, ''))
+    )
+    def test_process_value(self, value, expected):
+        assert self.question().process_value(value) == expected
 
 
 class TestBoolean(QuestionTest):
@@ -486,7 +561,6 @@ class TestDynamicListQuestion(QuestionTest):
             "yesno-0": True,
             "evidence-0": 'my evidence',
             "yesno-2": False,
-            "nonDynamicKey": 'data'
         }
 
         assert question.unformat_data(data) == expected
@@ -674,6 +748,53 @@ class QuestionSummaryTest(object):
     def test_is_empty_optional_question(self):
         question = self.question(optional=True).summary({})
         assert question.is_empty
+
+
+class TestDateSummary(QuestionSummaryTest):
+
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "date"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_date_is_formatted_into_user_friendly_format(self):
+        question = self.question().summary({'example': '2016-02-18'})
+        assert question.value == 'Thursday 18 February 2016'
+
+    def test_unpadded_date_is_formatted_into_user_friendly_format(self):
+        question = self.question().summary({'example': '2003-2-1'})
+        assert question.value == 'Saturday 1 February 2003'
+
+    def test_not_a_date_format_falls_back_to_raw_string(self):
+        non_date_string = 'not-a-date-formatted-string'
+        question = self.question().summary({'example': non_date_string})
+
+        assert question.value == non_date_string
+
+    def test_answer_not_required_if_non_empty_string_exists(self):
+        question = self.question().summary({'example': 'a string'})
+        assert not question.answer_required
+
+        question = self.question().summary({'example': '2016-02-18'})
+        assert not question.answer_required
+
+    def test_is_not_empty_if_not_empty_string_exists(self):
+        question = self.question().summary({'example': 'a string'})
+        assert not question.is_empty
+
+        question = self.question().summary({'example': '2016-02-18'})
+        assert not question.is_empty
+
+    def test_date_before_1900(self):
+
+        old_date_string = '1899-01-01' if six.PY2 else 'Sunday 1 January 1899'
+        question = self.question().summary({'example': old_date_string})
+
+        assert question.value == old_date_string
 
 
 class TestTextSummary(QuestionSummaryTest):

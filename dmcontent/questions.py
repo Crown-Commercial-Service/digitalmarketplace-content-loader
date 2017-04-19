@@ -1,4 +1,8 @@
 from collections import OrderedDict, defaultdict
+from datetime import datetime
+
+from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
+
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
@@ -96,7 +100,6 @@ class Question(object):
         for field_name in sorted(error_fields):
             question = self.get_question(field_name)
             message_key = errors[field_name]
-
             validation_message = question.get_error_message(message_key, field_name)
 
             error_key = question.id
@@ -112,7 +115,7 @@ class Question(object):
         return question_errors
 
     def unformat_data(self, data):
-        return data
+        return {self.id: data.get(self.id, None)}
 
     def get_error_message(self, message_key, field_name=None):
         """Return a single error message.
@@ -392,19 +395,19 @@ class DynamicList(Multiquestion):
             "yesno-0": True,
             "yesno-1": False,
             "evidence-0": "Yes, I did."
-            "nonDynamicListKey": 'other data'
         }
         """
         result = {}
-        for key in data:
-            if key == self.id:
-                for question in self.questions:
-                    # For each question e.g. evidence-0, find if data exists for it and insert it into our result
-                    root, index = question.id.split('-')
-                    if root in data[self.id][int(index)]:
-                        result[question.id] = data[self.id][int(index)].get(root)
-            else:
-                result[key] = data[key]
+        dynamic_list_data = data.get(self.id, None)
+        if not dynamic_list_data:
+            return result
+        for question in self.questions:
+            # For each question e.g. evidence-0, find if data exists for it and insert it into our result
+            root, index = question.id.split('-')
+            question_data = dynamic_list_data[int(index)]
+            if root in question_data:
+                result.update({question.id: question_data.get(root)})
+
         return result
 
     def get_error_messages(self, errors, question_descriptor_from="label"):
@@ -464,12 +467,17 @@ class Pricing(Question):
         if self.id == field_name or field_name in self.fields.values():
             return self
 
+    def unformat_data(self, data):
+        """Get values from api data whose keys are in self.fields; this indicates they are related to this question."""
+        return {key: data[key] for key in data if key in self.fields.values()}
+
     def get_data(self, form_data):
-        return {
-            key: form_data[key] if form_data[key] else None
-            for key in self.fields.values()
-            if key in form_data
-        }
+        """
+        Return a subset of form_data containing only those key: value pairs whose key appears in the self.fields of
+        this question (therefore only those pairs relevant to this question).
+        Filter 0/ False values here and replace with None as they are handled with the optional flag.
+        """
+        return {key: form_data[key] or None for key in self.fields.values() if key in form_data}
 
     @property
     def form_fields(self):
@@ -542,6 +550,46 @@ class Hierarchy(List):
         update_expected_values(self._data.get('options', []), list(), expected_values)
 
         return expected_values - selected_values_set
+
+
+class Date(Question):
+    """Class used as an interface for date data between forms, backend and summary pages."""
+
+    FIELDS = ('year', 'month', 'day')
+
+    def summary(self, service_data):
+        return DateSummary(self, service_data)
+
+    @staticmethod
+    def process_value(value):
+        """If there are any hyphens in the value then it does not validate."""
+        value = value.strip() if value else ''
+        if not value or '-' in value:
+            return ''
+        return value
+
+    def get_data(self, form_data):
+        """Retreive the fields from the POST data (form_data).
+
+        The d, m, y should be in the post as 'questionName-day', questionName-month ...
+        Extract them and format as '\d\d\d\d-\d{1,2}-\d{1,2}'.
+        https://code.tutsplus.com/tutorials/validating-data-with-json-schema-part-1--cms-25343
+        """
+        parts = []
+        for key in self.FIELDS:
+            identifier = '-'.join([self.id, key])
+            value = form_data.get(identifier, '')
+            parts.append(self.process_value(value))
+
+        return {self.id: '-'.join(parts) if any(parts) else None}
+
+    def unformat_data(self, data):
+        result = {}
+        value = data[self.id]
+        if value:
+            for partial_value, field in zip(value.split('-'), self.FIELDS):
+                result['-'.join([self.id, field])] = partial_value
+        return result
 
 
 class QuestionSummary(Question):
@@ -624,6 +672,22 @@ class QuestionSummary(Question):
             return False
         else:
             return self.is_empty
+
+
+class DateSummary(QuestionSummary):
+
+    def __init__(self, question, service_data):
+        super(DateSummary, self).__init__(question, service_data)
+        self._value = self._service_data.get(self.id, '')
+
+    @property
+    def value(self):
+        try:
+            return datetime.strptime(self._value, DATE_FORMAT).strftime(DISPLAY_DATE_FORMAT)
+        except ValueError:
+            # We may need to fall back to displaying a plain string value in the case of briefs in draft before
+            # the date field was introduced.
+            return self._value
 
 
 class MultiquestionSummary(QuestionSummary, Multiquestion):
@@ -758,6 +822,7 @@ QUESTION_TYPES = {
     'list': List,
     'checkboxes': List,
     'checkbox_tree': Hierarchy,
+    'date': Date
 }
 
 
