@@ -6,7 +6,7 @@ from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
-from .utils import TemplateField, drop_followups
+from .utils import TemplateField, drop_followups, get_option_value
 
 
 class Question(object):
@@ -539,7 +539,7 @@ class Hierarchy(List):
 
         def update_expected_values(options, parents, expected_set):
             for option in options:
-                value = option.get('value', option.get('label'))
+                value = get_option_value(option)
                 if value in selected_values_set:
                     expected_set.update(parents)
                 children = option.get('options')
