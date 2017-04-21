@@ -4,7 +4,7 @@ import pytest
 from jinja2 import Environment, Markup
 
 from dmcontent.errors import ContentTemplateError
-from dmcontent.utils import TemplateField
+from dmcontent.utils import TemplateField, get_option_value
 
 
 class TestTemplateField(object):
@@ -143,3 +143,20 @@ class TestTemplateFieldsInTemplate(object):
         final_template = env.from_string('{{ rendered_field|safe }}').render({'rendered_field': rendered_field})
 
         assert final_template == 'This is a {{ context }} template'
+
+
+def test_get_option_value():
+    option_value_no_label = {
+        'value': 'somevalue',
+    }
+    option_label_no_value = {
+        'label': 'somelabel',
+    }
+    option_label_and_value = {
+        'value': 'somevalue',
+        'label': 'somelabel',
+    }
+
+    assert get_option_value(option_value_no_label) == 'somevalue'
+    assert get_option_value(option_label_no_value) == 'somelabel'
+    assert get_option_value(option_label_and_value) == 'somevalue'

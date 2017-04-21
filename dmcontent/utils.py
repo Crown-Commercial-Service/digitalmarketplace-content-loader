@@ -87,3 +87,13 @@ def drop_followups(question_or_section, data, nested=False):
                         data[field] = None
 
     return data
+
+
+def get_option_value(option):
+    """
+    An option in a Checkboxes or CheckboxTree question is a dict, but we need to treat their
+    contents in consistent ways, e.g. when getting the value to be persisted in the API.
+    :param option: dict from a Question's list of options
+    :return: string value to be persisted
+    """
+    return option.get('value') or option['label']
