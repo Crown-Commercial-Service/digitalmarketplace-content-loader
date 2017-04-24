@@ -25,6 +25,7 @@ setup(
         'PyYAML==3.11',
         'Werkzeug==0.11.9',
         'inflection==0.3.1',
-        'six==1.10.0'
+        'six==1.10.0',
+        'digitalmarketplace-utils>=25.0.1',
     ]
 )
