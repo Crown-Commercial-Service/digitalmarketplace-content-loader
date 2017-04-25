@@ -1,2 +1,2 @@
 -e .
-git+https://github.com/alphagov/digitalmarketplace-utils.git@25.0.1#egg=digitalmarketplace-utils==25.0.1
+git+https://github.com/alphagov/digitalmarketplace-utils.git@25.1.0#egg=digitalmarketplace-utils==25.1.0
