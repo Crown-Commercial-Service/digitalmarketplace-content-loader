@@ -1,9 +1,10 @@
 import collections
 
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
-from jinja2.sandbox import SandboxedEnvironment
 from markdown import markdown
 from six import string_types
+
+from dmutils.jinja2_environment import DMSandboxedEnvironment
 
 from .errors import ContentTemplateError
 
@@ -23,7 +24,7 @@ class TemplateField(object):
             raise ContentTemplateError(e.message)
 
     def make_template(self, field_value):
-        env = SandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+        env = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
         template = markdown(field_value, []) if self.markdown else field_value
 
         return env.from_string(template)
