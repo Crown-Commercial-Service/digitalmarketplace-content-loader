@@ -26,6 +26,6 @@ setup(
         'Werkzeug==0.11.9',
         'inflection==0.3.1',
         'six==1.10.0',
-        'digitalmarketplace-utils>=25.0.1',
+        'digitalmarketplace-utils>=25.1.0',
     ]
 )
