@@ -353,6 +353,10 @@ class ContentSection(object):
 
         return errors_map
 
+    @property
+    def is_empty(self):
+        return all(question.is_empty for question in self.questions)
+
     @staticmethod
     def unformat_assurance(key, data):
         return {
