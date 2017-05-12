@@ -145,6 +145,27 @@ class TestFilterContentSection(object):
         assert copied_section.prefill is False
         assert copied_section.editable is False
 
+    def test_is_empty(self):
+        questions = [
+            Question({'id': 'q1', 'name': 'q1', 'type': 'unknown'}),
+            Question({'id': 'q2', 'name': 'q2', 'type': 'unknown'})
+            ]  # note that id and type are required as this function indirectly calls QuestionSummary.value
+
+        section = ContentSection(
+            slug='section',
+            name=TemplateField('Section'),
+            prefill=False,
+            editable=False,
+            edit_questions=False,
+            questions=questions
+        )
+        answered = section.summary({'q1': 'a1', 'q2': 'a2'})
+        assert not answered.is_empty
+        half_answered = section.summary({'q1': 'a1', 'q2': ''})
+        assert not half_answered.is_empty
+        not_answered = section.summary({'q1': '', 'q2': ''})
+        assert not_answered.is_empty
+
     def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self):
         multiquestion_data = {
             "id": "example",
