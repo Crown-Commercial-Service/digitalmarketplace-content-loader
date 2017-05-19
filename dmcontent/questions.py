@@ -667,7 +667,8 @@ class QuestionSummary(Question):
         value = self._service_data.get(self.id, '')
         if options and value:
             for option in options:
-                if 'filter_label' in option and 'value' in option and option['value'] == value:
+                if ('filter_label' in option and 'value' in option and (
+                            option.get('value') or option.get('label')) == value):
                     return option['filter_label']
         return self.value
 
@@ -797,7 +798,7 @@ class ListSummary(QuestionSummary, List):
             new_list = list()
             for v in value:
                 for opt in options:
-                    if opt['value'] == v:
+                    if (opt.get('value') or opt.get('label')) == v:
                         new_list.append(opt.get('filter_label') or opt.get('label') or v)
             value = new_list
 
