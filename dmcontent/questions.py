@@ -661,6 +661,17 @@ class QuestionSummary(Question):
         return value
 
     @property
+    def filter_value(self):
+        # For options where we want to show different text on the service page than when the question was asked
+        options = self.get('options')
+        value = self._service_data.get(self.id, '')
+        if options and value:
+            for option in options:
+                if 'filter_label' in option and 'value' in option and option['value'] == value:
+                    return option['filter_label']
+        return self.value
+
+    @property
     def assurance(self):
         if self.has_assurance():
             return self._service_data.get(self.id, {}).get('assurance', '')
@@ -765,11 +776,30 @@ class ListSummary(QuestionSummary, List):
         # Look up display values for options that have different labels from values
         options = self.get('options')
         if options and value:
+            value = list(value)  # Make a copy of the list to avoid mutating the underlying list data
             for i, v in enumerate(value):
                 for option in options:
                     if 'label' in option and 'value' in option and v == option['value']:
                         value[i] = option['label']
                         break
+
+        if self.get('before_summary_value'):
+            value = self.before_summary_value + (value or [])
+
+        return value
+
+    @property
+    def filter_value(self):
+        # Display values for options where we want to show different text ('filter_label') than the usual 'label'
+        options = self.get('options')
+        value = self._service_data.get(self.id, '')
+        if options and value:
+            new_list = list()
+            for v in value:
+                for opt in options:
+                    if opt['value'] == v:
+                        new_list.append(opt.get('filter_label') or opt.get('label') or v)
+            value = new_list
 
         if self.get('before_summary_value'):
             value = self.before_summary_value + (value or [])

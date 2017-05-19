@@ -831,7 +831,7 @@ class TestRadiosSummary(TestTextSummary):
             "type": "radios",
             "options": [
                 {"label": "Wrong label", "value": "value"},
-                {"label": "Option label", "value": "value1"},
+                {"label": "Option label", "filter_label": "option filter label", "value": "value1"},
                 {"label": "Other label", "value": "value2"},
             ]
         }
@@ -843,6 +843,10 @@ class TestRadiosSummary(TestTextSummary):
         question = self.question().summary({'example': 'value1'})
         assert question.value == 'Option label'
 
+    def test_filter_value_returns_matching_option_filter_label(self):
+        question = self.question().summary({'example': 'value1'})
+        assert question.filter_value == 'option filter label'
+
 
 class TestCheckboxesSummary(QuestionSummaryTest):
     def question(self, **kwargs):
@@ -851,7 +855,7 @@ class TestCheckboxesSummary(QuestionSummaryTest):
             "type": "checkboxes",
             "options": [
                 {"label": "Wrong label", "value": "value"},
-                {"label": "Option label", "value": "value1"},
+                {"label": "Option label", "filter_label": "option filter label", "value": "value1"},
                 {"label": "Other label", "value": "value2"},
             ]
         }
@@ -862,6 +866,19 @@ class TestCheckboxesSummary(QuestionSummaryTest):
     def test_value(self):
         question = self.question().summary({'example': ['value1', 'value2']})
         assert question.value == ['Option label', 'Other label']
+
+    def test_filter_value(self):
+        question = self.question().summary({'example': ['value1', 'value2']})
+        assert question.filter_value == ['option filter label', 'Other label']
+
+    def test_reading_properties_does_not_mutate_underlying_list_data(self):
+        # We don't want reading a property such as "value" to change the underlying list, as that would mean subsequent
+        # reads of other properties will not work as expected
+        question = self.question().summary({'example': ['value1', 'value2']})
+        assert question.value == ['Option label', 'Other label']
+        assert question.filter_value == ['option filter label', 'Other label']
+        assert question.value == ['Option label', 'Other label']
+        assert question.filter_value == ['option filter label', 'Other label']
 
     def test_value_with_assurance(self):
         question = self.question(assuranceApproach='2answers-type1').summary(
