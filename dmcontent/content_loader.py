@@ -520,12 +520,16 @@ class ContentLoader(object):
             if field in question_data:
                 question_data[field] = TemplateField(question_data[field])
 
-        # We also want to support TemplateFields as subfields of entries in options (e.g. for lot descriptions)
-        for subfield in Question.TEMPLATE_OPTIONS_FIELDS:
-            if 'options' in question_data:
-                for i, option in enumerate(question_data['options']):
+        """
+        We want to support TemplateFields as keys of list items, for example:
+        - {options: [{description: '{{ "jinja" }}'}]} in the lot question
+        - {validations: [{message: '{{ "jinja" }}'}]} in some declaration questions
+        """
+        for field, subfield in Question.TEMPLATE_OPTIONS_FIELDS:
+            if field in question_data:
+                for i, option in enumerate(question_data[field]):
                     if subfield in option:
-                        question_data['options'][i][subfield] = TemplateField(question_data['options'][i][subfield])
+                        question_data[field][i][subfield] = TemplateField(question_data[field][i][subfield])
 
         self._questions[framework_slug][question_set][question] = question_data
 

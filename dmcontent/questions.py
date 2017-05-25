@@ -11,7 +11,7 @@ from .utils import TemplateField, drop_followups, get_option_value
 
 class Question(object):
     TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
-    TEMPLATE_OPTIONS_FIELDS = ['description']
+    TEMPLATE_OPTIONS_FIELDS = [('options', 'description'), ('validations', 'message')]
 
     def __init__(self, data, number=None, _context=None):
         self.number = number
@@ -202,7 +202,7 @@ class Question(object):
 
         if isinstance(field, TemplateField):
             return field.render(self._context)
-        elif key == 'options':
+        elif key in [_field for _field, _ in self.TEMPLATE_OPTIONS_FIELDS]:
             return [{k: (v.render(self._context) if isinstance(v, TemplateField) else v)
                      for k, v in i.items()
                      }
