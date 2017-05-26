@@ -111,17 +111,16 @@ class QuestionTest(object):
         assert question.question == "Question"
 
     def test_question_options_descriptions_render_template_fields(self):
-        """If the question has an options field, check that all TEMPLATE_OPTIONS_FIELDS are correctly rendered from
+        """Check that all TEMPLATE_OPTIONS_FIELDS fields are correctly rendered from
         TemplateFields by passing in markup and ensuring they turn into Markup objects.
         Does not recurse through options.options.[...] fields, e.g. for CheckboxTree"""
         question = self.question()
 
-        if hasattr(question, 'options'):
-            options = question['options']
-            for subfield in question.TEMPLATE_OPTIONS_FIELDS:
-                for option in options:
-                    if subfield in option:
-                        assert type(option[subfield]) == Markup
+        for field, subfield in question.TEMPLATE_OPTIONS_FIELDS:
+            if hasattr(question, field):
+                for item in question[field]:
+                    if subfield in item:
+                        assert type(item[subfield]) == Markup
 
 
 class TestText(QuestionTest):
@@ -621,6 +620,9 @@ class TestCheckboxes(QuestionTest):
                                                                                         " [markup](links)")},
                 {"label": "Option label", "value": "value1"},
                 {"label": "Wrong label", "value": "value2"},
+            ],
+            "validations": [
+                {"name": "answer_required", "message": TemplateField("You have to answer the question")}
             ]
         }
         data.update(kwargs)
@@ -659,6 +661,9 @@ class TestRadios(TestCheckboxes):
                                                                                         " [markup](links)")},
                 {"label": "Option label", "value": "value1"},
                 {"label": "Wrong label", "value": "value2"},
+            ],
+            "validations": [
+                {"name": "answer_required", "message": TemplateField("You have to answer the question")}
             ]
         }
         data.update(kwargs)
