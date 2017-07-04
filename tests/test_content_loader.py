@@ -1831,7 +1831,23 @@ class TestContentLoader(object):
             "question": "Question one",
             "question_advice": "This is the first question",
             "hint": "100 character limit",
-            "type": "text",
+            "type": "radios",
+            "options": [
+                {
+                    "value": "Option 1",
+                    "description": "This is the first option"
+                }, {
+                    "value": "Option 2",
+                    "description": "This is the second option"
+                },
+            ],
+            "validations": [
+                {
+                    "name": "answer_required",
+                    "message": "You have to answer the question"
+                }
+            ]
+
         }
 
         yaml_loader = ContentLoader('content/')
@@ -1843,7 +1859,14 @@ class TestContentLoader(object):
             "question": TemplateField("Question one"),
             "question_advice": TemplateField("This is the first question"),
             "hint": TemplateField("100 character limit"),
-            "type": "text",
+            "type": "radios",
+            "options": [
+                {"value": "Option 1", "description": TemplateField("This is the first option")},
+                {"value": "Option 2", "description": TemplateField("This is the second option")}
+            ],
+            "validations": [
+                {"name": "answer_required", "message": TemplateField("You have to answer the question")}
+            ]
         }
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')

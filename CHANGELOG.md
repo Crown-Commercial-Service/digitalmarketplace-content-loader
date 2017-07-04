@@ -80,7 +80,7 @@ These are the fields that are turned into TemplateFields when the YAML files are
 
 | ContentSection                    | Question                                           |
 |-----------------------------------|----------------------------------------------------|
-| [`name`, `description`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/content_loader.py#L123) | [`question`, `name`, `question_advice`, `hint`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/questions.py#L10) |
+| [`name`, `description`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/content_loader.py#L123) | [`question`, `name`, `question_advice`, `hint`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/474d9adce0f422700cbf2dfc8815a7503ab368bc/dmcontent/questions.py#L10), and [`options[i].description`, and `validations[i].message`](https://github.com/alphagov/digitalmarketplace-content-loader/blob/29b1be3571558312a4b6271c06d04b65b44dd607/dmcontent/questions.py#L14) <sub>since v4.4.2</sub> |
 
 In addition, all string fields (including fields in lists and nested dictionaries) in content
 messages are turned into TemplateFields.
