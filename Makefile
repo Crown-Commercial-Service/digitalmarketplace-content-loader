@@ -7,8 +7,8 @@ virtualenv:
 requirements: virtualenv requirements.txt
 	${VIRTUALENV_ROOT}/bin/pip install -r requirements.txt
 
-requirements_for_test: virtualenv requirements_for_test.txt
-	${VIRTUALENV_ROOT}/bin/pip install -r requirements_for_test.txt
+requirements-dev: virtualenv requirements-dev.txt
+	${VIRTUALENV_ROOT}/bin/pip install -r requirements-dev.txt
 
 test: test_pep8 test_python
 

@@ -16,7 +16,7 @@ Originally was part of [Digital Marketplace Utils](https://github.com/alphagov/d
 Install Python dependencies
 
 ```
-make requirements_for_test
+make requirements-dev
 ```
 
 Run the tests
