@@ -149,7 +149,7 @@ class TestFilterContentSection(object):
         questions = [
             Question({'id': 'q1', 'name': 'q1', 'type': 'unknown'}),
             Question({'id': 'q2', 'name': 'q2', 'type': 'unknown'})
-            ]  # note that id and type are required as this function indirectly calls QuestionSummary.value
+        ]  # note that id and type are required as this function indirectly calls QuestionSummary.value
 
         section = ContentSection(
             slug='section',

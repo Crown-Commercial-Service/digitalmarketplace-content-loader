@@ -934,23 +934,20 @@ class TestCheckboxTreeSummary(QuestionSummaryTest):
     def test_value(self):
         question = self.question().summary({'example': ['val1.1', 'val2.2', 'val4']})
         assert question.value == [
-                {
-                    "label": "Option 1",
-                    "value": "val1",
-                    "options": [
-                        {"label": "Option 1.1", "value": "val1.1", "options": []},
-                    ]
-                },
-                {
-                    "label": "Option 2",
-                    "value": "val2",
-                    "options": [
-                        {"label": "Option 2.2", "value": "val2.2", "options": []},
-                    ]
-                },
-
-                {"label": "Option 4", "value": "val4", "options": []},
-            ]
+            {
+                "label": "Option 1",
+                "value": "val1",
+                "options": [{"label": "Option 1.1", "value": "val1.1", "options": []}]
+            }, {
+                "label": "Option 2",
+                "value": "val2",
+                "options": [{"label": "Option 2.2", "value": "val2.2", "options": []}]
+            }, {
+                "label": "Option 4",
+                "value": "val4",
+                "options": []
+            }
+        ]
 
     def test_value_missing(self):
         question = self.question().summary({})
@@ -993,7 +990,7 @@ class TestNumberSummary(QuestionSummaryTest):
 
     def test_value_adds_unit_for_questions_with_assertion(self):
         question = self.question(unit=u"£", unit_position="after", assuranceApproach="2answers-type1").summary({
-            'example': {'value': 15,  'assurance': 'Service provider assertion'}
+            'example': {'value': 15, 'assurance': 'Service provider assertion'}
         })
         assert question.value == u'15£'
 

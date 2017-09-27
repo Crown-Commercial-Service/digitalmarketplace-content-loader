@@ -430,7 +430,7 @@ class DynamicList(Multiquestion):
             question_errors[input_name] = {
                 'input_name': input_name,
                 'question': getattr(question, question_descriptor_from),
-                'message':  question.get_error_message(error['error']),
+                'message': question.get_error_message(error['error']),
             }
 
         return question_errors
@@ -666,10 +666,9 @@ class QuestionSummary(Question):
         options = self.get('options')
         value = self._service_data.get(self.id, '')
         if options and value:
-            for option in options:
-                if ('filter_label' in option and 'value' in option and (
-                            option.get('value') or option.get('label')) == value):
-                    return option['filter_label']
+            for opt in options:
+                if 'filter_label' in opt and 'value' in opt and any(value == opt.get(i) for i in ['value', 'label']):
+                    return opt['filter_label']
         return self.value
 
     @property

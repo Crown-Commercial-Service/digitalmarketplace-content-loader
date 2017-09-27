@@ -1,4 +1,3 @@
-import pytest
 from dmcontent.converters import convert_to_boolean, convert_to_number
 
 
