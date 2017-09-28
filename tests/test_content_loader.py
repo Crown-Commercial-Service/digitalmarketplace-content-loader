@@ -12,11 +12,6 @@ from dmcontent.content_loader import (
     read_yaml, ContentNotFoundError, QuestionNotFoundError, _make_slug
 )
 
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
-
 
 @pytest.fixture
 def manifest_with_sections():
