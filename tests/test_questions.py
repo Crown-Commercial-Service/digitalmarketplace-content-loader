@@ -301,6 +301,12 @@ class TestPricing(QuestionTest):
     def test_get_question_ids_by_type(self):
         assert self.question().get_question_ids(type='pricing') == ['example']
 
+    def test_pricing_question_decimal_place_restriction_is_false_by_default(self):
+        assert self.question().decimal_place_restriction is False
+
+    def test_pricing_question_decimal_place_restriction_can_be_set_true(self):
+        assert self.question(decimal_place_restriction=True).decimal_place_restriction is True
+
 
 class TestMultiquestion(QuestionTest):
     def question(self, **kwargs):

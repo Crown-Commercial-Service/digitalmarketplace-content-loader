@@ -459,6 +459,7 @@ class Pricing(Question):
     def __init__(self, data, *args, **kwargs):
         super(Pricing, self).__init__(data, *args, **kwargs)
         self.fields = data['fields']
+        self.decimal_place_restriction = data.get('decimal_place_restriction', False)
 
     def summary(self, service_data):
         return PricingSummary(self, service_data)
