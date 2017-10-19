@@ -307,6 +307,34 @@ class TestPricing(QuestionTest):
     def test_pricing_question_decimal_place_restriction_can_be_set_true(self):
         assert self.question(decimal_place_restriction=True).decimal_place_restriction is True
 
+    def _get_transformed_price_for_decimal_place_restriction_question(self, input_price):
+        question = self.question(decimal_place_restriction=True)
+        return question.get_data({'priceMin': input_price})['priceMin']
+
+    def test_get_data_with_decimal_place_restriction_expands_decimal_point_to_2dp(self):
+        assert self._get_transformed_price_for_decimal_place_restriction_question('10.') == '10.00'
+
+    def test_get_data_with_decimal_place_restriction_expands_1dp_to_2dp(self):
+        assert self._get_transformed_price_for_decimal_place_restriction_question('10.1') == '10.10'
+
+    def test_get_data_with_decimal_place_restriction_does_not_edit_price_if_integer(self):
+        assert self._get_transformed_price_for_decimal_place_restriction_question('10') == '10'
+
+    @pytest.mark.parametrize("price", ["11.12", "11.123"])
+    def test_get_data_with_decimal_place_restriction_does_not_edit_price_if_atleast_2dp(self, price):
+        assert self._get_transformed_price_for_decimal_place_restriction_question(price) == price
+
+    def test_get_data_with_decimal_place_restriction_does_not_edit_price_if_not_a_number(self):
+        assert self._get_transformed_price_for_decimal_place_restriction_question('string') == 'string'
+        assert self._get_transformed_price_for_decimal_place_restriction_question('trailingstop.') == 'trailingstop.'
+        assert self._get_transformed_price_for_decimal_place_restriction_question('trailingzero.0') == 'trailingzero.0'
+        assert self._get_transformed_price_for_decimal_place_restriction_question(None) is None
+
+    @pytest.mark.parametrize("price", [None, "11", "11.", "11.2", "11.23", "11.234"])
+    def test_get_data_does_not_edit_price_if_decimal_restriction_is_false(self, price):
+        question = self.question()
+        assert question.get_data({'priceMin': price}) == {'priceMin': price}
+
 
 class TestMultiquestion(QuestionTest):
     def question(self, **kwargs):
