@@ -1,5 +1,6 @@
 from collections import OrderedDict, defaultdict
 from datetime import datetime
+import re
 
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
@@ -460,6 +461,9 @@ class Pricing(Question):
         super(Pricing, self).__init__(data, *args, **kwargs)
         self.fields = data['fields']
 
+        # True if we are restricting to an integer or a 2dp value (representing pounds and optionally pence)
+        self.decimal_place_restriction = data.get('decimal_place_restriction', False)
+
     def summary(self, service_data):
         return PricingSummary(self, service_data)
 
@@ -477,7 +481,21 @@ class Pricing(Question):
         this question (therefore only those pairs relevant to this question).
         Filter 0/ False values here and replace with None as they are handled with the optional flag.
         """
-        return {key: form_data[key] or None for key in self.fields.values() if key in form_data}
+        question_data = {key: form_data[key] or None for key in self.fields.values() if key in form_data}
+
+        if self.decimal_place_restriction:
+            # Permissive validation to transform incomplete pennies to 2dp
+            pattern_0dp = re.compile(r"\d+(\.)$")  # integer followed by '.' but no decimal values
+            pattern_1dp = re.compile(r"\d+(\.)(?:\d)$")  # integer with 1 decimal place
+            for key, value in question_data.items():
+                if value:
+                    if pattern_0dp.search(value):
+                        question_data[key] = value + "00"
+
+                    if pattern_1dp.search(value):
+                        question_data[key] = value + "0"
+
+        return question_data
 
     @property
     def form_fields(self):
