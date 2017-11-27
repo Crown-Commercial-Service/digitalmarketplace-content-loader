@@ -288,6 +288,13 @@ class Multiquestion(Question):
     def get_question_ids(self, type=None):
         return [question.id for question in self.questions if type in [question.type, None]]
 
+    def get_error_messages(self, errors, question_descriptor_from="label"):
+        # Multi-question errors should have the same ordering as the questions
+        errors = super(Multiquestion, self).get_error_messages(
+            errors, question_descriptor_from=question_descriptor_from
+        )
+        return OrderedDict((q.id, errors[q.id]) for q in self.questions if q.id in errors.keys())
+
 
 class DynamicList(Multiquestion):
 
