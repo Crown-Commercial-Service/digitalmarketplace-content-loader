@@ -472,6 +472,50 @@ class TestMultiquestion(QuestionTest):
             ('follow', 'a')
         ])) == {'lead': ['no', 'maybe not'], 'follow': None}
 
+    def test_get_error_messages_orders_by_question_order(self):
+        question = self.question(
+            questions=[
+                {
+                    "id": "technicalCompetence",
+                    "type": "text",
+                    "label": "Technical Competence",
+                },
+                {
+                    "id": "price",
+                    "type": "text",
+                    "label": "Price",
+                },
+                {
+                    "id": "culturalFit",
+                    "type": "number",
+                    "label": "Cultural Fit",
+                }
+            ]
+        ).filter(self.context())
+
+        multi_question_form_errors = {
+            "culturalFit": "answer_required",
+            "price": "not_a_number",
+            "technicalCompetence": "answer_required",
+        }
+        assert question.get_error_messages(multi_question_form_errors) == OrderedDict([
+            ('technicalCompetence', {
+                'input_name': 'technicalCompetence',
+                'message': 'You need to answer this question.',
+                'question': 'Technical Competence'
+            }),
+            ('price', {
+                'input_name': 'price',
+                'message': 'There was a problem with the answer to this question.',
+                'question': 'Price'
+            }),
+            ('culturalFit', {
+                'input_name': 'culturalFit',
+                'message': 'You need to answer this question.',
+                'question': 'Cultural Fit'
+            })
+        ])
+
 
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
