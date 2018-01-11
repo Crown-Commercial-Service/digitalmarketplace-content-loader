@@ -5,6 +5,7 @@ from markdown import markdown
 from six import string_types
 
 from dmutils.jinja2_environment import DMSandboxedEnvironment
+from dmcontent.errors import ContentNotFoundError
 
 from .errors import ContentTemplateError
 
@@ -98,3 +99,13 @@ def get_option_value(option):
     :return: string value to be persisted
     """
     return option.get('value') or option['label']
+
+
+def try_load_manifest(content_loader, application, data, question_set, manifest):
+    try:
+        content_loader.load_manifest(data['slug'], question_set, manifest)
+
+    except ContentNotFoundError:
+        application.logger.info(
+            "Could not load {}.{} manifest for {}".format(question_set, manifest, data['slug'])
+        )
