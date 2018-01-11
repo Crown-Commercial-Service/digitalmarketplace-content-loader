@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import pytest
 from jinja2 import Environment, Markup
 
-from dmcontent.errors import ContentTemplateError
-from dmcontent.utils import TemplateField, get_option_value
+from dmcontent.errors import ContentTemplateError, ContentNotFoundError
+from dmcontent.utils import TemplateField, get_option_value, try_load_manifest
 
 
 class TestTemplateField(object):
@@ -160,3 +161,51 @@ def test_get_option_value():
     assert get_option_value(option_value_no_label) == 'somevalue'
     assert get_option_value(option_label_no_value) == 'somelabel'
     assert get_option_value(option_label_and_value) == 'somevalue'
+
+
+class TestTryLoadManifest:
+    FRAMEWORK_DATA = {'slug': 'framework'}
+    QUESTION_SET = 'services'
+    MANIFEST = 'example'
+
+    def setup(self):
+        self.content_loader_mock = mock.Mock()
+        self.application_mock = mock.Mock()
+
+    def test_content_loader_asked_to_load_manifest(self):
+        try_load_manifest(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadManifest.FRAMEWORK_DATA,
+                          TestTryLoadManifest.QUESTION_SET,
+                          TestTryLoadManifest.MANIFEST
+                          )
+
+        assert self.content_loader_mock.load_manifest.call_args_list == [
+            mock.call(TestTryLoadManifest.FRAMEWORK_DATA['slug'],
+                      TestTryLoadManifest.QUESTION_SET,
+                      TestTryLoadManifest.MANIFEST)
+        ]
+        assert self.application_mock.logger.info.called is False
+
+    def test_info_log_generated_on_content_not_found(self):
+        self.content_loader_mock.load_manifest.side_effect = ContentNotFoundError()
+
+        try_load_manifest(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadManifest.FRAMEWORK_DATA,
+                          TestTryLoadManifest.QUESTION_SET,
+                          TestTryLoadManifest.MANIFEST
+                          )
+
+        assert self.content_loader_mock.load_manifest.call_args_list == [
+            mock.call(TestTryLoadManifest.FRAMEWORK_DATA['slug'],
+                      TestTryLoadManifest.QUESTION_SET,
+                      TestTryLoadManifest.MANIFEST)
+        ]
+
+        assert self.application_mock.logger.info.call_args_list == [
+            mock.call('Could not load {}.{} manifest for {}'.format(
+                TestTryLoadManifest.QUESTION_SET,
+                TestTryLoadManifest.MANIFEST,
+                TestTryLoadManifest.FRAMEWORK_DATA['slug']))
+        ]
