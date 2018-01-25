@@ -1721,13 +1721,13 @@ class TestContentLoader(object):
         ]
 
     def question1(self):
-        return {"name": "question1", "depends": [{"on": "lot", "being": "SaaS"}]}
+        return {"name": "question1", "hint": "References q [[q2]]", "depends": [{"on": "lot", "being": "SaaS"}]}
 
     def question2(self):
         return {"id": "q2", "name": "question2", "depends": [{"on": "lot", "being": "SaaS"}]}
 
     def question3(self):
-        return {"name": "question3", "depends": [{"on": "lot", "being": "IaaS"}]}
+        return {"name": "question3", "hint": "References q [[question1]]", "depends": [{"on": "lot", "being": "IaaS"}]}
 
     def test_manifest_loading(self, read_yaml_mock):
         self.set_read_yaml_mock_response(read_yaml_mock)
@@ -2068,6 +2068,18 @@ class TestContentLoader(object):
         with pytest.raises(ContentNotFoundError):
             yaml_loader = ContentLoader('content/')
             yaml_loader.get_manifest('framework-slug', 'manifest')
+
+    def test_foo(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+
+        yaml_loader = ContentLoader('content/')
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+        manifest = yaml_loader.get_manifest('framework-slug', 'my-manifest')
+        q1hint = manifest.sections[0]["questions"][0]["hint"]
+        assert q1hint == 'References q 2'
+
+        q3hint = manifest.sections[1]["questions"][0]["hint"]
+        assert q3hint == 'References q 1'
 
 
 @pytest.mark.parametrize("title,slug", [

@@ -35,8 +35,32 @@ class ContentManifest(object):
                 question_index += 1
                 question.number = question_index
 
+        for section in self.sections:
+            for question in section.questions:
+                if question.get("hint"):
+                    question._data["hint"] = self.question_references(question["hint"])
+
+
     def __iter__(self):
         return self.sections.__iter__()
+
+    def question_references(self, data):
+        """
+        Replace placeholders for question references with the number of the referenced question
+        e.g. "This is my question hint which references question [[anotherQuestion]]" becomes
+        "This is my question hint which references question 7"
+        :param data: Object to have placeholders replaced for example a string or Markup object
+        :return: Object with same type of original `data` object but with question references replaced
+        """
+        if not data:
+            return data
+        references = re.sub(
+            r"\[\[([^\]]+)\]\]",  # anything that looks like [[nameOfQuestion]]
+            lambda question_id: str(self.get_question(question_id.group(1))['number']),
+            data
+        )
+
+        return data.__class__(references)
 
     def summary(self, service_data):
         """Create a manifest instance for service summary display
