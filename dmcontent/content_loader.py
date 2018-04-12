@@ -13,6 +13,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .messages import ContentMessage
+from .metadata import ContentMetadata
 from .utils import TemplateField, template_all, drop_followups
 
 
@@ -454,6 +455,9 @@ class ContentLoader(object):
     >>> # preload messages
     >>> loader.load_messages('framework-1', ['homepage_sidebar', 'dashboard'])
     >>>
+    >>> # preload metadata
+    >>> loader.load_metadata('framework-1', ['copy_services'])
+    >>>
     >>> # get a manifest
     >>> loader.get_manifest('framework-1', 'manifest-1')
     >>>
@@ -465,6 +469,8 @@ class ContentLoader(object):
         self.content_path = content_path
         self._content = defaultdict(dict)
         self._messages = defaultdict(dict)
+        self._metadata = defaultdict(dict)
+
         # A defaultdict that defaults to a defaultdict of dicts
         self._questions = defaultdict(partial(defaultdict, dict))
 
@@ -573,6 +579,41 @@ class ContentLoader(object):
     def _load_message(self, framework_slug, message_name):
         return template_all(read_yaml(self._message_path(framework_slug, message_name)))
 
+    def get_metadata(self, framework_slug, block, key=None):
+        """
+        `block` corresponds to
+          - a file in the frameworks directory
+
+        `key` and `sub_key` are used to look up a specific metadata:
+          - the framework which services can be copied from
+        """
+        if block not in self._metadata[framework_slug]:
+            raise ContentNotFoundError(
+                "Message file at {} not loaded".format(self._metadata_path(framework_slug, block))
+            )
+
+        metadata = ContentMetadata(self._metadata[framework_slug][block])
+
+        if key is None:
+            return metadata
+        else:
+            return metadata.get(key, None)
+
+    def load_metadata(self, framework_slug, blocks):
+        if not isinstance(blocks, list):
+            raise TypeError('Content blocks must be a list')
+
+        for block in blocks:
+            try:
+                self._metadata[framework_slug][block] = self._load_metadata(framework_slug, block)
+            except IOError:
+                raise ContentNotFoundError(
+                    "No metadata file at {}".format(self._metadata_path(framework_slug, block))
+                )
+
+    def _load_metadata(self, framework_slug, metadata_name):
+        return read_yaml(self._metadata_path(framework_slug, metadata_name))
+
     def _root_path(self, framework_slug):
         return os.path.join(self.content_path, 'frameworks', framework_slug)
 
@@ -581,6 +622,9 @@ class ContentLoader(object):
 
     def _message_path(self, framework_slug, message):
         return os.path.join(self._root_path(framework_slug), 'messages', '{}.yml'.format(message))
+
+    def _metadata_path(self, framework_slug, metadata):
+        return os.path.join(self._root_path(framework_slug), 'metadata', '{}.yml'.format(metadata))
 
     def _load_nested_questions(self, framework_slug, question_set, section_or_question):
         if 'questions' in section_or_question:
