@@ -20,7 +20,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Jinja2==2.8',
+        'Jinja2==2.10',
         'Markdown==2.6.7',
         'PyYAML==3.11',
         'Werkzeug==0.11.9',
