@@ -463,6 +463,9 @@ class ContentLoader(object):
     >>>
     >>> # get a message
     >>> loader.get_message('framework-1', 'homepage_sidebar', 'in_review')
+    >>>
+    >>> # get some metadata
+    >>> loader.get_message('framework-1', 'copy_services', 'source_framework')
 
     """
     def __init__(self, content_path):

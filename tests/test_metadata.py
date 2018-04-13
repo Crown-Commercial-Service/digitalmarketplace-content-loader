@@ -1,12 +1,20 @@
+import pytest
+
 from dmcontent.metadata import ContentMetadata
 from dmcontent.utils import TemplateField
 
 
 class TestContentMetadata(object):
-    def test_content_metadata_field(self):
+    def test_content_metadata_getattr(self):
         metadata = ContentMetadata({'name': "Name"})
 
         assert metadata.name == 'Name'
+
+    def test_content_metadata_getattr_raises_attribute_error_if_missing(self):
+        metadata = ContentMetadata({'name': "Name"})
+
+        with pytest.raises(AttributeError):
+            assert metadata.foo == 'missing'
 
     def test_get_missing_field(self):
         metadata = ContentMetadata({})

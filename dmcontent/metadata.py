@@ -1,4 +1,4 @@
-class ContentMetadata(object):
+class ContentMetadata:
     """
     A simple reader for framework-related static data. This class performs a similar function to a ContentMessage,
     except it does not parse or render any of the data passed in, so templated messages are not supported.

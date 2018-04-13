@@ -2008,25 +2008,18 @@ class TestContentLoader(object):
         mock_read_yaml.return_value = {}
         messages = ContentLoader('content/')
 
-        with pytest.raises(TypeError):
-            messages.load_messages('g-cloud-7', 'index')  # blocks argument must be a list
+        with pytest.raises(TypeError) as err:
+            messages.load_messages('g-cloud-7', 'index')
+
+        assert str(err.value) == 'Content blocks must be a list'
 
     def test_get_message_must_preload(self, mock_read_yaml):
         mock_read_yaml.return_value = {}
         messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-8', ['index'])
 
         with pytest.raises(ContentNotFoundError):
             messages.get_message('g-cloud-8', 'dashboard')
             mock_read_yaml.assert_not_called()
-
-    def test_caching_of_messages(self, mock_read_yaml):
-        messages = ContentLoader('content/')
-        messages.load_messages('g-cloud-7', ['index'])
-        messages.get_message('g-cloud-7', 'index').get('coming')
-        messages.get_message('g-cloud-7', 'index').get('coming')
-
-        mock_read_yaml.assert_called_once_with('content/frameworks/g-cloud-7/messages/index.yml')
 
     def test_load_message_raises(self, mock_read_yaml):
         mock_read_yaml.side_effect = IOError
@@ -2060,7 +2053,9 @@ class TestContentLoader(object):
 
         assert metadata.get_metadata('g-cloud-7', 'index', 'field_one') == 'value_one'
 
-    def test_load_metadata_wraps_nested_fields_with_template_field(self, mock_read_yaml):
+    def test_load_metadata_does_not_mutate_values(self, mock_read_yaml):
+        """When values are loaded into a ContentMessage, they are all wrapped as TemplateFieds. We want to make sure
+        that nothing wraps the values for ContentMetadata as it is only static content."""
         mock_read_yaml.return_value = {
             'source_framework': 'g-cloud-6',
             'questions_to_copy': ['question-1', 'question-2']
@@ -2079,25 +2074,18 @@ class TestContentLoader(object):
         mock_read_yaml.return_value = {}
         metadata = ContentLoader('content/')
 
-        with pytest.raises(TypeError):
-            metadata.load_metadata('g-cloud-7', 'index')  # blocks argument must be a list
+        with pytest.raises(TypeError) as err:
+            metadata.load_metadata('g-cloud-7', 'index')
+
+        assert str(err.value) == 'Content blocks must be a list'
 
     def test_get_metadata_must_preload(self, mock_read_yaml):
         mock_read_yaml.return_value = {}
         metadata = ContentLoader('content/')
-        metadata.load_metadata('g-cloud-8', ['index'])
 
         with pytest.raises(ContentNotFoundError):
             metadata.get_metadata('g-cloud-8', 'copy_services')
             mock_read_yaml.assert_not_called()
-
-    def test_caching_of_metadata(self, mock_read_yaml):
-        metadata = ContentLoader('content/')
-        metadata.load_metadata('g-cloud-7', ['copy_services'])
-        metadata.get_metadata('g-cloud-7', 'copy_services').get('source_framework')
-        metadata.get_metadata('g-cloud-7', 'copy_services').get('source_framework')
-
-        mock_read_yaml.assert_called_once_with('content/frameworks/g-cloud-7/metadata/copy_services.yml')
 
     def test_load_metadata_raises(self, mock_read_yaml):
         mock_read_yaml.side_effect = IOError
