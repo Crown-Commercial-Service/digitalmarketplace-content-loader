@@ -5,7 +5,7 @@ import pytest
 from jinja2 import Environment, Markup
 
 from dmcontent.errors import ContentTemplateError, ContentNotFoundError
-from dmcontent.utils import TemplateField, get_option_value, try_load_manifest
+from dmcontent.utils import TemplateField, get_option_value, try_load_manifest, try_load_metadata, try_load_messages
 
 
 class TestTemplateField(object):
@@ -208,4 +208,88 @@ class TestTryLoadManifest:
                 TestTryLoadManifest.QUESTION_SET,
                 TestTryLoadManifest.MANIFEST,
                 TestTryLoadManifest.FRAMEWORK_DATA['slug']))
+        ]
+
+
+class TestTryLoadMetadata:
+    FRAMEWORK_DATA = {'slug': 'framework'}
+    METADATA = ['example']
+
+    def setup(self):
+        self.content_loader_mock = mock.Mock()
+        self.application_mock = mock.Mock()
+
+    def test_content_loader_asked_to_load_metadata(self):
+        try_load_metadata(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadMetadata.FRAMEWORK_DATA,
+                          TestTryLoadMetadata.METADATA
+                          )
+
+        assert self.content_loader_mock.load_metadata.call_args_list == [
+            mock.call(TestTryLoadMetadata.FRAMEWORK_DATA['slug'],
+                      TestTryLoadMetadata.METADATA)
+        ]
+        assert self.application_mock.logger.info.called is False
+
+    def test_info_log_generated_on_content_not_found(self):
+        self.content_loader_mock.load_metadata.side_effect = ContentNotFoundError()
+
+        try_load_metadata(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadMetadata.FRAMEWORK_DATA,
+                          TestTryLoadMetadata.METADATA
+                          )
+
+        assert self.content_loader_mock.load_metadata.call_args_list == [
+            mock.call(TestTryLoadMetadata.FRAMEWORK_DATA['slug'],
+                      TestTryLoadMetadata.METADATA)
+        ]
+
+        assert self.application_mock.logger.info.call_args_list == [
+            mock.call("Could not load '{}' metadata for {}".format(
+                TestTryLoadMetadata.METADATA,
+                TestTryLoadMetadata.FRAMEWORK_DATA['slug']))
+        ]
+
+
+class TestTryLoadMessages:
+    FRAMEWORK_DATA = {'slug': 'framework'}
+    MESSAGES = ['example']
+
+    def setup(self):
+        self.content_loader_mock = mock.Mock()
+        self.application_mock = mock.Mock()
+
+    def test_content_loader_asked_to_load_messages(self):
+        try_load_messages(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadMessages.FRAMEWORK_DATA,
+                          TestTryLoadMessages.MESSAGES
+                          )
+
+        assert self.content_loader_mock.load_messages.call_args_list == [
+            mock.call(TestTryLoadMessages.FRAMEWORK_DATA['slug'],
+                      TestTryLoadMessages.MESSAGES)
+        ]
+        assert self.application_mock.logger.info.called is False
+
+    def test_info_log_generated_on_content_not_found(self):
+        self.content_loader_mock.load_messages.side_effect = ContentNotFoundError()
+
+        try_load_messages(self.content_loader_mock,
+                          self.application_mock,
+                          TestTryLoadMessages.FRAMEWORK_DATA,
+                          TestTryLoadMessages.MESSAGES
+                          )
+
+        assert self.content_loader_mock.load_messages.call_args_list == [
+            mock.call(TestTryLoadMessages.FRAMEWORK_DATA['slug'],
+                      TestTryLoadMessages.MESSAGES)
+        ]
+
+        assert self.application_mock.logger.info.call_args_list == [
+            mock.call("Could not load '{}' messages for {}".format(
+                TestTryLoadMessages.MESSAGES,
+                TestTryLoadMessages.FRAMEWORK_DATA['slug']))
         ]

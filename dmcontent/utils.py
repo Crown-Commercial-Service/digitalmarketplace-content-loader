@@ -109,3 +109,23 @@ def try_load_manifest(content_loader, application, data, question_set, manifest)
         application.logger.info(
             "Could not load {}.{} manifest for {}".format(question_set, manifest, data['slug'])
         )
+
+
+def try_load_metadata(content_loader, application, data, metadata):
+    try:
+        content_loader.load_metadata(data['slug'], metadata)
+
+    except ContentNotFoundError:
+        application.logger.info(
+            "Could not load '{}' metadata for {}".format(metadata, data['slug'])
+        )
+
+
+def try_load_messages(content_loader, application, data, messages):
+    try:
+        content_loader.load_messages(data['slug'], messages)
+
+    except ContentNotFoundError:
+        application.logger.info(
+            "Could not load '{}' messages for {}".format(messages, data['slug'])
+        )
