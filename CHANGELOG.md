@@ -2,6 +2,18 @@
 
 Records breaking changes from major version bumps
 
+## 5.0.0
+
+PR [#59](https://github.com/alphagov/digitalmarketplace-content-loader/pull/59)
+
+Removal of `python2` support.
+
+Upgrade `flask` to from 0.10.1 to 1.0.2. This has breaking changes for flask apps and therefore has breaking changes for users relying on this package.
+Apps should upgrade to `Flask==1.0.2` using the changelog here http://flask.pocoo.org/docs/1.0/changelog/#version-1-0-2 taking care to note
+the breaking changes in [v1.0](http://flask.pocoo.org/docs/1.0/changelog/#version-1-0)
+
+Upgrade `dm_utils` from 30.0.0 to 44.0.1
+
 ## 4.0.0
 
 PR: [#36](https://github.com/alphagov/digitalmarketplace-content-loader/pull/36/files)
