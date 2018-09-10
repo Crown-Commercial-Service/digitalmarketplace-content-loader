@@ -20,7 +20,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Flask==0.10.1',
+        'Flask==1.0.2',
         'Jinja2==2.10',
         'Markdown==2.6.7',
         'PyYAML==3.11',
