@@ -2,7 +2,6 @@ import collections
 
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
 from markdown import markdown
-from six import string_types
 
 from dmutils.jinja2_environment import DMSandboxedEnvironment
 from dmcontent.errors import ContentNotFoundError
@@ -49,7 +48,7 @@ class TemplateField(object):
 
 
 def template_all(item):
-    if isinstance(item, string_types):
+    if isinstance(item, str):
         return TemplateField(item)
     elif isinstance(item, collections.Sequence):
         return [template_all(i) for i in item]

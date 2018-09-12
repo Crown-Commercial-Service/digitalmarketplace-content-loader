@@ -1,4 +1,3 @@
-from six import string_types
 
 
 def convert_to_boolean(value):
@@ -16,7 +15,7 @@ def convert_to_boolean(value):
     >>> for value in ['falsey', 'other', True, 0]:
     ...   assert convert_to_boolean(value) == value
     """
-    if isinstance(value, string_types):
+    if isinstance(value, str):
         if value.lower() in ['t', 'true', 'on', 'yes', '1']:
             return True
         elif value.lower() in ['f', 'false', 'off', 'no', '0']:

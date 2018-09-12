@@ -20,13 +20,12 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'Flask==0.10.1',
+        'Flask==1.0.2',
         'Jinja2==2.10',
         'Markdown==2.6.7',
         'PyYAML==3.11',
         'Werkzeug==0.14.1',
         'inflection==0.3.1',
-        'six==1.11.0',
-        'digitalmarketplace-utils>=30.0.0',
+        'digitalmarketplace-utils==44.0.1',
     ]
 )
