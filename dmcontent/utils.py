@@ -25,7 +25,7 @@ class TemplateField(object):
 
     def make_template(self, field_value):
         env = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
-        template = markdown(field_value, []) if self.markdown else field_value
+        template = markdown(field_value) if self.markdown else field_value
 
         return env.from_string(template)
 
