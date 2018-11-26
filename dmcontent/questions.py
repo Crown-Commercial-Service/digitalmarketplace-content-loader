@@ -67,8 +67,7 @@ class Question(object):
             # here, we build a dict with keys as indices and values converted to boolean, eg {0: True, 1: False, 3: True, ...}  # noqa
             boolean_indices_and_values = {
                 int(k.split('-')[-1]): convert_to_boolean(v) for k, v in form_data.items()
-                if k.startswith("{}-".format(self.id)) and
-                k.split('-')[-1].isdigit()
+                if k.startswith("{}-".format(self.id)) and k.split('-')[-1].isdigit()
             }
 
             if not len(boolean_indices_and_values):
@@ -594,7 +593,7 @@ class Date(Question):
         return value
 
     def get_data(self, form_data):
-        """Retreive the fields from the POST data (form_data).
+        r"""Retreive the fields from the POST data (form_data).
 
         The d, m, y should be in the post as 'questionName-day', questionName-month ...
         Extract them and format as '\d\d\d\d-\d{1,2}-\d{1,2}'.
