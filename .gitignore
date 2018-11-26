@@ -3,4 +3,5 @@
 *.cache
 .coverage
 .pytest_cache
-venv
+venv*
+local.nix
