@@ -4,5 +4,5 @@ coveralls
 flake8<3.7.0,>=3.6.0
 flake8-per-file-ignores
 mock
-pytest
+pytest>=4.0.0
 pytest-cov
