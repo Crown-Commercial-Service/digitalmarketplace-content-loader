@@ -26,7 +26,7 @@ setup(
         'PyYAML<4.0,>=3.11',
         'Werkzeug<0.15.0,>=0.14.1',
         'inflection<1.0.0,>=0.3.1',
-        'digitalmarketplace-utils<45.0.0,>=44.0.1',
+        'digitalmarketplace-utils<47.0.0,>=44.0.1',
     ],
     python_requires="==3.6.*",
 )
