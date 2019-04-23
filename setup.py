@@ -24,9 +24,8 @@ setup(
         'Jinja2<2.11,>=2.10',
         'Markdown<3.0.0,>=2.6.7',
         'PyYAML<4.0,>=3.11',
-        'Werkzeug<0.15.0,>=0.14.1',
         'inflection<1.0.0,>=0.3.1',
-        'digitalmarketplace-utils<47.0.0,>=44.0.1',
+        'digitalmarketplace-utils<49.0.0,>=44.0.1',
     ],
     python_requires="==3.6.*",
 )
