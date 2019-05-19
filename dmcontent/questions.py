@@ -368,7 +368,7 @@ class DynamicList(Multiquestion):
 
         q_data = drop_followups(self, q_data, nested=True)
 
-        answers = sorted([(int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items()])
+        answers = sorted((int(k.split('-')[1]), k.split('-')[0], v) for k, v in q_data.items())
 
         questions_data = [{} for i in range(len(self.get_dynamic_questions(self._context)))]
         for index, question, value in answers:
