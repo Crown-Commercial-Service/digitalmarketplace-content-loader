@@ -249,10 +249,10 @@ class Multiquestion(Question):
         if not multi_question:
             return None
 
-        multi_question.questions = list(filter(None, [
+        multi_question.questions = list(filter(None, (
             question.filter(context, dynamic)
             for question in multi_question.questions
-        ]))
+        )))
 
         return multi_question
 
