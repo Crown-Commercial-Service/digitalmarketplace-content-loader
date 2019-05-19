@@ -819,8 +819,9 @@ class ListSummary(QuestionSummary, List):
                         value[i] = option['label']
                         break
 
-        if self.get('before_summary_value'):
-            value = self.before_summary_value + (value or [])
+        before_summary_value = self.get('before_summary_value')
+        if before_summary_value:
+            value = before_summary_value + (value or [])
 
         return value
 
