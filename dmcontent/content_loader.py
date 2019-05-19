@@ -417,10 +417,10 @@ class ContentSection(object):
         section = self.copy()
         section._context = context
 
-        filtered_questions = list(filter(None, [
+        filtered_questions = list(filter(None, (
             question.filter(context, dynamic)
             for question in self.questions
-        ]))
+        )))
 
         if not filtered_questions:
             return None
