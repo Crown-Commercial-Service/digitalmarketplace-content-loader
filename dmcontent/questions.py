@@ -152,16 +152,16 @@ class Question(object):
         ids that follow a certain question value.
 
         """
-
-        if not self.get('followup'):
+        self_followup = self.get('followup')
+        if not self_followup:
             return {}
 
-        followups = defaultdict(list)
-        for q, values in self.followup.items():
+        followups = {}
+        for q, values in self_followup.items():
             for value in values:
-                followups[value].append(q)
+                followups.setdefault(value, []).append(q)
 
-        return dict(followups)
+        return followups
 
     @property
     def required_form_fields(self):
