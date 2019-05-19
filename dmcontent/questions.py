@@ -202,7 +202,7 @@ class Question(object):
 
         if isinstance(field, TemplateField):
             return field.render(self._context)
-        elif key in [_field for _field, _ in self.TEMPLATE_OPTIONS_FIELDS]:
+        elif key in (_field for _field, _ in self.TEMPLATE_OPTIONS_FIELDS):
             return [{k: (v.render(self._context) if isinstance(v, TemplateField) else v)
                      for k, v in i.items()
                      }
