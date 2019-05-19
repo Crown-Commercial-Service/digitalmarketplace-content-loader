@@ -625,8 +625,9 @@ class QuestionSummary(Question):
         self._service_data = service_data
         self._context = question._context
 
-        if question.get('boolean_list_questions'):
-            self.boolean_list_questions = question.boolean_list_questions
+        question_boolean_list_questions = question.get('boolean_list_questions')
+        if question_boolean_list_questions:
+            self.boolean_list_questions = question_boolean_list_questions
 
     def _default_for_field(self, field_key):
         return self.get('field_defaults', {}).get(field_key)
