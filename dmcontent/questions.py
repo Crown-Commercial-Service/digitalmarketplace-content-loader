@@ -751,18 +751,23 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
         lookup_question_by_id = {q.id: q for q in self.questions}
         followup_questions = set()
 
-        for question in [q for q in self.questions if q.get('followup', {})]:
+        for question in self.questions:
+            question_followup = question.get("followup")
+            if not question_followup:
+                continue
+
             if question.id not in followup_questions and question.answer_required:
                 return True
 
             followup_questions.add(question.id)
 
-            answers_provided = question.value if isinstance(question.value, list) else [question.value]
+            question_value = question.value
+            answers_provided_set = frozenset(question_value if isinstance(question_value, list) else (question_value,))
 
-            for followup_id, answers_triggering_followup in question.get('followup', {}).items():
+            for followup_id, answers_triggering_followup in question_followup.items():
                 followup_questions.add(followup_id)
 
-                if set(answers_provided) & set(answers_triggering_followup) and \
+                if answers_provided_set & frozenset(answers_triggering_followup) and \
                         lookup_question_by_id[followup_id].answer_required:
                     return True
 
