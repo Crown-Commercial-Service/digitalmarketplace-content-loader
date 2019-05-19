@@ -512,8 +512,10 @@ class Pricing(Question):
     def _optional_form_fields(self):
         if self.get('optional'):
             return self.form_fields
-        elif self.get('optional_fields'):
-            return [self.fields[key] for key in self['optional_fields']]
+        else:
+            optional_fields = self.get('optional_fields')
+            if optional_fields:
+                return [self.fields[key] for key in optional_fields]
 
         return []
 
