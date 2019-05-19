@@ -675,11 +675,14 @@ class QuestionSummary(Question):
             value = self._service_data.get(self.id, {}).get('value', '')
         else:
             value = self._service_data.get(self.id, '')
-        if value != '' and self.type == "number" and self.get('unit'):
-            if self.unit_position == "after":
-                value = u"{}{}".format(value, self.unit)
-            else:
-                return u"{}{}".format(self.unit, value)
+
+        if value != '' and self.type == "number":
+            self_unit = self.get('unit')
+            if self_unit:
+                if self.unit_position == "after":
+                    value = u"{}{}".format(value, self_unit)
+                else:
+                    return u"{}{}".format(self_unit, value)
         if options and value:
             for option in options:
                 if 'label' in option and 'value' in option and option['value'] == value:
