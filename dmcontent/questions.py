@@ -313,11 +313,11 @@ class DynamicList(Multiquestion):
         # dynamic_field: 'brief.essentialRequirements'
         dynamic_questions = self.get_dynamic_questions(context)
 
-        dynamic_list.questions = list(filter(None, [
+        dynamic_list.questions = list(filter(None, (
             self._make_dynamic_question(question, item, index)
             for index, item in enumerate(dynamic_questions)
             for question in dynamic_list.questions
-        ]))
+        )))
 
         return dynamic_list
 
