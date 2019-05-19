@@ -852,7 +852,7 @@ class HierarchySummary(QuestionSummary):
 
     @property
     def value(self):
-        selection = set(self._service_data.get(self.id, []))
+        selection = set(self._service_data.get(self.id, ()))
         parent_values_not_persisted = self._hierarchy_question.get_missing_values(selection)
 
         def _get_options_recursive(options):
