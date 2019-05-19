@@ -670,7 +670,6 @@ class QuestionSummary(Question):
     @property
     def value(self):
         # Look up display values for options that have different labels from values
-        options = self.get('options')
         if self.has_assurance():
             value = self._service_data.get(self.id, {}).get('value', '')
         else:
@@ -683,6 +682,8 @@ class QuestionSummary(Question):
                     value = u"{}{}".format(value, self_unit)
                 else:
                     return u"{}{}".format(self_unit, value)
+
+        options = self.get('options')
         if options and value:
             for option in options:
                 if 'label' in option and 'value' in option and option['value'] == value:
