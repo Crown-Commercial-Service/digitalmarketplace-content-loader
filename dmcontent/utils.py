@@ -9,6 +9,11 @@ from dmcontent.errors import ContentNotFoundError
 from .errors import ContentTemplateError
 
 
+# jinja's environments are threadsafe (unless you explicitly mutate them during operation, which is not recommended),
+# so it should be safe to keep this as a shared global
+template_environment = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+
+
 class TemplateField(object):
     def __init__(self, field_value, markdown=None):
         self.source = field_value
@@ -24,10 +29,9 @@ class TemplateField(object):
             raise ContentTemplateError(e.message)
 
     def make_template(self, field_value):
-        env = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
         template = markdown(field_value) if self.markdown else field_value
 
-        return env.from_string(template)
+        return template_environment.from_string(template)
 
     def render(self, context=None):
         try:
