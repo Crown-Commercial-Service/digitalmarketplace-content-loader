@@ -13,6 +13,7 @@ in (with args; {
     shortName = "dm-ctnt-ld";
     buildInputs = [
       pythonPackages.python
+      pkgs.glibcLocales
       pkgs.libffi
       pkgs.openssl
       pkgs.git
