@@ -14,6 +14,24 @@ from .errors import ContentTemplateError
 template_environment = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
 
 
+class _ImmutableTemplateProxy:
+    """
+        A heavily abbreviated proxy for a jinja Template that should help ensure (effective) immutability and
+        threadsafety
+    """
+    __slots__ = ("render",)
+
+    def __init__(self, template):
+        # instead of keeping a reference to the template on the instance where external code could be e.g. inadvertantly
+        # calling mutating methods on it, seal it in the closure of a function which itself will _become_ our render
+        # "method".
+        self.render = lambda *args, **kwargs: template.render(*args, **kwargs)
+
+    def __deepcopy__(self, memo):
+        # we're (effectively) immutable.
+        return self
+
+
 class TemplateField(object):
     def __init__(self, field_value, markdown=None):
         self.source = field_value
@@ -31,7 +49,7 @@ class TemplateField(object):
     def make_template(self, field_value):
         template = markdown(field_value) if self.markdown else field_value
 
-        return template_environment.from_string(template)
+        return _ImmutableTemplateProxy(template_environment.from_string(template))
 
     def render(self, context=None):
         try:
