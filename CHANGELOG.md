@@ -2,6 +2,11 @@
 
 Records breaking changes from major version bumps
 
+## 6.0.0
+
+`utils.TemplateField`'s `template` attribute is no longer a real jinja `Template`, and now only has a single method,
+`render([context])`. On the plus side, `ContentLoader` trees should be deepcopy-able.
+
 ## 5.0.0
 
 PR [#59](https://github.com/alphagov/digitalmarketplace-content-loader/pull/59)
