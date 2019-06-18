@@ -9,6 +9,29 @@ from dmcontent.errors import ContentNotFoundError
 from .errors import ContentTemplateError
 
 
+# jinja's environments are threadsafe (unless you explicitly mutate them during operation, which is not recommended),
+# so it should be safe to keep this as a shared global
+template_environment = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
+
+
+class _ImmutableTemplateProxy:
+    """
+        A heavily abbreviated proxy for a jinja Template that should help ensure (effective) immutability and
+        threadsafety
+    """
+    __slots__ = ("render",)
+
+    def __init__(self, template):
+        # instead of keeping a reference to the template on the instance where external code could be e.g. inadvertantly
+        # calling mutating methods on it, seal it in the closure of a function which itself will _become_ our render
+        # "method".
+        self.render = lambda *args, **kwargs: template.render(*args, **kwargs)
+
+    def __deepcopy__(self, memo):
+        # we're (effectively) immutable.
+        return self
+
+
 class TemplateField(object):
     def __init__(self, field_value, markdown=None):
         self.source = field_value
@@ -24,10 +47,9 @@ class TemplateField(object):
             raise ContentTemplateError(e.message)
 
     def make_template(self, field_value):
-        env = DMSandboxedEnvironment(autoescape=True, undefined=StrictUndefined)
         template = markdown(field_value) if self.markdown else field_value
 
-        return env.from_string(template)
+        return _ImmutableTemplateProxy(template_environment.from_string(template))
 
     def render(self, context=None):
         try:
