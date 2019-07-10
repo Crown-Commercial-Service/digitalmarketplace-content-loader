@@ -807,8 +807,8 @@ class ListSummary(QuestionSummary, List):
                         value[i] = option['label']
                         break
 
-        if self.get('before_summary_value'):
-            value = self.before_summary_value + (value or [])
+        #if self.get('before_summary_value'):
+            #value = self.before_summary_value + (value or [])
 
         return value
 
@@ -825,8 +825,8 @@ class ListSummary(QuestionSummary, List):
                         new_list.append(opt.get('filter_label') or opt.get('label') or v)
             value = new_list
 
-        if self.get('before_summary_value'):
-            value = self.before_summary_value + (value or [])
+        #if self.get('before_summary_value'):
+            #value = self.before_summary_value + (value or [])
 
         return value
 
