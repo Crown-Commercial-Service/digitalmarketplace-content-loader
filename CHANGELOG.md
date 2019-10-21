@@ -4,7 +4,7 @@ Records breaking changes from major version bumps
 
 ## 7.0.0
 
-PR [TBC]()
+PR [#71](https://github.com/alphagov/digitalmarketplace-content-loader/pull/71)
 
 Removal of support for `python3.3` and lower.
 
