@@ -23,7 +23,7 @@ setup(
         'Flask<1.1.0,>=1.0.2',
         'Jinja2<2.11,>=2.10',
         'Markdown<3.0.0,>=2.6.7',
-        'PyYAML<4.0,>=3.11',
+        'PyYAML<6.0,>=5.1.2',
         'inflection<1.0.0,>=0.3.1',
         'digitalmarketplace-utils<49.0.0,>=44.0.1',
     ],

@@ -2,6 +2,14 @@
 
 Records breaking changes from major version bumps
 
+## 7.0.0
+
+PR [#71](https://github.com/alphagov/digitalmarketplace-content-loader/pull/71)
+
+Removal of support for `python3.3` and lower.
+
+Upgrade `PyYAML` from 3.11 to 5.1.2 (see [Changelog](https://github.com/yaml/pyyaml/blob/master/CHANGES)). 
+
 ## 6.0.0
 
 `utils.TemplateField`'s `template` attribute is no longer a real jinja `Template`, and now only has a single method,
