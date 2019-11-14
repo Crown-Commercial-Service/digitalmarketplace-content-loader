@@ -25,7 +25,7 @@ setup(
         'Markdown<3.0.0,>=2.6.7',
         'PyYAML<6.0,>=5.1.2',
         'inflection<1.0.0,>=0.3.1',
-        'digitalmarketplace-utils<49.0.0,>=44.0.1',
+        'digitalmarketplace-utils>=44.0.1',
     ],
     python_requires="==3.6.*",
 )
