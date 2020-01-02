@@ -4,8 +4,17 @@ import mock
 import pytest
 from jinja2 import Environment, Markup
 
+from dmcontent.content_loader import ContentManifest, ContentSection
 from dmcontent.errors import ContentTemplateError, ContentNotFoundError
-from dmcontent.utils import TemplateField, get_option_value, try_load_manifest, try_load_metadata, try_load_messages
+from dmcontent.questions import QuestionSummary
+from dmcontent.utils import (
+    TemplateField,
+    get_option_value,
+    try_load_manifest,
+    try_load_metadata,
+    try_load_messages,
+    count_unanswered_questions,
+)
 
 
 class TestTemplateField(object):
@@ -293,3 +302,31 @@ class TestTryLoadMessages:
                 TestTryLoadMessages.MESSAGES,
                 TestTryLoadMessages.FRAMEWORK_DATA['slug']))
         ]
+
+
+def test_count_unanswered_questions():
+    mock_content_manifest = mock.create_autospec(ContentManifest, instance=True)
+    mock_content_manifest.__iter__.side_effect = lambda: (
+        mock.create_autospec(ContentSection, instance=True, questions=[
+            mock.create_autospec(QuestionSummary, instance=True, answer_required=answer_required, value=value)
+            for answer_required, value in questions
+        ]) for questions in (
+            (
+                (True, ""),
+                (False, "123"),
+                (True, ["321"]),
+            ), (
+                (False, None),
+                (False, []),
+                (True, "abc"),
+                (True, "yes"),
+                (True, "no"),
+                (True, None),
+                (False, "2020-01-01T01:01:01Z"),
+            ), (
+                (False, []),
+            ),
+        )
+    )
+
+    assert count_unanswered_questions(mock_content_manifest) == (6, 3)
