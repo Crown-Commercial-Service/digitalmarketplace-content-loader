@@ -1,4 +1,5 @@
 import collections
+import typing
 
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
 from markdown import markdown
@@ -7,6 +8,10 @@ from dmutils.jinja2_environment import DMSandboxedEnvironment
 from dmcontent.errors import ContentNotFoundError
 
 from .errors import ContentTemplateError
+
+
+if typing.TYPE_CHECKING:
+    from dmcontent.content_loader import ContentManifest
 
 
 # jinja's environments are threadsafe (unless you explicitly mutate them during operation, which is not recommended),
@@ -150,3 +155,20 @@ def try_load_messages(content_loader, application, data, messages):
         application.logger.info(
             "Could not load '{}' messages for {}".format(messages, data['slug'])
         )
+
+
+def count_unanswered_questions(service_attributes: "ContentManifest") -> typing.Tuple[int, int]:
+    """
+        Given a "summary" ContentManifest, returns a tuple of integers representing
+        respectively the number of unanswered-and-required questions and the number
+        of unanswered-but-optional questions.
+    """
+    unanswered_required, unanswered_optional = 0, 0
+    for section in service_attributes:
+        for question in section.questions:
+            if question.answer_required:
+                unanswered_required += 1
+            elif question.value in ('', [], None,):
+                unanswered_optional += 1
+
+    return unanswered_required, unanswered_optional
