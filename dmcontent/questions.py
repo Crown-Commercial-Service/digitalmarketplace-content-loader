@@ -2,6 +2,8 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
+from typing import Optional
+
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
 from .converters import convert_to_boolean, convert_to_number
@@ -22,7 +24,7 @@ class Question(object):
     def summary(self, service_data):
         return QuestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
         if not self._should_be_shown(context):
             return None
 
@@ -243,13 +245,13 @@ class Multiquestion(Question):
     def summary(self, service_data):
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True):
-        multi_question = super(Multiquestion, self).filter(context, dynamic)
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+        multi_question = super(Multiquestion, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
         if not multi_question:
             return None
 
         multi_question.questions = list(filter(None, [
-            question.filter(context, dynamic)
+            question.filter(context, dynamic, inplace_allowed=inplace_allowed)
             for question in multi_question.questions
         ]))
 
@@ -301,11 +303,15 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
         if not dynamic:
-            return super(DynamicList, self).filter(context, dynamic)
+            return super(DynamicList, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
 
-        dynamic_list = super(Multiquestion, self).filter(context, dynamic)
+        dynamic_list = super(Multiquestion, self).filter(
+            context,
+            dynamic=dynamic,
+            inplace_allowed=inplace_allowed,
+        )
         if not dynamic_list:
             return None
 

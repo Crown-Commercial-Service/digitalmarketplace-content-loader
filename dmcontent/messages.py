@@ -6,7 +6,7 @@ class ContentMessage(object):
         self._data = data.copy()
         self._context = _context
 
-    def filter(self, context):
+    def filter(self, context, inplace_allowed: bool = False) -> "ContentMessage":
         message = ContentMessage(self._data)
         message._context = context
 

@@ -37,13 +37,14 @@ class TestContentMessage(object):
 
         assert message.name == 'Name'
 
-    def test_content_message_template_field_with_context(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_content_message_template_field_with_context(self, filter_inplace_allowed):
         message = ContentMessage({'name': TemplateField("Field {{ name }}")})
 
         with pytest.raises(ContentTemplateError):
             assert message.name
 
-        assert message.filter({'name': 'one'}).name == 'Field one'
+        assert message.filter({'name': 'one'}, inplace_allowed=filter_inplace_allowed).name == 'Field one'
 
     def test_content_message_dict_field_returns_content_message(self):
         message = ContentMessage({'nested': {'name': TemplateField('Name')}})
@@ -51,21 +52,28 @@ class TestContentMessage(object):
         assert isinstance(message.nested, ContentMessage)
         assert message.nested.name == 'Name'
 
-    def test_content_message_list_field_returns_rendered_fields(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_content_message_list_field_returns_rendered_fields(self, filter_inplace_allowed):
         message = ContentMessage({'nested': [TemplateField('Name'), TemplateField('{{ name }}')]})
 
-        assert message.filter({'name': 'Other'}).nested == ['Name', 'Other']
+        assert message.filter({'name': 'Other'}, inplace_allowed=filter_inplace_allowed).nested == ['Name', 'Other']
 
-    def test_content_message_list_field_returns_content_messages(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_content_message_list_field_returns_content_messages(self, filter_inplace_allowed):
         message = ContentMessage({'nested': [{'name': 'Name'}, {'name': TemplateField('{{ name }}')}]})
 
-        assert message.filter({'name': 'Other'}).nested == [
+        nested = message.filter({'name': 'Other'}, inplace_allowed=filter_inplace_allowed).nested
+        assert nested == [
             ContentMessage({'name': 'Name'}, {'name': 'Other'}),
             ContentMessage({'name': TemplateField('{{ name }}')}, {'name': 'Other'})
         ]
-        assert message.filter({'name': 'Other'}).nested[1].name == 'Other'
+        assert nested[1].name == 'Other'
 
-    def test_nested_content_message_preserves_context(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_nested_content_message_preserves_context(self, filter_inplace_allowed):
         message = ContentMessage({'nested': {'name': TemplateField('Nested {{ name }}')}})
 
-        assert message.filter({'name': "message"}).nested.name == 'Nested message'
+        assert message.filter(
+            {'name': "message"},
+            inplace_allowed=filter_inplace_allowed,
+        ).nested.name == 'Nested message'

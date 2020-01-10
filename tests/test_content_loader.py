@@ -114,7 +114,8 @@ class TestContentManifest(object):
 
         assert [s.id for s in content] == [1, 2, 3]
 
-    def test_a_question_with_a_dependency(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_a_question_with_a_dependency(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -126,11 +127,12 @@ class TestContentManifest(object):
                     "being": ["SCS"]
                 }]
             }]
-        }]).filter({"lot": "SCS"})
+        }]).filter({"lot": "SCS"}, inplace_allowed=filter_inplace_allowed)
 
         assert len(content.sections) == 1
 
-    def test_missing_depends_key_filter(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_missing_depends_key_filter(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -142,11 +144,12 @@ class TestContentManifest(object):
                     "being": ["SCS"]
                 }]
             }]
-        }]).filter({})
+        }]).filter({}, inplace_allowed=filter_inplace_allowed)
 
         assert len(content.sections) == 0
 
-    def test_question_without_dependencies(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_without_dependencies(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -154,11 +157,12 @@ class TestContentManifest(object):
                 "id": "q1",
                 "question": 'First question',
             }]
-        }]).filter({'lot': 'SaaS'})
+        }]).filter({'lot': 'SaaS'}, inplace_allowed=filter_inplace_allowed)
 
         assert len(content.sections) == 1
 
-    def test_a_question_with_a_dependency_that_doesnt_match(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_a_question_with_a_dependency_that_doesnt_match(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -170,11 +174,12 @@ class TestContentManifest(object):
                     "being": ["SCS"]
                 }]
             }]
-        }]).filter({"lot": "SaaS"})
+        }]).filter({"lot": "SaaS"}, inplace_allowed=filter_inplace_allowed)
 
         assert len(content.sections) == 0
 
-    def test_a_question_which_depends_on_one_of_several_answers(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_a_question_which_depends_on_one_of_several_answers(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -188,11 +193,12 @@ class TestContentManifest(object):
             }]
         }])
 
-        assert len(content.filter({"lot": "SaaS"}).sections) == 1
-        assert len(content.filter({"lot": "PaaS"}).sections) == 1
-        assert len(content.filter({"lot": "SCS"}).sections) == 1
+        assert len(content.filter({"lot": "SaaS"}, inplace_allowed=filter_inplace_allowed).sections) == 1
+        assert len(content.filter({"lot": "PaaS"}, inplace_allowed=filter_inplace_allowed).sections) == 1
+        assert len(content.filter({"lot": "SCS"}, inplace_allowed=filter_inplace_allowed).sections) == 1
 
-    def test_a_question_which_shouldnt_be_shown(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_a_question_which_shouldnt_be_shown(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -206,9 +212,10 @@ class TestContentManifest(object):
             }]
         }])
 
-        assert len(content.filter({"lot": "IaaS"}).sections) == 0
+        assert len(content.filter({"lot": "IaaS"}, inplace_allowed=filter_inplace_allowed).sections) == 0
 
-    def test_a_section_which_has_a_mixture_of_dependencies(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_a_section_which_has_a_mixture_of_dependencies(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -230,7 +237,7 @@ class TestContentManifest(object):
                     }]
                 },
             ]
-        }]).filter({"lot": "IaaS"})
+        }]).filter({"lot": "IaaS"}, inplace_allowed=filter_inplace_allowed)
 
         assert len(content.sections) == 1
 
@@ -263,7 +270,8 @@ class TestContentManifest(object):
         assert len(content.sections[0]["questions"]) == 2
         assert len(content2.sections[0]["questions"]) == 1
 
-    def test_that_filtering_is_cumulative(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_that_filtering_is_cumulative(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -295,16 +303,17 @@ class TestContentManifest(object):
             ]
         }])
 
-        content = content.filter({"lot": "SCS"})
+        content = content.filter({"lot": "SCS"}, inplace_allowed=filter_inplace_allowed)
         assert len(content.sections[0]["questions"]) == 2
 
-        content = content.filter({"lot": "IaaS"})
+        content = content.filter({"lot": "IaaS"}, inplace_allowed=filter_inplace_allowed)
         assert len(content.sections[0]["questions"]) == 1
 
-        content = content.filter({"lot": "PaaS"})
+        content = content.filter({"lot": "PaaS"}, inplace_allowed=filter_inplace_allowed)
         assert len(content.sections) == 0
 
-    def test_get_section(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_section(self, filter_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -322,7 +331,7 @@ class TestContentManifest(object):
 
         assert content.get_section("first_section").id == "first_section"
 
-        content = content.filter({"lot": "IaaS"})
+        content = content.filter({"lot": "IaaS"}, inplace_allowed=filter_inplace_allowed)
         assert content.get_section("first_section") is None
 
     def test_summary(self):
@@ -419,7 +428,8 @@ class TestContentManifest(object):
         assert summary.get_question('q13').answer_required
         assert not summary.get_question('q14').answer_required
 
-    def test_get_question(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_question(self, filter_inplace_allowed):
         content = ContentManifest([
             {
                 "slug": "first_section",
@@ -462,7 +472,7 @@ class TestContentManifest(object):
 
         assert content.get_question('q1').get('id') == 'q1'
 
-        content = content.filter({'lot': 'IaaS'})
+        content = content.filter({'lot': 'IaaS'}, inplace_allowed=filter_inplace_allowed)
         assert content.get_question('q1') is None
 
     def test_get_question_by_slug(self):
@@ -605,7 +615,8 @@ class TestContentManifest(object):
         assert content.get_question("q2")['number'] == 2
         assert content.get_question("q3")['number'] == 3
 
-    def test_question_numbers_respect_filtering(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_numbers_respect_filtering(self, filter_inplace_allowed):
         content = ContentManifest([
             {
                 "slug": "first_section",
@@ -641,7 +652,7 @@ class TestContentManifest(object):
                     },
                 ]
             }
-        ]).filter({"lot": "SCS"})
+        ]).filter({"lot": "SCS"}, inplace_allowed=filter_inplace_allowed)
 
         assert content.sections[0].questions[0]['id'] == 'q2'
         assert content.get_question('q2')['number'] == 1
@@ -698,7 +709,8 @@ class TestContentSection(object):
         })
         assert section.has_summary_page is True
 
-    def test_has_no_summary_page_if_single_question_no_description(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_has_no_summary_page_if_single_question_no_description(self, filter_inplace_allowed):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
@@ -707,10 +719,11 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        }).filter({})
+        }).filter({}, inplace_allowed=filter_inplace_allowed)
         assert section.has_summary_page is False
 
-    def test_has_summary_page_if_single_question_with_description(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_has_summary_page_if_single_question_with_description(self, filter_inplace_allowed):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
@@ -720,7 +733,7 @@ class TestContentSection(object):
                 "question": "Boolean question",
                 "type": "boolean",
             }]
-        }).filter({})
+        }).filter({}, inplace_allowed=filter_inplace_allowed)
         assert section.has_summary_page is True
 
     def test_get_question_ids(self):
@@ -942,7 +955,8 @@ class TestContentSection(object):
         })
         assert section.get_previous_question_slug(None) is None
 
-    def test_get_multiquestion_as_section(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_multiquestion_as_section(self, filter_inplace_allowed):
         section = ContentSection.create({
             "slug": "first_section",
             "prefill": True,
@@ -966,7 +980,7 @@ class TestContentSection(object):
                     }
                 ]
             }]
-        }).filter({})
+        }).filter({}, inplace_allowed=filter_inplace_allowed)
 
         question_section = section.get_question_as_section('q0-slug')
         assert question_section.name == "Q0"
@@ -975,14 +989,15 @@ class TestContentSection(object):
         assert question_section.editable == section.edit_questions
         assert question_section.get_question_ids() == ['q2', 'q3']
 
-    def test_get_non_multiquestion_question_as_section(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_non_multiquestion_question_as_section(self, filter_inplace_allowed):
         section = ContentSection.create({
             "slug": "first_section",
             "edit_questions": True,
             "name": "First section",
             "questions": [{"id": "q1", "type": "text", "slug": "q1-slug", "question": "Q1", "hint": "Some description"},
                           {"id": "q2", "type": "text", "slug": "q2-slug", "question": "Q2", "hint": "Some description"}]
-        }).filter({})
+        }).filter({}, inplace_allowed=filter_inplace_allowed)
 
         question_section = section.get_question_as_section('q1-slug')
         assert question_section.slug == "q1-slug"
@@ -1612,14 +1627,15 @@ class TestContentSection(object):
         for error_key in ['q0', 'q0-0', 'q0-1', 'q0-2', 'q0-3']:
             assert error_key in error_messages
 
-    def test_section_description(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_section_description(self, filter_inplace_allowed):
         section = ContentSection.create({
             "slug": "first_section",
             "name": "First section",
             "questions": [{"id": "q1", "question": "Why?", "type": "text"}],
             "description": "This is the first section",
             "summary_page_description": "This is a summary of the first section"
-        }).filter({})
+        }).filter({}, inplace_allowed=filter_inplace_allowed)
         assert section.description == "This is the first section"
         assert section.summary_page_description == "This is a summary of the first section"
 

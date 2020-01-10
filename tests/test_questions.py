@@ -51,34 +51,44 @@ class QuestionTest(object):
     def test_question_repr(self):
         assert 'data=' in repr(self.question())
 
-    def test_question_filter_without_dependencies(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_filter_without_dependencies(self, filter_inplace_allowed):
         question = self.question()
-        assert question.filter(self.context()) is not None
-        assert question.filter(self.context()) is not question
+        assert question.filter(self.context(), inplace_allowed=filter_inplace_allowed) is not None
+        if not filter_inplace_allowed:
+            assert question.filter(self.context(), inplace_allowed=filter_inplace_allowed) is not question
 
-    def test_question_filter_with_dependencies_that_match(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_filter_with_dependencies_that_match(self, filter_inplace_allowed):
         question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self.context({"lot": "lot-1"})) is not None
-        assert question.filter(self.context({"lot": "lot-1"})) is not question
+        assert question.filter(self.context({"lot": "lot-1"}), inplace_allowed=filter_inplace_allowed) is not None
+        if not filter_inplace_allowed:
+            assert question.filter(
+                self.context({"lot": "lot-1"}),
+                inplace_allowed=filter_inplace_allowed,
+            ) is not question
 
-    def test_question_filter_with_dependencies_that_are_not_matched(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_filter_with_dependencies_that_are_not_matched(self, filter_inplace_allowed):
         question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self.context({"lot": "lot-2"})) is None
+        assert question.filter(self.context({"lot": "lot-2"}), inplace_allowed=filter_inplace_allowed) is None
 
-    def test_question_without_template_tags_are_unchanged(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_without_template_tags_are_unchanged(self, filter_inplace_allowed):
         question = self.question(
             name=TemplateField("Name"),
             question=TemplateField("Question"),
             hint=TemplateField("Hint"),
             question_advice=TemplateField("Advice")
-        ).filter(self.context())
+        ).filter(self.context(), inplace_allowed=filter_inplace_allowed)
 
         assert question.name == "Name"
         assert question.question == "Question"
         assert question.hint == "Hint"
         assert question.question_advice == "Advice"
 
-    def test_question_fields_are_templated(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_fields_are_templated(self, filter_inplace_allowed):
         question = self.question(
             name=TemplateField("Name {{ name }}"),
             question=TemplateField("Question {{ question }}"),
@@ -89,7 +99,7 @@ class QuestionTest(object):
             "question": "one",
             "hint": "two",
             "advice": "three"
-        }))
+        }), inplace_allowed=filter_inplace_allowed)
 
         assert question.name == "Name zero"
         assert question.question == "Question one"
@@ -400,7 +410,8 @@ class TestMultiquestion(QuestionTest):
     def test_get_question_ids_by_type(self):
         assert self.question().get_question_ids(type='number') == ['example3']
 
-    def test_nested_question_fields_are_templated(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_nested_question_fields_are_templated(self, filter_inplace_allowed):
         question = self.question(
             questions=[{
                 "id": "example2",
@@ -409,7 +420,7 @@ class TestMultiquestion(QuestionTest):
             }]
         ).filter(self.context({
             "name": "one",
-        }))
+        }), inplace_allowed=filter_inplace_allowed)
 
         assert question.get_question('example2').question == "Question one"
 
@@ -472,7 +483,8 @@ class TestMultiquestion(QuestionTest):
             ('follow', 'a')
         ])) == {'lead': ['no', 'maybe not'], 'follow': None}
 
-    def test_get_error_messages_orders_by_question_order(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_error_messages_orders_by_question_order(self, filter_inplace_allowed):
         question = self.question(
             questions=[
                 {
@@ -491,7 +503,7 @@ class TestMultiquestion(QuestionTest):
                     "label": "Cultural Fit",
                 }
             ]
-        ).filter(self.context())
+        ).filter(self.context(), inplace_allowed=filter_inplace_allowed)
 
         multi_question_form_errors = {
             "culturalFit": "answer_required",
@@ -547,20 +559,22 @@ class TestDynamicListQuestion(QuestionTest):
     def test_get_data_unknown_key(self):
         assert self.question().get_data({'other': 'other value'}) == {'example': []}
 
-    def test_question_filter_expected_context_missing(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_filter_expected_context_missing(self, filter_inplace_allowed):
         question = self.question()
         with pytest.raises(KeyError):
             # might be nice if this raised a more specific exception indicating what you'd done wrong
-            question.filter({})
+            question.filter({}, inplace_allowed=filter_inplace_allowed)
 
     def test_get_data_malformed_submission_no_context_applied(self):
         question = self.question()  # no context applied
         with pytest.raises(ValueError):
             question.get_data({'yesno': True, 'evidence': 'example evidence'})
 
-    def test_get_data(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_data(self, filter_inplace_allowed):
         # must "filter" to apply context as without it, borkedness
-        question = self.question().filter(self.context())
+        question = self.question().filter(self.context(), inplace_allowed=filter_inplace_allowed)
         assert question.get_data({
             'yesno-0': True,
             'evidence-0': 'some evidence',
@@ -622,9 +636,10 @@ class TestDynamicListQuestion(QuestionTest):
             ]
         }
 
-    def test_unformat_data(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_unformat_data(self, filter_inplace_allowed):
         # must "filter" to apply context as without it, borkedness
-        question = self.question().filter(self.context())
+        question = self.question().filter(self.context(), inplace_allowed=filter_inplace_allowed)
         data = {
             "example": [
                 {'yesno': True, 'evidence': 'my evidence'},
@@ -642,17 +657,19 @@ class TestDynamicListQuestion(QuestionTest):
 
         assert question.unformat_data(data) == expected
 
-    def test_get_error_messages_unknown_key(self):
-        question = self.question().filter(self.context())
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_error_messages_unknown_key(self, filter_inplace_allowed):
+        question = self.question().filter(self.context(), inplace_allowed=filter_inplace_allowed)
         assert question.get_error_messages({'example1': 'answer_required'}) == {}
 
-    def test_get_error_messages(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_get_error_messages(self, filter_inplace_allowed):
         """
         Tests that for an 'answer_required' error, the content loader generates a suitable default,
         and that for any other error it produces a generic message, and that the errors
         come back in the right order.
         """
-        question = self.question().filter(self.context())
+        question = self.question().filter(self.context(), inplace_allowed=filter_inplace_allowed)
 
         errors_and_messages = {
             'answer_required': 'You need to answer this question.',

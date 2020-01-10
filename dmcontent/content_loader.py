@@ -6,6 +6,8 @@ import re
 import os
 import copy
 
+from typing import Optional
+
 from collections import defaultdict, OrderedDict
 from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
@@ -101,14 +103,14 @@ class ContentManifest(object):
     def get_next_edit_questions_section_id(self, section_id=None):
         return self.get_next_section_id(section_id, only_edit_questions=True)
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> "ContentManifest":
         """Return a new :class:`ContentManifest` filtered by service data
 
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
         sections = filter(None, [
-            section.filter(context, dynamic)
+            section.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for section in self.sections
         ])
 
@@ -413,12 +415,12 @@ class ContentSection(object):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["ContentSection"]:
         section = self.copy()
         section._context = context
 
         filtered_questions = list(filter(None, [
-            question.filter(context, dynamic)
+            question.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for question in self.questions
         ]))
 
