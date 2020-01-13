@@ -41,7 +41,7 @@ class ContentManifest(object):
     def __iter__(self):
         return self.sections.__iter__()
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ContentManifest":
         """Create a manifest instance for service summary display
 
         Return a new :class:`ContentManifest` instance with all
@@ -54,7 +54,7 @@ class ContentManifest(object):
 
         """
         return ContentManifest(
-            [section.summary(service_data) for section in self.sections]
+            [section.summary(service_data, inplace_allowed=inplace_allowed) for section in self.sections]
         )
 
     def get_section(self, section_id):
@@ -190,9 +190,11 @@ class ContentSection(object):
                for key, value in object.__getattribute__(self, '__dict__').items()
                if key not in ['id']})
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ContentManifest":
         summary_section = self.copy()
-        summary_section.questions = [question.summary(service_data) for question in summary_section.questions]
+        summary_section.questions = [
+            question.summary(service_data, inplace_allowed=inplace_allowed) for question in summary_section.questions
+        ]
 
         return summary_section
 

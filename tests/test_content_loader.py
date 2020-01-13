@@ -334,7 +334,8 @@ class TestContentManifest(object):
         content = content.filter({"lot": "IaaS"}, inplace_allowed=filter_inplace_allowed)
         assert content.get_section("first_section") is None
 
-    def test_summary(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_summary(self, summary_inplace_allowed):
         content = ContentManifest([{
             "slug": "first_section",
             "name": "First section",
@@ -403,7 +404,7 @@ class TestContentManifest(object):
             'q7.unit': 'day',
             'q10': {'value': True, 'assurance': 'Service provider assertion'},
             'q11': {'value': True}
-        })
+        }, inplace_allowed=summary_inplace_allowed)
 
         assert summary.get_question('q1').value == [
             summary.get_question('q2')
@@ -1524,7 +1525,8 @@ class TestContentSection(object):
         with pytest.raises(QuestionNotFoundError):
             section.get_error_messages(errors)
 
-    def test_get_error_messages_for_boolean_list_one_question_missing(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_get_error_messages_for_boolean_list_one_question_missing(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         form_data.pop('q0-3')
@@ -1533,7 +1535,7 @@ class TestContentSection(object):
         section = ContentSection.create(section)
         section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
         response_data = section.get_data(form_data)
-        section_summary = section.summary(response_data)
+        section_summary = section.summary(response_data, inplace_allowed=summary_inplace_allowed)
         error_messages = section_summary.get_error_messages(errors)
 
         assert error_messages['q0'] is True
@@ -1542,7 +1544,8 @@ class TestContentSection(object):
             base_error_key, index = error_key.split('-')[0], int(error_key.split('-')[-1])
             assert brief['briefs'][base_error_key][index] == error_messages[error_key]['question']
 
-    def test_get_error_messages_for_boolean_list_all_questions_missing(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_get_error_messages_for_boolean_list_all_questions_missing(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         form_data.pop('q0-0')
@@ -1554,7 +1557,7 @@ class TestContentSection(object):
         section = ContentSection.create(section)
         section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
         response_data = section.get_data(form_data)
-        section_summary = section.summary(response_data)
+        section_summary = section.summary(response_data, inplace_allowed=summary_inplace_allowed)
         error_messages = section_summary.get_error_messages(errors)
 
         assert error_messages['q0'] is True
@@ -1563,7 +1566,8 @@ class TestContentSection(object):
             base_error_key, index = error_key.split('-')[0], int(error_key.split('-')[-1])
             assert brief['briefs'][base_error_key][index] == error_messages[error_key]['question']
 
-    def test_get_error_messages_no_boolean_list_questions_missing(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_get_error_messages_no_boolean_list_questions_missing(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         section['questions'].append({
@@ -1576,7 +1580,7 @@ class TestContentSection(object):
         section = ContentSection.create(section)
         section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
         response_data = section.get_data(form_data)
-        section_summary = section.summary(response_data)
+        section_summary = section.summary(response_data, inplace_allowed=summary_inplace_allowed)
         error_messages = section_summary.get_error_messages(errors)
 
         assert 'q1' in error_messages
@@ -1597,7 +1601,8 @@ class TestContentSection(object):
         assert 'q0-3' not in error_messages
         assert len(error_messages.keys()) == 1
 
-    def test_get_wrong_boolean_list_error_messages_without_brief_questions_injected(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_get_wrong_boolean_list_error_messages_without_brief_questions_injected(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         form_data.pop('q0-3')
@@ -1605,14 +1610,15 @@ class TestContentSection(object):
 
         section = ContentSection.create(section)
         response_data = section.get_data(form_data)
-        section_summary = section.summary(response_data)
+        section_summary = section.summary(response_data, inplace_allowed=summary_inplace_allowed)
         error_messages = section_summary.get_error_messages(errors)
 
         assert 'q0' in error_messages
         assert 'q0-3' not in error_messages
         assert len(error_messages.keys()) == 1
 
-    def test_get_wrong_boolean_list_error_messages_without_response_data(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_get_wrong_boolean_list_error_messages_without_response_data(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         form_data.pop('q0-3')
@@ -1620,7 +1626,7 @@ class TestContentSection(object):
 
         section = ContentSection.create(section)
         section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
-        section_summary = section.summary({})
+        section_summary = section.summary({}, inplace_allowed=summary_inplace_allowed)
         error_messages = section_summary.get_error_messages(errors)
 
         # when an error key exists but no response data, all questions are assumed empty
@@ -1688,7 +1694,8 @@ class TestContentSection(object):
         with pytest.raises(ContentNotFoundError):
             section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
 
-    def test_inject_messages_into_section_and_section_summary(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_inject_messages_into_section_and_section_summary(self, summary_inplace_allowed):
 
         section, brief, form_data = self.setup_for_boolean_list_tests()
         section['questions'].append({
@@ -1701,7 +1708,7 @@ class TestContentSection(object):
         section = ContentSection.create(section)
         section.inject_brief_questions_into_boolean_list_question(brief['briefs'])
         response_data = section.get_data(form_data)
-        section_summary = section.summary(response_data)
+        section_summary = section.summary(response_data, inplace_allowed=summary_inplace_allowed)
         assert section_summary.get_question('q0').value == [True, True, True, True]
         assert section_summary.get_question('q0').get('boolean_list_questions') == brief['briefs']['q0']
 

@@ -829,24 +829,29 @@ class TestCheckboxTree(QuestionTest):
 
 
 class QuestionSummaryTest(object):
-    def test_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ''
 
-    def test_answer_required_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.answer_required
 
-    def test_answer_required_optional_question(self):
-        question = self.question(optional=True).summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_optional_question(self, summary_inplace_allowed):
+        question = self.question(optional=True).summary({}, inplace_allowed=summary_inplace_allowed)
         assert not question.answer_required
 
-    def test_is_empty_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.is_empty
 
-    def test_is_empty_optional_question(self):
-        question = self.question(optional=True).summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty_optional_question(self, summary_inplace_allowed):
+        question = self.question(optional=True).summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.is_empty
 
 
@@ -861,17 +866,20 @@ class TestDateSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_date_is_formatted_into_user_friendly_format(self):
-        question = self.question().summary({'example': '2016-02-18'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_date_is_formatted_into_user_friendly_format(self, summary_inplace_allowed):
+        question = self.question().summary({'example': '2016-02-18'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 'Thursday 18 February 2016'
 
-    def test_unpadded_date_is_formatted_into_user_friendly_format(self):
-        question = self.question().summary({'example': '2003-2-1'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_unpadded_date_is_formatted_into_user_friendly_format(self, summary_inplace_allowed):
+        question = self.question().summary({'example': '2003-2-1'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 'Saturday 1 February 2003'
 
-    def test_not_a_date_format_falls_back_to_raw_string(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_not_a_date_format_falls_back_to_raw_string(self, summary_inplace_allowed):
         non_date_string = 'not-a-date-formatted-string'
-        question = self.question().summary({'example': non_date_string})
+        question = self.question().summary({'example': non_date_string}, inplace_allowed=summary_inplace_allowed)
 
         assert question.value == non_date_string
 
@@ -889,10 +897,10 @@ class TestDateSummary(QuestionSummaryTest):
         question = self.question().summary({'example': '2016-02-18'})
         assert not question.is_empty
 
-    def test_date_before_1900(self):
-
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_date_before_1900(self, summary_inplace_allowed):
         old_date_string = '1899-01-01' if six.PY2 else 'Sunday 1 January 1899'
-        question = self.question().summary({'example': old_date_string})
+        question = self.question().summary({'example': old_date_string}, inplace_allowed=summary_inplace_allowed)
 
         assert question.value == old_date_string
 
@@ -907,20 +915,24 @@ class TestTextSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'example': 'textvalue'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 'textvalue'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 'textvalue'
 
-    def test_value_empty(self):
-        question = self.question().summary({'example': ''})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_empty(self, summary_inplace_allowed):
+        question = self.question().summary({'example': ''}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ''
 
-    def test_answer_required(self):
-        question = self.question().summary({'example': 'value1'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 'value1'}, inplace_allowed=summary_inplace_allowed)
         assert not question.answer_required
 
-    def test_is_empty(self):
-        question = self.question().summary({'example': 'value1'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 'value1'}, inplace_allowed=summary_inplace_allowed)
         assert not question.is_empty
 
 
@@ -939,12 +951,14 @@ class TestRadiosSummary(TestTextSummary):
 
         return ContentQuestion(data)
 
-    def test_value_returns_matching_option_label(self):
-        question = self.question().summary({'example': 'value1'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_returns_matching_option_label(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 'value1'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 'Option label'
 
-    def test_filter_value_returns_matching_option_filter_label(self):
-        question = self.question().summary({'example': 'value1'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_filter_value_returns_matching_option_filter_label(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 'value1'}, inplace_allowed=summary_inplace_allowed)
         assert question.filter_value == 'option filter label'
 
 
@@ -963,35 +977,45 @@ class TestCheckboxesSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'example': ['value1', 'value2']})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary({'example': ['value1', 'value2']}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ['Option label', 'Other label']
 
-    def test_filter_value(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_filter_value(self, summary_inplace_allowed):
         question = self.question().summary({'example': ['value1', 'value2']})
         assert question.filter_value == ['option filter label', 'Other label']
 
-    def test_reading_properties_does_not_mutate_underlying_list_data(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_reading_properties_does_not_mutate_underlying_list_data(self, summary_inplace_allowed):
         # We don't want reading a property such as "value" to change the underlying list, as that would mean subsequent
         # reads of other properties will not work as expected
-        question = self.question().summary({'example': ['value1', 'value2']})
+        question = self.question().summary({'example': ['value1', 'value2']}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ['Option label', 'Other label']
         assert question.filter_value == ['option filter label', 'Other label']
         assert question.value == ['Option label', 'Other label']
         assert question.filter_value == ['option filter label', 'Other label']
 
-    def test_value_with_assurance(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_assurance(self, summary_inplace_allowed):
         question = self.question(assuranceApproach='2answers-type1').summary(
-            {'example': {'assurance': 'assurance value', 'value': ['value1', 'value2']}}
+            {'example': {'assurance': 'assurance value', 'value': ['value1', 'value2']}},
+            inplace_allowed=summary_inplace_allowed,
         )
         assert question.value == ['Option label', 'Other label']
 
-    def test_value_with_before_summary_value(self):
-        question = self.question(before_summary_value=['value0']).summary({'example': ['value1', 'value2']})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_before_summary_value(self, summary_inplace_allowed):
+        question = self.question(before_summary_value=['value0']).summary(
+            {'example': ['value1', 'value2']},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == ['value0', 'Option label', 'Other label']
 
-    def test_value_with_before_summary_value_if_empty(self):
-        question = self.question(before_summary_value=['value0']).summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_before_summary_value_if_empty(self, summary_inplace_allowed):
+        question = self.question(before_summary_value=['value0']).summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ['value0']
 
 
@@ -1026,8 +1050,12 @@ class TestCheckboxTreeSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'example': ['val1.1', 'val2.2', 'val4']})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'example': ['val1.1', 'val2.2', 'val4']},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == [
             {
                 "label": "Option 1",
@@ -1044,8 +1072,9 @@ class TestCheckboxTreeSummary(QuestionSummaryTest):
             }
         ]
 
-    def test_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.value == []
 
 
@@ -1059,42 +1088,61 @@ class TestNumberSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'example': 23.41})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 23.41}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 23.41
 
-    def test_value_zero(self):
-        question = self.question().summary({'example': 0})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_zero(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 0}, inplace_allowed=summary_inplace_allowed)
         assert question.value == 0
 
-    def test_value_without_unit(self):
-        question = self.question().summary({'example': '12.20'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_without_unit(self, summary_inplace_allowed):
+        question = self.question().summary({'example': '12.20'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == '12.20'
 
-    def test_value_adds_unit_before(self):
-        question = self.question(unit=u"£", unit_position="before").summary({'example': '12.20'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_adds_unit_before(self, summary_inplace_allowed):
+        question = self.question(unit=u"£", unit_position="before").summary(
+            {'example': '12.20'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'£12.20'
 
-    def test_value_adds_unit_after(self):
-        question = self.question(unit=u"£", unit_position="after").summary({'example': '12.20'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_adds_unit_after(self, summary_inplace_allowed):
+        question = self.question(unit=u"£", unit_position="after").summary(
+            {'example': '12.20'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'12.20£'
 
-    def test_value_doesnt_add_unit_if_value_is_empty(self):
-        question = self.question(unit=u"£", unit_position="after").summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_doesnt_add_unit_if_value_is_empty(self, summary_inplace_allowed):
+        question = self.question(unit=u"£", unit_position="after").summary(
+            {},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u''
 
-    def test_value_adds_unit_for_questions_with_assertion(self):
-        question = self.question(unit=u"£", unit_position="after", assuranceApproach="2answers-type1").summary({
-            'example': {'value': 15, 'assurance': 'Service provider assertion'}
-        })
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_adds_unit_for_questions_with_assertion(self, summary_inplace_allowed):
+        question = self.question(unit=u"£", unit_position="after", assuranceApproach="2answers-type1").summary(
+            {'example': {'value': 15, 'assurance': 'Service provider assertion'}},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'15£'
 
-    def test_answer_required(self):
-        question = self.question().summary({'example': 0})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 0}, inplace_allowed=summary_inplace_allowed)
         assert not question.answer_required
 
-    def test_is_empty(self):
-        question = self.question().summary({'example': 0})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty(self, summary_inplace_allowed):
+        question = self.question().summary({'example': 0}, inplace_allowed=summary_inplace_allowed)
         assert not question.is_empty
 
 
@@ -1116,37 +1164,58 @@ class TestPricingSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'priceMin': '20.41', 'priceMax': '25.00'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'£20.41 to £25.00'
 
-    def test_value_without_price_min(self):
-        question = self.question().summary({'priceMax': '25.00'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_without_price_min(self, summary_inplace_allowed):
+        question = self.question().summary({'priceMax': '25.00'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == ''
 
-    def test_value_price_field(self):
-        question = self.question().summary({'price': '20.41'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_price_field(self, summary_inplace_allowed):
+        question = self.question().summary({'price': '20.41'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == u'£20.41'
 
-    def test_value_without_price_max(self):
-        question = self.question().summary({'priceMin': '20.41'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_without_price_max(self, summary_inplace_allowed):
+        question = self.question().summary({'priceMin': '20.41'}, inplace_allowed=summary_inplace_allowed)
         assert question.value == u'£20.41'
 
-    def test_value_with_hours_for_price(self):
-        question = self.question().summary({'priceMin': '20.41', 'priceHours': '8'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_hours_for_price(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'priceMin': '20.41', 'priceHours': '8'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'8 for £20.41'
 
-    def test_value_with_unit(self):
-        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_unit(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'£20.41 to £25.00 per service'
 
-    def test_value_with_interval(self):
-        question = self.question().summary({'priceMin': '20.41', 'priceMax': '25.00', 'priceInterval': 'day'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_interval(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'priceMin': '20.41', 'priceMax': '25.00', 'priceInterval': 'day'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == u'£20.41 to £25.00 per day'
 
-    def test_value_with_unit_and_interval(self):
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_with_unit_and_interval(self, summary_inplace_allowed):
         question = self.question().summary(
-            {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service', 'priceInterval': 'day'}
+            {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service', 'priceInterval': 'day'},
+            inplace_allowed=summary_inplace_allowed,
         )
         assert question.value == u'£20.41 to £25.00 per service per day'
 
@@ -1189,52 +1258,88 @@ class TestMultiquestionSummary(QuestionSummaryTest):
 
         return ContentQuestion(data)
 
-    def test_value(self):
-        question = self.question().summary({'example2': 'value2', 'example3': 'value3'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'example2': 'value2', 'example3': 'value3'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.value == question.questions
 
-    def test_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.value == []
 
-    def test_answer_required(self):
-        question = self.question().summary({'example2': 'value2', 'example3': 'value3'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'example2': 'value2', 'example3': 'value3'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert not question.answer_required
 
-    def test_is_empty(self):
-        question = self.question().summary({'example': 'value2', 'example3': 'value3'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty(self, summary_inplace_allowed):
+        question = self.question().summary(
+            {'example': 'value2', 'example3': 'value3'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert not question.is_empty
 
-    def test_answer_required_partial(self):
-        question = self.question().summary({'example3': 'value3'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_partial(self, summary_inplace_allowed):
+        question = self.question().summary({'example3': 'value3'}, inplace_allowed=summary_inplace_allowed)
         assert question.answer_required
 
-    def test_is_empty_partial(self):
-        question = self.question().summary({'example2': 'value2'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty_partial(self, summary_inplace_allowed):
+        question = self.question().summary({'example2': 'value2'}, inplace_allowed=summary_inplace_allowed)
         assert not question.is_empty
 
-    def test_answer_required_if_question_with_followups_not_answered(self):
-        question = self.question_with_followups().summary({'q2': 'blah'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_if_question_with_followups_not_answered(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary({'q2': 'blah'}, inplace_allowed=summary_inplace_allowed)
         assert question.answer_required
 
-    def test_answer_required_if_followup_not_answered(self):
-        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_if_followup_not_answered(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary(
+            {'q2': 'blah', 'q3': True},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.answer_required
 
-    def test_answer_not_required_if_followups_not_required(self):
-        question = self.question_with_followups().summary({'q2': 'blah', 'q3': False})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_not_required_if_followups_not_required(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary(
+            {'q2': 'blah', 'q3': False},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert not question.answer_required
 
-    def test_answer_required_if_followups_to_followup_not_answered(self):
-        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'one'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_required_if_followups_to_followup_not_answered(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary(
+            {'q2': 'blah', 'q3': True, 'q5': 'one'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert question.answer_required
 
-    def test_answer_not_required_if_followups_to_followup_not_required(self):
-        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'two'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_not_required_if_followups_to_followup_not_required(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary(
+            {'q2': 'blah', 'q3': True, 'q5': 'two'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert not question.answer_required
 
-    def test_answer_not_required_if_optional_followups_not_answered(self):
-        question = self.question_with_followups().summary({'q2': 'blah', 'q3': True, 'q5': 'one', 'q6': 'blah'})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_answer_not_required_if_optional_followups_not_answered(self, summary_inplace_allowed):
+        question = self.question_with_followups().summary(
+            {'q2': 'blah', 'q3': True, 'q5': 'one', 'q6': 'blah'},
+            inplace_allowed=summary_inplace_allowed,
+        )
         assert not question.answer_required
 
 
@@ -1262,6 +1367,7 @@ class TestDynamicListSummary(QuestionSummaryTest):
 
         return ContentQuestion(data).filter({'context': {'field': ['First Need', 'Second Need', 'Third Need']}})
 
-    def test_value_missing(self):
-        question = self.question().summary({})
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_value_missing(self, summary_inplace_allowed):
+        question = self.question().summary({}, inplace_allowed=summary_inplace_allowed)
         assert question.value == []

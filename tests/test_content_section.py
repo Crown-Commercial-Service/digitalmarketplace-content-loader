@@ -162,7 +162,14 @@ class TestFilterContentSection(object):
         assert copied_section.prefill is False
         assert copied_section.editable is False
 
-    def test_is_empty(self):
+    @pytest.mark.parametrize("summary_arg,expect_empty", (
+        ({'q1': 'a1', 'q2': 'a2'}, False,),
+        ({'q1': 'a1', 'q2': ''}, False,),
+        ({'q1': '', 'q2': ''}, True,),
+        ({}, True,),
+    ))
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty(self, summary_arg, expect_empty, summary_inplace_allowed):
         questions = [
             Question({'id': 'q1', 'name': 'q1', 'type': 'unknown'}),
             Question({'id': 'q2', 'name': 'q2', 'type': 'unknown'})
@@ -176,12 +183,7 @@ class TestFilterContentSection(object):
             edit_questions=False,
             questions=questions
         )
-        answered = section.summary({'q1': 'a1', 'q2': 'a2'})
-        assert not answered.is_empty
-        half_answered = section.summary({'q1': 'a1', 'q2': ''})
-        assert not half_answered.is_empty
-        not_answered = section.summary({'q1': '', 'q2': ''})
-        assert not_answered.is_empty
+        assert section.summary(summary_arg, inplace_allowed=summary_inplace_allowed).is_empty is expect_empty
 
     @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
     def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self, filter_inplace_allowed):

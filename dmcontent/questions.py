@@ -21,7 +21,7 @@ class Question(object):
         self._data = data.copy()
         self._context = _context
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "QuestionSummary":
         return QuestionSummary(self, service_data)
 
     def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
@@ -242,7 +242,7 @@ class Multiquestion(Question):
             for question in data['questions']
         ]
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "MultiquestionSummary":
         return MultiquestionSummary(self, service_data)
 
     def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
@@ -452,7 +452,7 @@ class DynamicList(Multiquestion):
     def form_fields(self):
         return [self.id]
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "DynamicListSummary":
         return DynamicListSummary(self, service_data)
 
     def _make_dynamic_question(self, question, item, index):
@@ -476,7 +476,7 @@ class Pricing(Question):
         # True if we are restricting to an integer or a 2dp value (representing pounds and optionally pence)
         self.decimal_place_restriction = data.get('decimal_place_restriction', False)
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "PricingSummary":
         return PricingSummary(self, service_data)
 
     def get_question(self, field_name):
@@ -532,7 +532,7 @@ class List(Question):
 
         return {self.id: value or None}
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ListSummary":
         return ListSummary(self, service_data)
 
 
@@ -556,7 +556,7 @@ class Hierarchy(List):
 
         return {self.id: sorted(values) or None}
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "HierarchySummary":
         return HierarchySummary(self, service_data)
 
     def get_missing_values(self, selected_values_set):
@@ -587,7 +587,7 @@ class Date(Question):
 
     FIELDS = ('year', 'month', 'day')
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "DateSummary":
         return DateSummary(self, service_data)
 
     @staticmethod
