@@ -28,7 +28,7 @@ class Question(object):
         if not self._should_be_shown(context):
             return None
 
-        question = ContentQuestion(self._data, number=self.number)
+        question = self if inplace_allowed else ContentQuestion(self._data, number=self.number)
         question._context = context
 
         return question
