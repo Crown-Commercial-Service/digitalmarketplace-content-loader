@@ -416,7 +416,7 @@ class ContentSection(object):
             question.inject_brief_questions_into_boolean_list_question(brief)
 
     def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["ContentSection"]:
-        section = self.copy()
+        section = self if inplace_allowed else self.copy()
         section._context = context
 
         filtered_questions = list(filter(None, [
@@ -424,10 +424,10 @@ class ContentSection(object):
             for question in self.questions
         ]))
 
+        section.questions = filtered_questions
+
         if not filtered_questions:
             return None
-
-        section.questions = filtered_questions
 
         return section
 
