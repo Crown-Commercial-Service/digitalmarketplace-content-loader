@@ -7,7 +7,7 @@ class ContentMessage(object):
         self._context = _context
 
     def filter(self, context, inplace_allowed: bool = False) -> "ContentMessage":
-        message = ContentMessage(self._data)
+        message = self if inplace_allowed else ContentMessage(self._data)
         message._context = context
 
         return message
