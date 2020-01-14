@@ -32,6 +32,9 @@ class ContentManifest(object):
     """
     def __init__(self, sections):
         self.sections = [ContentSection.create(section) for section in sections]
+        self._assign_question_numbers()
+
+    def _assign_question_numbers(self):
         question_index = 0
         for section in self.sections:
             for question in section.questions:
@@ -109,12 +112,17 @@ class ContentManifest(object):
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
-        sections = filter(None, [
+        new_sections = filter(None, [
             section.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for section in self.sections
         ])
 
-        return ContentManifest(sections)
+        if inplace_allowed:
+            self.sections[:] = new_sections
+            self._assign_question_numbers()
+            return self
+        else:
+            return ContentManifest(new_sections)
 
     def get_question(self, field_name):
         for section in self.sections:
