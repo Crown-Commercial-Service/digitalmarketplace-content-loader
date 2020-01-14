@@ -185,7 +185,7 @@ class Question(object):
             self.boolean_list_questions = brief.get(self.id, [])
 
     def has_assurance(self):
-        return True if self.get('assuranceApproach') else False
+        return bool(self.get('assuranceApproach'))
 
     def get_question_ids(self, type=None):
         return [self.id] if type in [self.type, None] else []
