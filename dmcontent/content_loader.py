@@ -56,9 +56,13 @@ class ContentManifest(object):
         summary tables.
 
         """
-        return ContentManifest(
-            [section.summary(service_data, inplace_allowed=inplace_allowed) for section in self.sections]
-        )
+        new_sections = [section.summary(service_data, inplace_allowed=inplace_allowed) for section in self.sections]
+        if inplace_allowed:
+            self.sections[:] = new_sections
+            self._assign_question_numbers()
+            return self
+        else:
+            return ContentManifest(new_sections)
 
     def get_section(self, section_id):
         """Return a section by ID"""
