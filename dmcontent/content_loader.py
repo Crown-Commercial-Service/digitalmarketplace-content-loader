@@ -191,7 +191,7 @@ class ContentSection(object):
                if key not in ['id']})
 
     def summary(self, service_data, inplace_allowed: bool = False) -> "ContentManifest":
-        summary_section = self.copy()
+        summary_section = self if inplace_allowed else self.copy()
         summary_section.questions = [
             question.summary(service_data, inplace_allowed=inplace_allowed) for question in summary_section.questions
         ]
