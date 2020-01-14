@@ -191,16 +191,13 @@ class Question(object):
         return [self.id] if type in [self.type, None] else []
 
     def get(self, key, default=None):
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            return default
+        return getattr(self, key, default)
 
     def __getattr__(self, key):
-        try:
-            field = self._data[key]
-        except KeyError:
+        if key not in self._data:
             raise AttributeError(key)
+
+        field = self._data[key]
 
         if isinstance(field, TemplateField):
             return field.render(self._context)
