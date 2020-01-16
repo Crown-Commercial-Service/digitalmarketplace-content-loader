@@ -6,6 +6,8 @@ import re
 import os
 import copy
 
+from typing import Optional
+
 from collections import defaultdict, OrderedDict
 from functools import partial
 from werkzeug.datastructures import ImmutableMultiDict
@@ -30,6 +32,9 @@ class ContentManifest(object):
     """
     def __init__(self, sections):
         self.sections = [ContentSection.create(section) for section in sections]
+        self._assign_question_numbers()
+
+    def _assign_question_numbers(self):
         question_index = 0
         for section in self.sections:
             for question in section.questions:
@@ -39,7 +44,7 @@ class ContentManifest(object):
     def __iter__(self):
         return self.sections.__iter__()
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ContentManifest":
         """Create a manifest instance for service summary display
 
         Return a new :class:`ContentManifest` instance with all
@@ -51,9 +56,13 @@ class ContentManifest(object):
         summary tables.
 
         """
-        return ContentManifest(
-            [section.summary(service_data) for section in self.sections]
-        )
+        new_sections = [section.summary(service_data, inplace_allowed=inplace_allowed) for section in self.sections]
+        if inplace_allowed:
+            self.sections[:] = new_sections
+            self._assign_question_numbers()
+            return self
+        else:
+            return ContentManifest(new_sections)
 
     def get_section(self, section_id):
         """Return a section by ID"""
@@ -101,18 +110,23 @@ class ContentManifest(object):
     def get_next_edit_questions_section_id(self, section_id=None):
         return self.get_next_section_id(section_id, only_edit_questions=True)
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> "ContentManifest":
         """Return a new :class:`ContentManifest` filtered by service data
 
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
-        sections = filter(None, [
-            section.filter(context, dynamic)
+        new_sections = filter(None, [
+            section.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for section in self.sections
         ])
 
-        return ContentManifest(sections)
+        if inplace_allowed:
+            self.sections[:] = new_sections
+            self._assign_question_numbers()
+            return self
+        else:
+            return ContentManifest(new_sections)
 
     def get_question(self, field_name):
         for section in self.sections:
@@ -188,9 +202,11 @@ class ContentSection(object):
                for key, value in object.__getattribute__(self, '__dict__').items()
                if key not in ['id']})
 
-    def summary(self, service_data):
-        summary_section = self.copy()
-        summary_section.questions = [question.summary(service_data) for question in summary_section.questions]
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ContentManifest":
+        summary_section = self if inplace_allowed else self.copy()
+        summary_section.questions = [
+            question.summary(service_data, inplace_allowed=inplace_allowed) for question in summary_section.questions
+        ]
 
         return summary_section
 
@@ -413,19 +429,19 @@ class ContentSection(object):
         for question in self.questions:
             question.inject_brief_questions_into_boolean_list_question(brief)
 
-    def filter(self, context, dynamic=True):
-        section = self.copy()
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["ContentSection"]:
+        section = self if inplace_allowed else self.copy()
         section._context = context
 
         filtered_questions = list(filter(None, [
-            question.filter(context, dynamic)
+            question.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for question in self.questions
         ]))
 
+        section.questions = filtered_questions
+
         if not filtered_questions:
             return None
-
-        section.questions = filtered_questions
 
         return section
 

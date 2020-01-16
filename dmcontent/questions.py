@@ -2,6 +2,8 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
+from typing import Optional
+
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
 from .converters import convert_to_boolean, convert_to_number
@@ -19,14 +21,14 @@ class Question(object):
         self._data = data.copy()
         self._context = _context
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "QuestionSummary":
         return QuestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
         if not self._should_be_shown(context):
             return None
 
-        question = ContentQuestion(self._data, number=self.number)
+        question = self if inplace_allowed else ContentQuestion(self._data, number=self.number)
         question._context = context
 
         return question
@@ -183,22 +185,19 @@ class Question(object):
             self.boolean_list_questions = brief.get(self.id, [])
 
     def has_assurance(self):
-        return True if self.get('assuranceApproach') else False
+        return bool(self.get('assuranceApproach'))
 
     def get_question_ids(self, type=None):
         return [self.id] if type in [self.type, None] else []
 
     def get(self, key, default=None):
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            return default
+        return getattr(self, key, default)
 
     def __getattr__(self, key):
-        try:
-            field = self._data[key]
-        except KeyError:
+        if key not in self._data:
             raise AttributeError(key)
+
+        field = self._data[key]
 
         if isinstance(field, TemplateField):
             return field.render(self._context)
@@ -240,16 +239,16 @@ class Multiquestion(Question):
             for question in data['questions']
         ]
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "MultiquestionSummary":
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True):
-        multi_question = super(Multiquestion, self).filter(context, dynamic)
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+        multi_question = super(Multiquestion, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
         if not multi_question:
             return None
 
         multi_question.questions = list(filter(None, [
-            question.filter(context, dynamic)
+            question.filter(context, dynamic, inplace_allowed=inplace_allowed)
             for question in multi_question.questions
         ]))
 
@@ -301,11 +300,15 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context, dynamic=True):
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
         if not dynamic:
-            return super(DynamicList, self).filter(context, dynamic)
+            return super(DynamicList, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
 
-        dynamic_list = super(Multiquestion, self).filter(context, dynamic)
+        dynamic_list = super(Multiquestion, self).filter(
+            context,
+            dynamic=dynamic,
+            inplace_allowed=inplace_allowed,
+        )
         if not dynamic_list:
             return None
 
@@ -446,7 +449,7 @@ class DynamicList(Multiquestion):
     def form_fields(self):
         return [self.id]
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "DynamicListSummary":
         return DynamicListSummary(self, service_data)
 
     def _make_dynamic_question(self, question, item, index):
@@ -470,7 +473,7 @@ class Pricing(Question):
         # True if we are restricting to an integer or a 2dp value (representing pounds and optionally pence)
         self.decimal_place_restriction = data.get('decimal_place_restriction', False)
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "PricingSummary":
         return PricingSummary(self, service_data)
 
     def get_question(self, field_name):
@@ -526,7 +529,7 @@ class List(Question):
 
         return {self.id: value or None}
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "ListSummary":
         return ListSummary(self, service_data)
 
 
@@ -550,7 +553,7 @@ class Hierarchy(List):
 
         return {self.id: sorted(values) or None}
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "HierarchySummary":
         return HierarchySummary(self, service_data)
 
     def get_missing_values(self, selected_values_set):
@@ -581,7 +584,7 @@ class Date(Question):
 
     FIELDS = ('year', 'month', 'day')
 
-    def summary(self, service_data):
+    def summary(self, service_data, inplace_allowed: bool = False) -> "DateSummary":
         return DateSummary(self, service_data)
 
     @staticmethod
@@ -662,7 +665,7 @@ class QuestionSummary(Question):
 
     @property
     def is_empty(self):
-        return self.value in ['', [], None]
+        return self.value in ('', [], None,)
 
     @property
     def value(self):
@@ -736,30 +739,43 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
 
     @property
     def answer_required(self):
-        """Checks all sub-questions and returns true if any questions which are required, still require answers.
-        Appropriately checks/ignores followup questions based on current answers."""
+        """
+            Checks all sub-questions and returns true if any questions which are required, still require answers.
+            Appropriately checks/ignores followup questions based on current answers.
+
+            NOTE this is a "hot path" so be careful making changes to it.
+        """
         if self.get('optional'):
             return False
 
         lookup_question_by_id = {q.id: q for q in self.questions}
-        followup_questions = set()
+        ignorable_ids = set()
 
-        for question in [q for q in self.questions if q.get('followup', {})]:
-            if question.id not in followup_questions and question.answer_required:
-                return True
+        # note iteration order is important here: followups coming "before" their referring question will cause trouble
+        for question in self.questions:
+            if not question.get('followup'):
+                continue
 
-            followup_questions.add(question.id)
+            if question.id not in ignorable_ids:
+                if question.answer_required:
+                    return True
+                else:
+                    # ignorable because it's not `.answer_required`
+                    ignorable_ids.add(question.id)
 
-            answers_provided = question.value if isinstance(question.value, list) else [question.value]
+            question_value = question.value
+            answers_provided_set = frozenset(question_value if isinstance(question_value, list) else (question_value,))
 
             for followup_id, answers_triggering_followup in question.get('followup', {}).items():
-                followup_questions.add(followup_id)
-
-                if set(answers_provided) & set(answers_triggering_followup) and \
+                if answers_provided_set.intersection(answers_triggering_followup) and \
                         lookup_question_by_id[followup_id].answer_required:
                     return True
 
-        return any(q.answer_required for q in self.questions if q.id not in followup_questions)
+                # ignorable because it's listed as a followup to a question that hasn't been triggered or is not
+                # `.answer_required`
+                ignorable_ids.add(followup_id)
+
+        return any(q.answer_required for q in self.questions if q.id not in ignorable_ids)
 
 
 class DynamicListSummary(MultiquestionSummary, DynamicList):

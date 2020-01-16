@@ -9,7 +9,8 @@ from dmcontent import ContentTemplateError
 
 
 class TestFilterContentSection(object):
-    def test_fields_without_template_tags_are_unchanged(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_fields_without_template_tags_are_unchanged(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
@@ -20,11 +21,14 @@ class TestFilterContentSection(object):
             questions=[Question({})]
         )
 
-        assert section.filter({}).name == 'Section'
-        assert section.filter({}).description == 'just a string'
-        assert section.filter({}).prefill is True
+        sf = section.filter({}, inplace_allowed=filter_inplace_allowed)
 
-    def test_question_fields_without_template_tags_are_unchanged(self):
+        assert sf.name == 'Section'
+        assert sf.description == 'just a string'
+        assert sf.prefill is True
+
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_question_fields_without_template_tags_are_unchanged(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
@@ -34,9 +38,10 @@ class TestFilterContentSection(object):
             questions=[Question({'name': 'Question'})]
         )
 
-        assert section.filter({}).questions[0].name == 'Question'
+        assert section.filter({}, inplace_allowed=filter_inplace_allowed).questions[0].name == 'Question'
 
-    def test_not_all_fields_are_templated(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_not_all_fields_are_templated(self, filter_inplace_allowed):
         section = ContentSection(
             slug='# {{ section }}',
             name=TemplateField('Section'),
@@ -46,9 +51,10 @@ class TestFilterContentSection(object):
             questions=[Question({})]
         )
 
-        assert section.filter({}).slug == '# {{ section }}'
+        assert section.filter({}, inplace_allowed=filter_inplace_allowed).slug == '# {{ section }}'
 
-    def test_missing_context_variable_raises_an_error(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_missing_context_variable_raises_an_error(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
@@ -59,9 +65,10 @@ class TestFilterContentSection(object):
         )
 
         with pytest.raises(ContentTemplateError):
-            section.filter({}).name
+            section.filter({}, inplace_allowed=filter_inplace_allowed).name
 
-    def test_section_name_is_templated(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_section_name_is_templated(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
@@ -71,9 +78,10 @@ class TestFilterContentSection(object):
             questions=[Question({})]
         )
 
-        assert section.filter({'name': 'one'}).name == 'Section one'
+        assert section.filter({'name': 'one'}, inplace_allowed=filter_inplace_allowed).name == 'Section one'
 
-    def test_unused_context_variables_are_ignored(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_unused_context_variables_are_ignored(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section {{ name }}'),
@@ -83,9 +91,13 @@ class TestFilterContentSection(object):
             questions=[Question({})]
         )
 
-        assert section.filter({'name': 'one', 'name2': 'ignored'}).name == 'Section one'
+        assert section.filter(
+            {'name': 'one', 'name2': 'ignored'},
+            inplace_allowed=filter_inplace_allowed,
+        ).name == 'Section one'
 
-    def test_section_description_is_templated(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_section_description_is_templated(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
@@ -96,9 +108,13 @@ class TestFilterContentSection(object):
             description=TemplateField("This is the {{ name }} section")
         )
 
-        assert section.filter({'name': 'first'}).description == 'This is the first section'
+        assert section.filter(
+            {'name': 'first'},
+            inplace_allowed=filter_inplace_allowed,
+        ).description == 'This is the first section'
 
-    def test_section_description_is_not_set(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_section_description_is_not_set(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
@@ -108,7 +124,7 @@ class TestFilterContentSection(object):
             questions=[Question({})]
         )
 
-        assert section.filter({}).description is None
+        assert section.filter({}, inplace_allowed=filter_inplace_allowed).description is None
 
     def test_get_templatable_section_attributes_calls_render(self):
         section = ContentSection(
@@ -129,7 +145,8 @@ class TestFilterContentSection(object):
 
         assert section.slug == 'section'
 
-    def test_copying_section_preserves_value_of_context_attribute(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_copying_section_preserves_value_of_context_attribute(self, filter_inplace_allowed):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section'),
@@ -137,7 +154,7 @@ class TestFilterContentSection(object):
             editable=False,
             edit_questions=False,
             questions=[Question({'name': 'Question'})]
-        ).filter({'context': 'context1'})
+        ).filter({'context': 'context1'}, inplace_allowed=filter_inplace_allowed)
         assert section._context == {'context': 'context1'}
 
         copied_section = section.copy()
@@ -145,7 +162,14 @@ class TestFilterContentSection(object):
         assert copied_section.prefill is False
         assert copied_section.editable is False
 
-    def test_is_empty(self):
+    @pytest.mark.parametrize("summary_arg,expect_empty", (
+        ({'q1': 'a1', 'q2': 'a2'}, False,),
+        ({'q1': 'a1', 'q2': ''}, False,),
+        ({'q1': '', 'q2': ''}, True,),
+        ({}, True,),
+    ))
+    @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
+    def test_is_empty(self, summary_arg, expect_empty, summary_inplace_allowed):
         questions = [
             Question({'id': 'q1', 'name': 'q1', 'type': 'unknown'}),
             Question({'id': 'q2', 'name': 'q2', 'type': 'unknown'})
@@ -159,14 +183,10 @@ class TestFilterContentSection(object):
             edit_questions=False,
             questions=questions
         )
-        answered = section.summary({'q1': 'a1', 'q2': 'a2'})
-        assert not answered.is_empty
-        half_answered = section.summary({'q1': 'a1', 'q2': ''})
-        assert not half_answered.is_empty
-        not_answered = section.summary({'q1': '', 'q2': ''})
-        assert not_answered.is_empty
+        assert section.summary(summary_arg, inplace_allowed=summary_inplace_allowed).is_empty is expect_empty
 
-    def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    def test_getting_a_multiquestion_as_a_section_preserves_value_of_context_attribute(self, filter_inplace_allowed):
         multiquestion_data = {
             "id": "example",
             "slug": "example",
@@ -195,10 +215,16 @@ class TestFilterContentSection(object):
 
         assert section.get_question_as_section('example')._context is None
         assert section.filter(
-            {'context': 'context1'}
+            {'context': 'context1'},
+            inplace_allowed=filter_inplace_allowed,
         ).get_question_as_section('example')._context == {'context': 'context1'}
 
-    def test_filtering_a_section_with_a_description_template(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    @pytest.mark.parametrize("lot,expected_description", (
+        ("digital-specialists", "description for specialists",),
+        ("digital-outcomes", "description for outcomes",),
+    ))
+    def test_filtering_a_section_with_a_description_template(self, filter_inplace_allowed, lot, expected_description):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
@@ -211,10 +237,19 @@ class TestFilterContentSection(object):
             )
         )
 
-        assert section.filter({"lot": "digital-specialists"}).description == "description for specialists"
-        assert section.filter({"lot": "digital-outcomes"}).description == "description for outcomes"
+        assert section.filter(
+            {"lot": lot},
+            inplace_allowed=filter_inplace_allowed,
+        ).description == expected_description
 
-    def test_question_followup_get_data(self):
+    @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
+    @pytest.mark.parametrize("get_data_arg,expected_retval", (
+        (MultiDict([('q1', 'false')]), {'q1': False},),
+        (MultiDict([('q1', 'true')]), {'q1': True, 'q2': None},),
+        (MultiDict([('q1', 'false'), ('q2', 'true')]), {'q1': False, 'q2': True},),
+        (MultiDict([('q1', 'true'), ('q2', 'true')]), {'q1': True, 'q2': None},),
+    ))
+    def test_question_followup_get_data(self, filter_inplace_allowed, get_data_arg, expected_retval):
         section = ContentSection(
             slug='section',
             name=TemplateField('Section one'),
@@ -223,13 +258,6 @@ class TestFilterContentSection(object):
             edit_questions=False,
             questions=[Question({'id': 'q1', 'followup': {'q2': [False]}, 'type': 'boolean'}),
                        Question({'id': 'q2', 'type': 'boolean'})]
-        ).filter({})
+        ).filter({}, inplace_allowed=filter_inplace_allowed)
 
-        assert section.get_data(MultiDict([('q1', 'false')])) == {'q1': False}
-        assert section.get_data(MultiDict([('q1', 'true')])) == {'q1': True, 'q2': None}
-        assert section.get_data(
-            MultiDict([('q1', 'false'), ('q2', 'true')])
-        ) == {'q1': False, 'q2': True}
-        assert section.get_data(
-            MultiDict([('q1', 'true'), ('q2', 'true')])
-        ) == {'q1': True, 'q2': None}
+        assert section.get_data(get_data_arg) == expected_retval
