@@ -2,12 +2,13 @@ import collections
 import typing
 
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
-from markdown import markdown
+from markdown import Markdown
 
 from dmutils.jinja2_environment import DMSandboxedEnvironment
 from dmcontent.errors import ContentNotFoundError
 
 from .errors import ContentTemplateError
+from .markdown import GOVUKFrontendExtension
 
 
 if typing.TYPE_CHECKING:
@@ -38,6 +39,8 @@ class _ImmutableTemplateProxy:
 
 
 class TemplateField(object):
+    markdown_instance = Markdown(extensions=[GOVUKFrontendExtension()])
+
     def __init__(self, field_value, markdown=None):
         self.source = field_value
 
@@ -52,7 +55,7 @@ class TemplateField(object):
             raise ContentTemplateError(e.message)
 
     def make_template(self, field_value):
-        template = markdown(field_value) if self.markdown else field_value
+        template = self.markdown_instance.convert(field_value) if self.markdown else field_value
 
         return _ImmutableTemplateProxy(template_environment.from_string(template))
 

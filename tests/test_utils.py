@@ -31,7 +31,7 @@ class TestTemplateField(object):
 
     def test_template_field_with_force_markdown(self):
         field = TemplateField('Hello *world*', markdown=True)
-        assert field.render() == '<p>Hello <em>world</em></p>'
+        assert field.render() == '<p class="govuk-body">Hello <em>world</em></p>'
 
     def test_template_renders_as_markup(self):
         field = TemplateField('simple template')
@@ -87,12 +87,31 @@ class TestTemplateField(object):
     def test_fields_are_processed_with_markdown(self):
         field = TemplateField(u'# Title\n* Hello\n* Markdown')
 
-        assert field.render() == '<h1>Title</h1>\n<ul>\n<li>Hello</li>\n<li>Markdown</li>\n</ul>'
+        assert field.render() == """<h1>Title</h1>
+<ul class="govuk-list govuk-list--bullet">
+<li>Hello</li>
+<li>Markdown</li>
+</ul>"""
 
     def test_simple_strings_are_not_wrapped_in_paragraph_tags(self):
         field = TemplateField(u'Title string')
 
         assert field.render() == 'Title string'
+
+    def test_markdown_strings_govuk_classes(self):
+        field = TemplateField(u'Some paragraph\n\n * Some\n * List\n\nAnd\n\n1. Some other\n2. Ordered\n3. List & such')
+
+        assert field.render() == """<p class="govuk-body">Some paragraph</p>
+<ul class="govuk-list govuk-list--bullet">
+<li>Some</li>
+<li>List</li>
+</ul>
+<p class="govuk-body">And</p>
+<ol class="govuk-list govuk-list--number">
+<li>Some other</li>
+<li>Ordered</li>
+<li>List &amp; such</li>
+</ol>"""
 
     def test_jinja_markdown_errors_raise_an_exception(self):
         with pytest.raises(ContentTemplateError):
@@ -120,7 +139,7 @@ class TestTemplateFieldsInTemplate(object):
         rendered_field = TemplateField(template_string).render({'name': 'context'})
         final_template = env.from_string('{{ rendered_field }}').render({'rendered_field': rendered_field})
 
-        assert final_template == '<p>This <em>is</em> a context <em>template</em></p>'
+        assert final_template == '<p class="govuk-body">This <em>is</em> a context <em>template</em></p>'
 
     def test_jinja_in_field_variables_is_not_evaluated(self):
         env = Environment(autoescape=True)
@@ -144,7 +163,7 @@ class TestTemplateFieldsInTemplate(object):
         rendered_field = TemplateField(template_string).render({'name': 'context'})
         final_template = env.from_string('{{ rendered_field|safe }}').render({'rendered_field': rendered_field})
 
-        assert final_template == '<p>This <em>is</em> a context <em>template</em></p>'
+        assert final_template == '<p class="govuk-body">This <em>is</em> a context <em>template</em></p>'
 
     def test_jinja_in_field_variables_is_not_evaluated_with_safe(self):
         env = Environment(autoescape=True)
