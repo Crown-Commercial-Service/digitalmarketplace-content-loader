@@ -446,8 +446,8 @@ def test_to_summary_list_rows(content_summary):
                 dedent(
                     """\
                 <ul class="govuk-list govuk-list--bullet">
-                  <li>Line 1</li>
-                  <li>Line 2</li>
+                  <li>line 1</li>
+                  <li>line 2</li>
                 </ul>"""
                 )
             )

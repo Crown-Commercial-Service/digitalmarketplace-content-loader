@@ -19,7 +19,7 @@ from typing import List
 
 from jinja2 import Markup, escape
 
-from dmutils.filters import capitalize_first, format_links, replace_newlines_with_breaks
+import dmutils.filters as filters
 
 
 def to_html(
@@ -82,17 +82,30 @@ def to_summary_list_rows(questions, **kwargs) -> List[dict]:
     ]
 
 
-def text_to_html(value, **kwargs):
-    if "capitalize_first" in kwargs:
-        value = capitalize_first(value)
+def text_to_html(
+        value,
+        *,
+        capitalize_first=False,
+        format_links=False,
+        preserve_line_breaks=False,
+        **kwargs
+):
+    """Convert a string to a HTML string, optionally modifying it first.
 
-    if "format_links" in kwargs:
-        value = format_links(value)
+    :param bool capitalize_first: If True, the first letter of any text will be capitalized
+    :param bool format_links: If True any HTTP URLs in any text will be turned into HTML <a> elements
+    :param bool preserve_line_breaks: If True HTTP newline sequences (\\r\\n) will be turned into HTML <br> elements
+    """
+    if capitalize_first is True:
+        value = filters.capitalize_first(value)
 
-    if "preserve_line_breaks" in kwargs:
+    if format_links is True:
+        value = filters.format_links(value)
+
+    if preserve_line_breaks is True:
         # replace_newlines_with_breaks escapes its input anyway
         # so wrapping with Markup here is fine.
-        value = Markup(replace_newlines_with_breaks(value))
+        value = Markup(filters.replace_newlines_with_breaks(value))
 
     return escape(value)
 
