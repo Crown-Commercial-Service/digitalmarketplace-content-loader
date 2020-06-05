@@ -5,7 +5,7 @@ import pytest
 from jinja2 import Markup
 
 from dmcontent.content_loader import ContentManifest
-from dmcontent.html import to_html, to_summary_list_rows
+from dmcontent.html import text_to_html, to_html, to_summary_list_rows
 
 
 @pytest.fixture
@@ -173,6 +173,33 @@ def content_summary():
             "myScriptInjection": "<script>do something bad</script>"
         }
     )
+
+
+def test_text_to_html_takes_one_string_value_and_returns_markup():
+    assert text_to_html("") == Markup("")
+    assert text_to_html("Hello World") == Markup("Hello World")
+
+
+def test_text_to_html_can_capitalize_first_letter():
+    assert text_to_html("hello world", capitalize_first=True) == "Hello world"
+    assert text_to_html("hello world", capitalize_first=False) == "hello world"
+    assert text_to_html("hello world") == "hello world"
+
+
+def test_text_to_html_can_format_links():
+    assert text_to_html("https://gov.uk", format_links=True) == \
+        Markup('<a href="https://gov.uk" class="app-break-link" rel="external">https://gov.uk</a>')
+    assert text_to_html("https://gov.uk", format_links=False) == "https://gov.uk"
+    assert text_to_html("https://gov.uk") == "https://gov.uk"
+
+
+def test_text_to_html_can_preserve_line_breaks():
+    assert text_to_html("First line.\r\nSecond line.", preserve_line_breaks=True) == \
+        Markup("First line.<br>Second line.")
+    assert text_to_html("First line.\r\nSecond line.", preserve_line_breaks=False) == \
+        Markup("First line.\r\nSecond line.")
+    assert text_to_html("First line.\r\nSecond line.") == \
+        Markup("First line.\r\nSecond line.")
 
 
 def test_to_html_raises_error_if_value_is_not_valid():
