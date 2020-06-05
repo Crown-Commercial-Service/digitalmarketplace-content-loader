@@ -36,6 +36,11 @@ def content_summary():
                         "type": "checkboxes",
                         "label": "Checkboxes question",
                     },
+                    {
+                        "id": "myCheckboxWithOneItem",
+                        "type": "checkboxes",
+                        "label": "Checkboxes question with answer that checks only one item",
+                    },
                     {"id": "myDate", "type": "date", "label": "Date question"},
                     {
                         "id": "myEmptyString",
@@ -159,6 +164,7 @@ def content_summary():
             "mqText": "Multiquestion text answer",
             "mqUpload": "#",
             "myCheckbox": ["Check 1", "Check 2"],
+            "myCheckboxWithOneItem": ["Check 2"],
             "myBooleanList": [True, False, False, True],
             "myUpload": "#",
             "myLinkText": "https://www.gov.uk",
@@ -323,6 +329,12 @@ def test_to_html_returns_html_list_if_question_type_is_checkboxes(content_summar
     assert to_html(integer_question) == expected
 
 
+def test_to_html_returns_html_text_if_question_type_is_checkboxes_and_answer_has_only_one_item(content_summary):
+    question = content_summary.get_question("myCheckboxWithOneItem")
+
+    assert to_html(question) == "Check 2"
+
+
 def test_to_html_returns_text_for_date_question(content_summary):
     question = content_summary.get_question("myDate")
 
@@ -426,7 +438,7 @@ def test_to_summary_list_rows(content_summary):
     questions = content_summary.sections[0].questions
     summary_list_rows = to_summary_list_rows(questions)
 
-    assert len(summary_list_rows) == 22
+    assert len(summary_list_rows) == 23
     assert all("key" in row and "value" in row for row in summary_list_rows)
 
     assert summary_list_rows[0] == {
@@ -434,12 +446,12 @@ def test_to_summary_list_rows(content_summary):
         "value": {"html": Markup("Yes")},
     }
 
-    assert summary_list_rows[11] == {
+    assert summary_list_rows[12] == {
         "key": {"text": "Text question"},
         "value": {"html": Markup("Hello World")},
     }
 
-    assert summary_list_rows[17] == {
+    assert summary_list_rows[18] == {
         "key": {"text": "List question with a lower-case answer"},
         "value": {
             "html": Markup(

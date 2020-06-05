@@ -111,6 +111,11 @@ def text_to_html(
 
 
 def list_to_html(value, **kwargs):
+    if len(value) == 0:
+        return text_to_html("", **kwargs)
+    if len(value) == 1:
+        return text_to_html(value[0], **kwargs)
+
     lines = ['<ul class="govuk-list govuk-list--bullet">']
     for item in value:
         lines.append(f"  <li>{text_to_html(item, **kwargs)}</li>")
