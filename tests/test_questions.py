@@ -513,16 +513,19 @@ class TestMultiquestion(QuestionTest):
         assert question.get_error_messages(multi_question_form_errors) == OrderedDict([
             ('technicalCompetence', {
                 'input_name': 'technicalCompetence',
+                'href': '#input-technicalCompetence',
                 'message': 'You need to answer this question.',
                 'question': 'Technical Competence'
             }),
             ('price', {
                 'input_name': 'price',
+                'href': '#input-price',
                 'message': 'There was a problem with the answer to this question.',
                 'question': 'Price'
             }),
             ('culturalFit', {
                 'input_name': 'culturalFit',
+                'href': '#input-culturalFit',
                 'message': 'You need to answer this question.',
                 'question': 'Cultural Fit'
             })

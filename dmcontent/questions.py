@@ -110,6 +110,7 @@ class Question(object):
 
             question_errors[error_key] = {
                 'input_name': error_key,
+                'href': question.href,
                 'question': getattr(question, question_descriptor_from),
                 'message': validation_message,
             }
@@ -137,6 +138,26 @@ class Question(object):
         }
 
         return defaults.get(message_key, 'There was a problem with the answer to this question.')
+
+    @property
+    def href(self):
+        """Return the URL fragment for the first input element for this question"""
+        # This code unfortunately couples us to the template used to render the question
+        # TODO: be better
+        href = f"#input-{self.id}"
+
+        question_type = self.get("type")
+
+        if question_type in ("checkboxes", "list", "radios"):
+            href = f"{href}-1"
+
+        if question_type == "checkbox_tree":
+            href = f"{href}-1-1"
+
+        if question_type == "date":
+            href = f"{href}-day"
+
+        return href
 
     @property
     def label(self):
