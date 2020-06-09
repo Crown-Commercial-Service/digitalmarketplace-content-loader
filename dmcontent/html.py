@@ -67,18 +67,20 @@ def to_html(
         return text_to_html(question_value, **kwargs)
 
 
-def to_summary_list_rows(questions, **kwargs) -> List[dict]:
+def to_summary_list_rows(questions, *, filter_empty=True, **kwargs) -> List[dict]:
     """Convert a collection of QuestionSummarys into rows for govukSummaryList.
 
     This method expects that each question in `questions` is a
     QuestionSummary i.e. each question includes service data.
 
     `kwargs` are passed to `to_html`.
+
+    :param bool filter_empty: Whether or not to include unanswered questions in the rows
     """
     return [
         {"key": {"text": question.label}, "value": {"html": to_html(question, **kwargs)}}
         for question in questions
-        if not question.is_empty
+        if not (question.is_empty and filter_empty)
     ]
 
 
