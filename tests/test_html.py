@@ -473,3 +473,42 @@ def test_to_summary_list_rows(content_summary):
     assert "Optional question is not answered" not in [
         row["key"]["text"] for row in summary_list_rows
     ]
+
+
+@pytest.mark.parametrize("filter_empty", [True, False])
+def test_to_summary_list_rows_can_include_empty(content_summary, filter_empty):
+    questions = content_summary.sections[0].questions
+    summary_list_rows = to_summary_list_rows(questions, filter_empty=filter_empty)
+
+    # optional_question and empty_string are not answered,
+    # but should still be present when filter_empty is false
+
+    text_question = [
+        row for row in summary_list_rows
+        if row["key"]["text"] == "Text question with empty answer"
+    ]
+
+    if filter_empty is True:
+        assert text_question == []
+    else:
+        assert text_question == [
+            {
+                "key": {"text": "Text question with empty answer"},
+                "value": {"html": ""},
+            }
+        ]
+
+    optional_question = [
+        row for row in summary_list_rows
+        if row["key"]["text"] == "Optional question which is not answered"
+    ]
+
+    if filter_empty is True:
+        assert optional_question == []
+    else:
+        assert optional_question == [
+            {
+                "key": {"text": "Optional question which is not answered"},
+                "value": {"html": ""},
+            }
+        ]
