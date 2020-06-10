@@ -164,7 +164,7 @@ def content_summary():
             "mqText": "Multiquestion text answer",
             "mqUpload": "#",
             "myCheckbox": ["Check 1", "Check 2"],
-            "myCheckboxWithOneItem": ["Check 2"],
+            "myCheckboxWithOneItem": ["check 2"],
             "myBooleanList": [True, False, False, True],
             "myUpload": "#",
             "myLinkText": "https://www.gov.uk",
@@ -332,7 +332,7 @@ def test_to_html_returns_html_list_if_question_type_is_checkboxes(content_summar
 def test_to_html_returns_html_text_if_question_type_is_checkboxes_and_answer_has_only_one_item(content_summary):
     question = content_summary.get_question("myCheckboxWithOneItem")
 
-    assert to_html(question) == "Check 2"
+    assert to_html(question) == "check 2"
 
 
 def test_to_html_returns_text_for_date_question(content_summary):
@@ -368,6 +368,7 @@ def test_to_html_preserves_line_breaks_for_textbox_large_questions(content_summa
             "myLowercaseList",
             """<ul class="govuk-list govuk-list--bullet">\n  <li>Line 1</li>\n  <li>Line 2</li>\n</ul>""",
         ),
+        ("myCheckboxWithOneItem", "Check 2"),
     ],
 )
 def test_to_html_can_capitalize_first(content_summary, question, expected):
@@ -512,3 +513,28 @@ def test_to_summary_list_rows_can_include_empty(content_summary, filter_empty):
                 "value": {"html": ""},
             }
         ]
+
+
+def test_to_summary_list_rows_can_capitalize_first(content_summary):
+    questions = content_summary.sections[0].questions
+    summary_list_rows = to_summary_list_rows(questions, capitalize_first=True)
+
+    assert summary_list_rows[4] == {
+        "key": {"text": "Checkboxes question with answer that checks only one item"},
+        "value": {"html": "Check 2"},
+    }
+
+    assert summary_list_rows[18] == {
+        "key": {"text": "List question with a lower-case answer"},
+        "value": {
+            "html": Markup(
+                dedent(
+                    """\
+                <ul class="govuk-list govuk-list--bullet">
+                  <li>Line 1</li>
+                  <li>Line 2</li>
+                </ul>"""
+                )
+            )
+        },
+    }

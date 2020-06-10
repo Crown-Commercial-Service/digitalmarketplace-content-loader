@@ -51,10 +51,8 @@ def to_html(
         return boolean_to_html(question_value)
     elif question_type == "number":
         return number_to_html(question_value)
-    elif question_type == "list":
+    elif question_type in ("list", "checkboxes"):
         return list_to_html(question_value, **kwargs)
-    elif question_type == "checkboxes":
-        return list_to_html(question_value)
     elif question_type == "boolean_list":
         return boolean_list_to_html(question_value)
     elif question_type == "multiquestion":
