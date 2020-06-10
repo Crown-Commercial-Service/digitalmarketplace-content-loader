@@ -164,7 +164,7 @@ def content_summary():
             "mqText": "Multiquestion text answer",
             "mqUpload": "#",
             "myCheckbox": ["Check 1", "Check 2"],
-            "myCheckboxWithOneItem": ["Check 2"],
+            "myCheckboxWithOneItem": ["check 2"],
             "myBooleanList": [True, False, False, True],
             "myUpload": "#",
             "myLinkText": "https://www.gov.uk",
@@ -332,7 +332,7 @@ def test_to_html_returns_html_list_if_question_type_is_checkboxes(content_summar
 def test_to_html_returns_html_text_if_question_type_is_checkboxes_and_answer_has_only_one_item(content_summary):
     question = content_summary.get_question("myCheckboxWithOneItem")
 
-    assert to_html(question) == "Check 2"
+    assert to_html(question) == "check 2"
 
 
 def test_to_html_returns_text_for_date_question(content_summary):
@@ -368,6 +368,7 @@ def test_to_html_preserves_line_breaks_for_textbox_large_questions(content_summa
             "myLowercaseList",
             """<ul class="govuk-list govuk-list--bullet">\n  <li>Line 1</li>\n  <li>Line 2</li>\n</ul>""",
         ),
+        ("myCheckboxWithOneItem", "Check 2"),
     ],
 )
 def test_to_html_can_capitalize_first(content_summary, question, expected):
