@@ -513,3 +513,28 @@ def test_to_summary_list_rows_can_include_empty(content_summary, filter_empty):
                 "value": {"html": ""},
             }
         ]
+
+
+def test_to_summary_list_rows_can_capitalize_first(content_summary):
+    questions = content_summary.sections[0].questions
+    summary_list_rows = to_summary_list_rows(questions, capitalize_first=True)
+
+    assert summary_list_rows[4] == {
+        "key": {"text": "Checkboxes question with answer that checks only one item"},
+        "value": {"html": "Check 2"},
+    }
+
+    assert summary_list_rows[18] == {
+        "key": {"text": "List question with a lower-case answer"},
+        "value": {
+            "html": Markup(
+                dedent(
+                    """\
+                <ul class="govuk-list govuk-list--bullet">
+                  <li>Line 1</li>
+                  <li>Line 2</li>
+                </ul>"""
+                )
+            )
+        },
+    }
