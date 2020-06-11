@@ -23,7 +23,11 @@ import dmutils.filters as filters
 
 
 def to_html(
-    question_summary, *, capitalize_first: bool = False, format_links: bool = False
+    question_summary,
+    *,
+    capitalize_first: bool = False,
+    format_links: bool = False,
+    open_links_in_new_tab: bool = False
 ) -> Markup:
     """Format the value of a QuestionSummary as HTML.
 
@@ -33,6 +37,7 @@ def to_html(
     kwargs = {
         "capitalize_first": capitalize_first,
         "format_links": format_links,
+        "open_links_in_new_tab": open_links_in_new_tab,
     }
 
     # Duck type the value of question_summary
@@ -88,6 +93,7 @@ def text_to_html(
         capitalize_first=False,
         format_links=False,
         preserve_line_breaks=False,
+        open_links_in_new_tab=False,
         **kwargs
 ):
     """Convert a string to a HTML string, optionally modifying it first.
@@ -95,12 +101,13 @@ def text_to_html(
     :param bool capitalize_first: If True, the first letter of any text will be capitalized
     :param bool format_links: If True any HTTP URLs in any text will be turned into HTML <a> elements
     :param bool preserve_line_breaks: If True HTTP newline sequences (\\r\\n) will be turned into HTML <br> elements
+    :param bool open_links_in_new_tab: If True formatted HTTP URL <a> elements will open in a new tab
     """
     if capitalize_first is True:
         value = filters.capitalize_first(value)
 
     if format_links is True:
-        value = filters.format_links(value)
+        value = filters.format_links(value, open_links_in_new_tab)
 
     if preserve_line_breaks is True:
         # replace_newlines_with_breaks escapes its input anyway
