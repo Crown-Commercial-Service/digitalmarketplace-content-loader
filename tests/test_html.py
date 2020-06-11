@@ -405,6 +405,38 @@ def test_to_html_can_format_links(content_summary, question, expected):
     assert to_html(question, format_links=True) == expected
 
 
+link_attributes = 'class="app-break-link" rel="external noreferrer noopener" target="_blank"'
+
+
+@pytest.mark.parametrize(
+    "question, expected",
+    [
+        (
+            "myLinkText",
+            f'<a href="https://www.gov.uk" {link_attributes}>https://www.gov.uk</a>'
+        ),
+        (
+            "myLinkTextarea",
+            """Here is a URL:<br><br>"""
+            f'<a href="https://www.gov.uk" {link_attributes}>https://www.gov.uk</a>'
+        ),
+        (
+            "myLinkList",
+            dedent(
+                f"""\
+        <ul class="govuk-list govuk-list--bullet">
+          <li><a href="https://www.gov.uk" {link_attributes}>https://www.gov.uk</a></li>
+          <li><a href="https://www.gov.uk/" {link_attributes}>https://www.gov.uk/</a></li>
+        </ul>"""
+            ),
+        ),
+    ],
+)
+def test_to_html_can_format_links_which_open_in_a_new_tab(content_summary, question, expected):
+    question = content_summary.get_question(question)
+    assert to_html(question, format_links=True, open_links_in_new_tab=True) == expected
+
+
 @pytest.mark.parametrize(
     "question, expected",
     (
