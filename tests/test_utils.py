@@ -100,6 +100,7 @@ class TestTemplateField(object):
 
     def test_markdown_strings_govuk_classes(self):
         field = TemplateField(
+            u'##A Heading\n\n'
             u'Some paragraph\n\n'
             u' * Some\n'
             u' * List\n\n'
@@ -109,7 +110,8 @@ class TestTemplateField(object):
             u'3. List & such'
         )
 
-        assert field.render() == """<p class="govuk-body">Some paragraph</p>
+        assert field.render() == """<h2 class="govuk-heading-m">A Heading</h2>
+<p class="govuk-body">Some paragraph</p>
 <ul class="govuk-list govuk-list--bullet">
 <li>Some</li>
 <li>List</li>
