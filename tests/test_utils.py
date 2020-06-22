@@ -99,9 +99,19 @@ class TestTemplateField(object):
         assert field.render() == 'Title string'
 
     def test_markdown_strings_govuk_classes(self):
-        field = TemplateField(u'Some paragraph\n\n * Some\n * List\n\nAnd\n\n1. Some other\n2. Ordered\n3. List & such')
+        field = TemplateField(
+            u'##A Heading\n\n'
+            u'Some paragraph\n\n'
+            u' * Some\n'
+            u' * List\n\n'
+            u'And\n\n'
+            u'1. Some other\n'
+            u'2. [Ordered](http://example.com)\n'
+            u'3. List & such'
+        )
 
-        assert field.render() == """<p class="govuk-body">Some paragraph</p>
+        assert field.render() == """<h2 class="govuk-heading-m">A Heading</h2>
+<p class="govuk-body">Some paragraph</p>
 <ul class="govuk-list govuk-list--bullet">
 <li>Some</li>
 <li>List</li>
@@ -109,7 +119,7 @@ class TestTemplateField(object):
 <p class="govuk-body">And</p>
 <ol class="govuk-list govuk-list--number">
 <li>Some other</li>
-<li>Ordered</li>
+<li><a class="govuk-link" href="http://example.com">Ordered</a></li>
 <li>List &amp; such</li>
 </ol>"""
 
