@@ -194,7 +194,7 @@ def test_text_to_html_can_capitalize_first_letter():
 
 def test_text_to_html_can_format_links():
     assert text_to_html("https://gov.uk", format_links=True) == \
-        Markup('<a href="https://gov.uk" class="app-break-link" rel="external">https://gov.uk</a>')
+        Markup('<a href="https://gov.uk" class="govuk-link" rel="external">https://gov.uk</a>')
     assert text_to_html("https://gov.uk", format_links=False) == "https://gov.uk"
     assert text_to_html("https://gov.uk") == "https://gov.uk"
 
@@ -381,20 +381,20 @@ def test_to_html_can_capitalize_first(content_summary, question, expected):
     [
         (
             "myLinkText",
-            """<a href="https://www.gov.uk" class="app-break-link" rel="external">https://www.gov.uk</a>""",
+            """<a href="https://www.gov.uk" class="govuk-link" rel="external">https://www.gov.uk</a>""",
         ),
         (
             "myLinkTextarea",
             """Here is a URL:<br><br>"""
-            """<a href="https://www.gov.uk" class="app-break-link" rel="external">https://www.gov.uk</a>""",
+            """<a href="https://www.gov.uk" class="govuk-link" rel="external">https://www.gov.uk</a>""",
         ),
         (
             "myLinkList",
             dedent(
                 """\
         <ul class="govuk-list govuk-list--bullet">
-          <li><a href="https://www.gov.uk" class="app-break-link" rel="external">https://www.gov.uk</a></li>
-          <li><a href="https://www.gov.uk/" class="app-break-link" rel="external">https://www.gov.uk/</a></li>
+          <li><a href="https://www.gov.uk" class="govuk-link" rel="external">https://www.gov.uk</a></li>
+          <li><a href="https://www.gov.uk/" class="govuk-link" rel="external">https://www.gov.uk/</a></li>
         </ul>"""
             ),
         ),
@@ -405,7 +405,7 @@ def test_to_html_can_format_links(content_summary, question, expected):
     assert to_html(question, format_links=True) == expected
 
 
-link_attributes = 'class="app-break-link" rel="external noreferrer noopener" target="_blank"'
+link_attributes = 'class="govuk-link" rel="external noreferrer noopener" target="_blank"'
 
 
 @pytest.mark.parametrize(
