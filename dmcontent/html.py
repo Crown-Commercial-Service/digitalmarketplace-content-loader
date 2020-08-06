@@ -81,10 +81,56 @@ def to_summary_list_rows(questions, *, filter_empty=True, **kwargs) -> List[dict
     :param bool filter_empty: Whether or not to include unanswered questions in the rows
     """
     return [
-        {"key": {"text": question.label}, "value": {"html": to_html(question, **kwargs)}}
+        to_summary_list_row(question, **kwargs)
         for question in questions
         if not (question.is_empty and filter_empty)
     ]
+
+
+def to_summary_list_row(question, *, action_link=None, **kwargs) -> List[dict]:
+    """Convert a QuestionSummary into a row for govukSummaryList.
+
+    This method expects a QuestionSummary.
+
+    `kwargs` are passed to `to_html`.
+
+    :param string action_link: A link for the row's action
+    """
+    if action_link is not None:
+        empty_message = question.get("empty_message", "Not answered")
+        question_label = question.label + ' (Optional)' if question.is_optional else question.label
+        if question.is_empty:
+            question_value = (
+                Markup(f'<a class="govuk-link" href="{action_link}">{empty_message}</a>')
+            )
+        else:
+            question_value = to_html(question, **kwargs)
+        if not question.is_empty:
+            output = {
+                "key": {"text": question_label},
+                "value": {"html": question_value},
+                "actions": {
+                    "items": [{
+                        "href": action_link,
+                        "text": "Edit",
+                        "visuallyHiddenText": question.label
+                    }]
+                }
+            }
+        else:
+            output = {
+                "key": {"text": question_label},
+                "value": {"html": question_value}
+            }
+    else:
+        question_label = question.label
+        question_value = to_html(question, **kwargs)
+        output = {
+            "key": {"text": question_label},
+            "value": {"html": question_value}
+        }
+
+    return output
 
 
 def text_to_html(
