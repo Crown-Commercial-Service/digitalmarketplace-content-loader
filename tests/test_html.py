@@ -5,7 +5,7 @@ import pytest
 from jinja2 import Markup
 
 from dmcontent.content_loader import ContentManifest
-from dmcontent.html import text_to_html, to_html, to_summary_list_rows
+from dmcontent.html import text_to_html, to_html, to_summary_list_rows, to_summary_list_row
 
 
 @pytest.fixture
@@ -139,7 +139,13 @@ def content_summary():
                             {"id": "mqUnanswered", "type": "text", "optional": True, "label": "Unanswered question"},
                             {"id": "mqUpload", "type": "upload", "question": "Upload question"}
                         ],
-                    }
+                    },
+                    {
+                        "id": "myUnansweredQuestionWithEmptyMessage",
+                        "type": "text",
+                        "label": "Question which is not answered",
+                        "empty_message": "Enter a text answer"
+                    },
                 ],
             }
         ]
@@ -570,3 +576,34 @@ def test_to_summary_list_rows_can_capitalize_first(content_summary):
             )
         },
     }
+
+
+def test_to_summary_list_row_sets_link_if_question_is_empty_and_action_link_is_set(content_summary):
+    empty_string_question = to_summary_list_row(content_summary.sections[0].questions[6], action_link='/')
+    assert empty_string_question["value"]["html"] == Markup('<a class="govuk-link" href="/">Not answered</a>')
+
+
+def test_to_summary_list_row_sets_value_if_question_has_empty_message_and_action_link_is_set(content_summary):
+    empty_string_question = to_summary_list_row(content_summary.sections[0].questions[25], action_link='/')
+    assert empty_string_question["value"]["html"] == Markup('<a class="govuk-link" href="/">Enter a text answer</a>')
+
+
+def test_to_summary_list_row_sets_no_action_if_question_is_empty_and_action_link_is_set(content_summary):
+    empty_string_question = to_summary_list_row(content_summary.sections[0].questions[6], action_link='/')
+    assert "actions" not in empty_string_question
+
+
+def test_to_summary_list_row_sets_actions_if_question_is_not_empty_and_action_link_is_set(content_summary):
+    empty_string_question = to_summary_list_row(content_summary.sections[0].questions[0], action_link='/')
+    assert empty_string_question["actions"] == {
+        "items": [{
+            "href": '/',
+            "text": "Edit",
+            "visuallyHiddenText": "Boolean question with answer True"
+        }]
+    }
+
+
+def test_to_summary_list_row_adds_optional_label_if_question_is_optional_and_action_link_is_provided(content_summary):
+    empty_string_question = to_summary_list_row(content_summary.sections[0].questions[23], action_link='/')
+    assert empty_string_question["key"]["text"] == "Optional question which is not answered (Optional)"

@@ -726,6 +726,10 @@ class QuestionSummary(Question):
         return ''
 
     @property
+    def is_optional(self):
+        return self.get('optional')
+
+    @property
     def answer_required(self):
         if self.get('optional'):
             return False
