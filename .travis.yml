@@ -4,7 +4,7 @@ python:
   - "3.7"
   - "3.8"
 install:
-  - pip install -r requirements-dev.txt
+  - make requirements-dev
 script:
   - PYTEST_ARGS='--cov=dmcontent --cov-report=term-missing' make test
 after_success:
