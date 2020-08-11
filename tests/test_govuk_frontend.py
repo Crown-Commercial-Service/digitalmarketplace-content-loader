@@ -21,48 +21,17 @@ class TestTextInput:
             }
         )
 
-    def test_govuk_input(self, question):
-        assert govuk_input(question) == {
-            "classes": "app-text-input--height-compatible",
-            "id": "input-title",
-            "name": "title",
-            "label": {
-                "classes": "govuk-label--l",
-                "isPageHeading": True,
-                "text": "What you want to call your requirements",
-            },
-            "hint": {
-                "html": '<div class="app-hint--text">\n'
-                'This will help you to refer to your requirements\n'
-                '</div>\n'
-                '100 characters maximum'
-            },
-        }
+    def test_govuk_input(self, question, snapshot):
+        assert govuk_input(question) == snapshot
 
-    def test_with_data(self, question):
+    def test_with_data(self, question, snapshot):
         data = {
             "title": "Find an individual specialist",
         }
 
-        assert govuk_input(question, data) == {
-            "classes": "app-text-input--height-compatible",
-            "id": "input-title",
-            "name": "title",
-            "label": {
-                "classes": "govuk-label--l",
-                "isPageHeading": True,
-                "text": "What you want to call your requirements",
-            },
-            "hint": {
-                "html": '<div class="app-hint--text">\n'
-                'This will help you to refer to your requirements\n'
-                '</div>\n'
-                '100 characters maximum'
-            },
-            "value": "Find an individual specialist",
-        }
+        assert govuk_input(question, data) == snapshot
 
-    def test_with_errors(self, question):
+    def test_with_errors(self, question, snapshot):
         errors = {
             "title": {
                 "input_name": "title",
@@ -72,25 +41,7 @@ class TestTextInput:
             }
         }
 
-        assert govuk_input(question, errors=errors) == {
-            "classes": "app-text-input--height-compatible",
-            "id": "input-title",
-            "name": "title",
-            "label": {
-                "classes": "govuk-label--l",
-                "isPageHeading": True,
-                "text": "What you want to call your requirements",
-            },
-            "hint": {
-                "html": '<div class="app-hint--text">\n'
-                'This will help you to refer to your requirements\n'
-                '</div>\n'
-                '100 characters maximum'
-            },
-            "errorMessage": {
-                "text": "Enter a title.",
-            },
-        }
+        assert govuk_input(question, errors=errors) == snapshot
 
 
 class TestParams:

@@ -1,0 +1,64 @@
+# name: TestTextInput.test_govuk_input
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'hint': <class 'dict'> {
+      'html': '
+        <div class="app-hint--text">
+        This will help you to refer to your requirements
+        </div>
+        100 characters maximum
+      ',
+    },
+    'id': 'input-title',
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'isPageHeading': True,
+      'text': 'What you want to call your requirements',
+    },
+    'name': 'title',
+  }
+---
+# name: TestTextInput.test_with_data
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'hint': <class 'dict'> {
+      'html': '
+        <div class="app-hint--text">
+        This will help you to refer to your requirements
+        </div>
+        100 characters maximum
+      ',
+    },
+    'id': 'input-title',
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'isPageHeading': True,
+      'text': 'What you want to call your requirements',
+    },
+    'name': 'title',
+    'value': 'Find an individual specialist',
+  }
+---
+# name: TestTextInput.test_with_errors
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'errorMessage': <class 'dict'> {
+      'text': 'Enter a title.',
+    },
+    'hint': <class 'dict'> {
+      'html': '
+        <div class="app-hint--text">
+        This will help you to refer to your requirements
+        </div>
+        100 characters maximum
+      ',
+    },
+    'id': 'input-title',
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'isPageHeading': True,
+      'text': 'What you want to call your requirements',
+    },
+    'name': 'title',
+  }
+---
