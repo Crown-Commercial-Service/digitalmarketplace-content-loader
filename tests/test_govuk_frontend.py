@@ -1,10 +1,8 @@
 import pytest
 
-from jinja2 import Markup
-
 from dmcontent.questions import Question
 
-from dmcontent.govuk_frontend import from_question, govuk_input, _params
+from dmcontent.govuk_frontend import from_question, govuk_input, govuk_label, _params
 
 
 class TestTextInput:
@@ -50,73 +48,47 @@ class TestTextInput:
         assert from_question(question, errors=errors) == snapshot
 
 
+class TestGovukLabel:
+    @pytest.fixture
+    def question(self):
+        return Question({"id": "question", "question": "Yes or no?"})
+
+    def test_govuk_label(self, question):
+        assert govuk_label(question) == {
+            "classes": "govuk-label--l",
+            "isPageHeading": True,
+            "for": "input-question",
+            "text": "Yes or no?",
+        }
+
+    def test_optional_question_has_optional_in_label_text(self, question):
+        question.optional = True
+
+        assert govuk_label(question)["text"] == "Yes or no? (optional)"
+
+    def test_not_optional_question_does_not_have_optional_in_label_text(self, question):
+        question.optional = False
+
+        assert govuk_label(question)["text"] == "Yes or no?"
+
+
 class TestParams:
     @pytest.fixture
     def question(self):
         return Question({"id": "question", "question": "Yes or no?"})
 
-    def test_govuk_input(self, question):
+    def test__params(self, question):
         assert _params(question) == {
             "id": "input-question",
             "name": "question",
-            "label": {
-                "classes": "govuk-label--l",
-                "isPageHeading": True,
-                "text": "Yes or no?",
-            },
         }
 
     def test_hint(self, question):
         question.hint = "Answer yes or no"
 
         assert _params(question)["hint"] == {
-            "html": "Answer yes or no",
+            "text": "Answer yes or no",
         }
-
-    def test_hint_is_escaped(self, question):
-        question.hint = "<script>"
-
-        assert _params(question)["hint"]["html"] == "&lt;script&gt;"
-
-    def test_question_advice_is_part_of_hint(self, question):
-        question.question_advice = "You should answer yes or no."
-
-        hint = _params(question)["hint"]
-
-        assert hint == {
-            "html": '<div class="app-hint--text">\n'
-            "You should answer yes or no.\n"
-            "</div>"
-        }
-        assert isinstance(hint["html"], Markup)
-
-    def test_question_advice_is_escaped(self, question):
-        question.question_advice = "<script>"
-
-        assert _params(question)["hint"] == {
-            "html": '<div class="app-hint--text">\n' "&lt;script&gt;\n" "</div>"
-        }
-
-    def test_question_advice_and_hint(self, question):
-        question.hint = "Answer yes or no"
-        question.question_advice = "You should answer yes or no."
-
-        assert _params(question)["hint"] == {
-            "html": '<div class="app-hint--text">\n'
-            "You should answer yes or no.\n"
-            "</div>\n"
-            "Answer yes or no"
-        }
-
-    def test_optional_question_has_optional_in_label_text(self, question):
-        question.optional = True
-
-        assert _params(question)["label"]["text"] == "Yes or no? (optional)"
-
-    def test_not_optional_question_does_not_have_optional_in_label_text(self, question):
-        question.optional = False
-
-        assert _params(question)["label"]["text"] == "Yes or no?"
 
     def test_value_is_present_if_question_answer_is_in_data(self, question):
         data = {"question": "Yes"}
