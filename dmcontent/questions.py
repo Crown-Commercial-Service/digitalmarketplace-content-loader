@@ -13,7 +13,8 @@ from .utils import TemplateField, drop_followups, get_option_value
 
 
 class Question(object):
-    TEMPLATE_FIELDS = ['name', 'question', 'hint', 'question_advice']
+    MARKDOWN_FIELDS = ['question_advice']
+    TEMPLATE_FIELDS = ['name', 'question', 'hint']
     TEMPLATE_OPTIONS_FIELDS = [('options', 'description'), ('validations', 'message')]
 
     def __init__(self, data, number=None, _context=None):

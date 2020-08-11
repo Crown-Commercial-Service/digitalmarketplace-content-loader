@@ -1889,6 +1889,20 @@ class TestContentLoader(object):
         read_yaml_mock.assert_called_with(
             'content/frameworks/framework-slug/questions/question-set/question1.yml')
 
+    def test_get_question_question_advice_is_always_markdown(self, read_yaml_mock):
+        read_yaml_mock.return_value = {
+            "name": "question1",
+            "question": "Question one",
+            "question_advice": "This is the first question",
+        }
+
+        yaml_loader = ContentLoader('content/')
+        question = yaml_loader.get_question('framework-slug', 'question-set', 'question1')
+        question_advice = question["question_advice"]
+
+        assert question_advice.markdown is True
+        assert question_advice.render() == '<p class="govuk-body">This is the first question</p>'
+
     def test_get_question_uses_id_if_available(self, read_yaml_mock):
         read_yaml_mock.return_value = self.question2()
 
