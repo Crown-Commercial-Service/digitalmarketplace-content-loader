@@ -4,7 +4,93 @@ from jinja2 import Markup
 
 from dmcontent.questions import Question
 
-from dmcontent.govuk_frontend import _params
+from dmcontent.govuk_frontend import govuk_input, _params
+
+
+class TestTextInput:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "title",
+                "name": "Title",
+                "question": "What you want to call your requirements",
+                "question_advice": "This will help you to refer to your requirements",
+                "hint": "100 characters maximum",
+                "type": "text",
+            }
+        )
+
+    def test_govuk_input(self, question):
+        assert govuk_input(question) == {
+            "classes": "app-text-input--height-compatible",
+            "id": "input-title",
+            "name": "title",
+            "label": {
+                "classes": "govuk-label--l",
+                "isPageHeading": True,
+                "text": "What you want to call your requirements",
+            },
+            "hint": {
+                "html": '<div class="app-hint--text">\n'
+                'This will help you to refer to your requirements\n'
+                '</div>\n'
+                '100 characters maximum'
+            },
+        }
+
+    def test_with_data(self, question):
+        data = {
+            "title": "Find an individual specialist",
+        }
+
+        assert govuk_input(question, data) == {
+            "classes": "app-text-input--height-compatible",
+            "id": "input-title",
+            "name": "title",
+            "label": {
+                "classes": "govuk-label--l",
+                "isPageHeading": True,
+                "text": "What you want to call your requirements",
+            },
+            "hint": {
+                "html": '<div class="app-hint--text">\n'
+                'This will help you to refer to your requirements\n'
+                '</div>\n'
+                '100 characters maximum'
+            },
+            "value": "Find an individual specialist",
+        }
+
+    def test_with_errors(self, question):
+        errors = {
+            "title": {
+                "input_name": "title",
+                "href": "#input-title",
+                "question": "What you want to call your requirements",
+                "message": "Enter a title.",
+            }
+        }
+
+        assert govuk_input(question, errors=errors) == {
+            "classes": "app-text-input--height-compatible",
+            "id": "input-title",
+            "name": "title",
+            "label": {
+                "classes": "govuk-label--l",
+                "isPageHeading": True,
+                "text": "What you want to call your requirements",
+            },
+            "hint": {
+                "html": '<div class="app-hint--text">\n'
+                'This will help you to refer to your requirements\n'
+                '</div>\n'
+                '100 characters maximum'
+            },
+            "errorMessage": {
+                "text": "Enter a title.",
+            },
+        }
 
 
 class TestParams:

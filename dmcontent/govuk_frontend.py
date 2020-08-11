@@ -11,7 +11,18 @@ from dmutils.forms.errors import govuk_error
 from dmcontent.questions import Question
 
 
-__all__ = []
+__all__ = ["govuk_input"]
+
+
+def govuk_input(
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+) -> dict:
+    """Create govukInput macro parameters from a text question"""
+
+    params = _params(question, data, errors)
+    params["classes"] = "app-text-input--height-compatible"
+
+    return params
 
 
 def _params(
