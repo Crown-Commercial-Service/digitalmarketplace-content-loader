@@ -4,7 +4,7 @@ from jinja2 import Markup
 
 from dmcontent.questions import Question
 
-from dmcontent.govuk_frontend import govuk_input, _params
+from dmcontent.govuk_frontend import from_question, govuk_input, _params
 
 
 class TestTextInput:
@@ -24,12 +24,18 @@ class TestTextInput:
     def test_govuk_input(self, question, snapshot):
         assert govuk_input(question) == snapshot
 
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+
+        assert form["macro_name"] == "govukInput"
+        assert form["params"] == snapshot
+
     def test_with_data(self, question, snapshot):
         data = {
             "title": "Find an individual specialist",
         }
 
-        assert govuk_input(question, data) == snapshot
+        assert from_question(question, data) == snapshot
 
     def test_with_errors(self, question, snapshot):
         errors = {
@@ -41,7 +47,7 @@ class TestTextInput:
             }
         }
 
-        assert govuk_input(question, errors=errors) == snapshot
+        assert from_question(question, errors=errors) == snapshot
 
 
 class TestParams:
