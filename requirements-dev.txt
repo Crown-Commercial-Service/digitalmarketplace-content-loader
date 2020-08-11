@@ -4,10 +4,11 @@
 #
 #    pip-compile requirements-dev.in
 #
-attrs==19.3.0             # via pytest
+attrs==19.3.0             # via pytest, syrupy
 certifi==2020.6.20        # via requests
 chardet==3.0.4            # via requests
 click==7.1.2              # via pip-tools
+colored==1.4.2            # via syrupy
 coverage==5.2.1           # via -r requirements-dev.in, coveralls, pytest-cov
 coveralls==2.1.1          # via -r requirements-dev.in
 docopt==0.6.2             # via coveralls
@@ -27,10 +28,12 @@ pycodestyle==2.5.0        # via flake8
 pyflakes==2.1.1           # via flake8
 pyparsing==2.4.7          # via packaging
 pytest-cov==2.10.0        # via -r requirements-dev.in
-pytest==6.0.1             # via -r requirements-dev.in, pytest-cov
+pytest==6.0.1             # via -r requirements-dev.in, pytest-cov, syrupy
 requests==2.24.0          # via coveralls
 six==1.15.0               # via packaging, pip-tools
+syrupy==0.6.1             # via -r requirements-dev.in
 toml==0.10.1              # via pytest
+typing-extensions==3.7.4.2  # via syrupy
 urllib3==1.25.10          # via requests
 zipp==3.1.0               # via importlib-metadata
 
