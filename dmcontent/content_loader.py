@@ -545,6 +545,10 @@ class ContentLoader(object):
             if field in question_data:
                 question_data[field] = TemplateField(question_data[field])
 
+        for field in Question.MARKDOWN_FIELDS:
+            if field in question_data:
+                question_data[field] = TemplateField(question_data[field], markdown=True)
+
         """
         We want to support TemplateFields as keys of list items, for example:
         - {options: [{description: '{{ "jinja" }}'}]} in the lot question
