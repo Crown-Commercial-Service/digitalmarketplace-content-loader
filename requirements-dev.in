@@ -8,3 +8,4 @@ flake8<3.8.0,>=3.7.7
 mock
 pytest>=4.6.0
 pytest-cov
+syrupy

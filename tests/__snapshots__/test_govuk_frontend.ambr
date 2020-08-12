@@ -1,0 +1,62 @@
+# name: TestTextInput.test_from_question
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'hint': <class 'dict'> {
+      'text': '100 characters maximum',
+    },
+    'id': 'input-title',
+    'name': 'title',
+  }
+---
+# name: TestTextInput.test_govuk_input
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'hint': <class 'dict'> {
+      'text': '100 characters maximum',
+    },
+    'id': 'input-title',
+    'name': 'title',
+  }
+---
+# name: TestTextInput.test_with_data
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-title',
+      'isPageHeading': True,
+      'text': 'What you want to call your requirements',
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible',
+      'hint': <class 'dict'> {
+        'text': '100 characters maximum',
+      },
+      'id': 'input-title',
+      'name': 'title',
+      'value': 'Find an individual specialist',
+    },
+  }
+---
+# name: TestTextInput.test_with_errors
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-title',
+      'isPageHeading': True,
+      'text': 'What you want to call your requirements',
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible',
+      'errorMessage': <class 'dict'> {
+        'text': 'Enter a title.',
+      },
+      'hint': <class 'dict'> {
+        'text': '100 characters maximum',
+      },
+      'id': 'input-title',
+      'name': 'title',
+    },
+  }
+---

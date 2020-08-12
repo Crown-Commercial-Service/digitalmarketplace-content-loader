@@ -169,6 +169,10 @@ class Question(object):
         return [self.id]
 
     @property
+    def is_optional(self):
+        return self.get('optional')
+
+    @property
     def values_followup(self):
         """Return a reversed (value->followups) followup mapping
 
@@ -725,10 +729,6 @@ class QuestionSummary(Question):
         if self.has_assurance():
             return self._service_data.get(self.id, {}).get('assurance', '')
         return ''
-
-    @property
-    def is_optional(self):
-        return self.get('optional')
 
     @property
     def answer_required(self):
