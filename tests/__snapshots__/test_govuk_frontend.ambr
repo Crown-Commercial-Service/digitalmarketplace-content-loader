@@ -1,3 +1,110 @@
+# name: TestDmListInput.test_dm_list_input
+  <class 'dict'> {
+    'addButtonName': 'item',
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'Cultural fit criteria',
+      },
+    },
+    'hint': <class 'dict'> {
+      'text': 'Enter at least one criteria',
+    },
+    'id': 'input-culturalFitCriteria',
+    'itemLabelPrefix': 'Cultural fit criteria',
+    'items': <class 'list'> [
+    ],
+    'maxItems': 5,
+    'name': 'culturalFitCriteria',
+    'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
+  }
+---
+# name: TestDmListInput.test_from_question
+  <class 'dict'> {
+    'addButtonName': 'item',
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'Cultural fit criteria',
+      },
+    },
+    'hint': <class 'dict'> {
+      'text': 'Enter at least one criteria',
+    },
+    'id': 'input-culturalFitCriteria',
+    'itemLabelPrefix': 'Cultural fit criteria',
+    'items': <class 'list'> [
+    ],
+    'maxItems': 5,
+    'name': 'culturalFitCriteria',
+    'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
+  }
+---
+# name: TestDmListInput.test_with_data
+  <class 'dict'> {
+    'macro_name': 'dmListInput',
+    'params': <class 'dict'> {
+      'addButtonName': 'item',
+      'fieldset': <class 'dict'> {
+        'legend': <class 'dict'> {
+          'classes': 'govuk-fieldset__legend--l',
+          'isPageHeading': True,
+          'text': 'Cultural fit criteria',
+        },
+      },
+      'hint': <class 'dict'> {
+        'text': 'Enter at least one criteria',
+      },
+      'id': 'input-culturalFitCriteria',
+      'itemLabelPrefix': 'Cultural fit criteria',
+      'items': <class 'list'> [
+        <class 'dict'> {
+          'value': 'Must know how to make tea',
+        },
+        <class 'dict'> {
+          'value': 'Must believe unicorns',
+        },
+      ],
+      'maxItems': 5,
+      'name': 'culturalFitCriteria',
+      'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
+      'value': <class 'list'> [
+        'Must know how to make tea',
+        'Must believe unicorns',
+      ],
+    },
+  }
+---
+# name: TestDmListInput.test_with_errors
+  <class 'dict'> {
+    'macro_name': 'dmListInput',
+    'params': <class 'dict'> {
+      'addButtonName': 'item',
+      'errorMessage': <class 'dict'> {
+        'text': 'Enter at least one criterion.',
+      },
+      'fieldset': <class 'dict'> {
+        'legend': <class 'dict'> {
+          'classes': 'govuk-fieldset__legend--l',
+          'isPageHeading': True,
+          'text': 'Cultural fit criteria',
+        },
+      },
+      'hint': <class 'dict'> {
+        'text': 'Enter at least one criteria',
+      },
+      'id': 'input-culturalFitCriteria',
+      'itemLabelPrefix': 'Cultural fit criteria',
+      'items': <class 'list'> [
+      ],
+      'maxItems': 5,
+      'name': 'culturalFitCriteria',
+      'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
+    },
+  }
+---
 # name: TestTextInput.test_from_question
   <class 'dict'> {
     'classes': 'app-text-input--height-compatible',

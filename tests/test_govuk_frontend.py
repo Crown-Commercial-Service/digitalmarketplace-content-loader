@@ -2,7 +2,9 @@ import pytest
 
 from dmcontent.questions import Question
 
-from dmcontent.govuk_frontend import from_question, govuk_input, govuk_label, _params
+from dmcontent.govuk_frontend import (
+    from_question, govuk_input, dm_list_input, govuk_fieldset, govuk_label, _params
+)
 
 
 class TestTextInput:
@@ -48,6 +50,52 @@ class TestTextInput:
         assert from_question(question, errors=errors) == snapshot
 
 
+class TestDmListInput:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "culturalFitCriteria",
+                "name": "Title",
+                "question": "Cultural fit criteria",
+                "question_advice": (
+                    '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>'
+                ),
+                "hint": "Enter at least one criteria",
+                "number_of_items": 5,
+                "type": "list",
+            }
+        )
+
+    def test_dm_list_input(self, question, snapshot):
+        assert dm_list_input(question) == snapshot
+
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+
+        assert form["macro_name"] == "dmListInput"
+        assert form["params"] == snapshot
+
+    def test_with_data(self, question, snapshot):
+        data = {
+            "culturalFitCriteria": ["Must know how to make tea", "Must believe unicorns"],
+        }
+
+        assert from_question(question, data) == snapshot
+
+    def test_with_errors(self, question, snapshot):
+        errors = {
+            "culturalFitCriteria": {
+                "input_name": "culturalFitCriteria",
+                "href": "#input-culturalFitCriteria",
+                "question": "Cultural fit criteria",
+                "message": "Enter at least one criterion.",
+            }
+        }
+
+        assert from_question(question, errors=errors) == snapshot
+
+
 class TestGovukLabel:
     @pytest.fixture
     def question(self):
@@ -70,6 +118,33 @@ class TestGovukLabel:
         question.optional = False
 
         assert govuk_label(question)["text"] == "Yes or no?"
+
+
+class TestGovukFieldset:
+    @pytest.fixture
+    def question(self):
+        return Question({"id": "question", "question": "Enter your criteria"})
+
+    def test_govuk_fieldset(self, question):
+        assert govuk_fieldset(question) == {
+            "legend": {
+                "text": "Enter your criteria",
+                "isPageHeading": True,
+                "classes": "govuk-fieldset__legend--l"
+            }
+        }
+
+    def test_optional_question_has_optional_in_legend_text(self, question):
+        question.type = "list"
+        question.optional = True
+
+        assert govuk_fieldset(question)["legend"]["text"] == "Enter your criteria (optional)"
+
+    def test_not_optional_question_does_not_have_optional_in_legend_text(self, question):
+        question.type = "list"
+        question.optional = False
+
+        assert govuk_fieldset(question)["legend"]["text"] == "Enter your criteria"
 
 
 class TestParams:
