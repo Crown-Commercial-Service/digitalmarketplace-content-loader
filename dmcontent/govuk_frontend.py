@@ -70,6 +70,11 @@ def from_question(
             "macro_name": "govukInput",
             "params": govuk_input(question, data, errors),
         }
+    elif question.type == "list":
+        return {
+            "macro_name": "dmListInput",
+            "params": dm_list_input(question, data, errors)
+        }
     else:
         return None
 
@@ -85,12 +90,36 @@ def govuk_input(
     return params
 
 
+def dm_list_input(
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+) -> dict:
+    """Create dmListInput macro parameters from a list question"""
+
+    params = _params(question, data, errors)
+
+    # Params that are not common to other components
+    params["addButtonName"] = "item"
+    params["maxItems"] = question.number_of_items
+    params["items"] = []
+    params["itemLabelPrefix"] = str(question.question)
+
+    params["fieldset"] = govuk_fieldset(question)
+
+    if question.question_advice:
+        params["question_advice"] = question.question_advice
+
+    if data and question.id in data:
+        for item in data[question.id]:
+            params["items"].append(
+                {
+                    "value": item
+                }
+            )
+
+    return params
+
+
 def govuk_label(question: Question) -> dict:
-    label_text = question.question
-    if question.is_optional:
-        # GOV.UK Design System says
-        # > mark the labels of optional fields with '(optional)'
-        label_text += " (optional)"
 
     return {
         # Style the label as a page heading, following the
@@ -100,8 +129,29 @@ def govuk_label(question: Question) -> dict:
         "isPageHeading": True,
 
         "for": f"input-{question.id}",
-        "text": label_text,
+        "text": get_label_text(question),
     }
+
+
+def govuk_fieldset(question: Question) -> dict:
+
+    return {
+        "legend": {
+            "text": get_label_text(question),
+            "isPageHeading": True,
+            "classes": "govuk-fieldset__legend--l"
+        }
+    }
+
+
+def get_label_text(question: Question) -> str:
+    label_text = question.question
+    if question.is_optional:
+        # GOV.UK Design System says
+        # > mark the labels of optional fields with '(optional)'
+        label_text += " (optional)"
+
+    return label_text
 
 
 def _params(
