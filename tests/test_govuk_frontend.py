@@ -30,6 +30,12 @@ class TestTextInput:
         assert form["macro_name"] == "govukInput"
         assert form["params"] == snapshot
 
+    def test_from_question_with_is_page_heading_false(self, question, snapshot):
+        form = from_question(question, is_page_heading=False)
+
+        assert form["macro_name"] == "govukInput"
+        assert form["params"] == snapshot
+
     def test_with_data(self, question, snapshot):
         data = {
             "title": "Find an individual specialist",
@@ -76,6 +82,12 @@ class TestDmListInput:
         assert form["macro_name"] == "dmListInput"
         assert form["params"] == snapshot
 
+    def test_from_question_with_is_page_heading_false(self, question, snapshot):
+        form = from_question(question, is_page_heading=False)
+
+        assert form["macro_name"] == "dmListInput"
+        assert form["params"] == snapshot
+
     def test_with_data(self, question, snapshot):
         data = {
             "culturalFitCriteria": ["Must know how to make tea", "Must believe unicorns"],
@@ -109,6 +121,12 @@ class TestGovukLabel:
             "text": "Yes or no?",
         }
 
+    def test_is_page_heading_false_removes_classes_and_ispageheading(self, question):
+        assert govuk_label(question, is_page_heading=False) == {
+            "for": "input-question",
+            "text": "Yes or no?",
+        }
+
     def test_optional_question_has_optional_in_label_text(self, question):
         question.optional = True
 
@@ -131,6 +149,13 @@ class TestGovukFieldset:
                 "text": "Enter your criteria",
                 "isPageHeading": True,
                 "classes": "govuk-fieldset__legend--l"
+            }
+        }
+
+    def test_is_page_heading_false_removes_classes_and_ispageheading(self, question):
+        assert govuk_fieldset(question, is_page_heading=False) == {
+            "legend": {
+                "text": "Enter your criteria"
             }
         }
 

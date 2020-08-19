@@ -19,7 +19,7 @@ __all__ = ["from_question", "govuk_input", "govuk_label"]
 
 
 def from_question(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> Optional[dict]:
     """Create parameters object for govuk-frontend macros from a question
 
@@ -66,21 +66,21 @@ def from_question(
     """
     if question.type == "text":
         return {
-            "label": govuk_label(question),
+            "label": govuk_label(question, **kwargs),
             "macro_name": "govukInput",
-            "params": govuk_input(question, data, errors),
+            "params": govuk_input(question, data, errors, **kwargs),
         }
     elif question.type == "list":
         return {
             "macro_name": "dmListInput",
-            "params": dm_list_input(question, data, errors)
+            "params": dm_list_input(question, data, errors, **kwargs)
         }
     else:
         return None
 
 
 def govuk_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create govukInput macro parameters from a text question"""
 
@@ -91,7 +91,7 @@ def govuk_input(
 
 
 def dm_list_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create dmListInput macro parameters from a list question"""
 
@@ -103,7 +103,7 @@ def dm_list_input(
     params["items"] = []
     params["itemLabelPrefix"] = str(question.question)
 
-    params["fieldset"] = govuk_fieldset(question)
+    params["fieldset"] = govuk_fieldset(question, **kwargs)
 
     if question.question_advice:
         params["question_advice"] = question.question_advice
@@ -119,29 +119,38 @@ def dm_list_input(
     return params
 
 
-def govuk_label(question: Question) -> dict:
+def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:
+    """
+    :param bool is_page_heading: If True, the label will be set to display as a page heading
+    """
 
-    return {
-        # Style the label as a page heading, following the
-        # GOV.UK Design System question pages pattern at
-        # https://design-system.service.gov.uk/patterns/question-pages/
-        "classes": "govuk-label--l",
-        "isPageHeading": True,
-
+    label = {
         "for": f"input-{question.id}",
         "text": get_label_text(question),
     }
+    if is_page_heading:
+        label["classes"] = "govuk-label--l"
+        label["isPageHeading"] = is_page_heading
+
+    return label
 
 
-def govuk_fieldset(question: Question) -> dict:
+def govuk_fieldset(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:
+    """
+    :param bool is_page_heading: If True, the legend will be set to display as a page heading
+    """
 
-    return {
+    fieldset = {
         "legend": {
             "text": get_label_text(question),
-            "isPageHeading": True,
-            "classes": "govuk-fieldset__legend--l"
         }
     }
+
+    if is_page_heading:
+        fieldset["legend"]["isPageHeading"] = is_page_heading
+        fieldset["legend"]["classes"] = "govuk-fieldset__legend--l"
+
+    return fieldset
 
 
 def get_label_text(question: Question) -> str:

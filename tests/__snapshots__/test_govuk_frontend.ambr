@@ -42,6 +42,26 @@
     'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
   }
 ---
+# name: TestDmListInput.test_from_question_with_is_page_heading_false
+  <class 'dict'> {
+    'addButtonName': 'item',
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'text': 'Cultural fit criteria',
+      },
+    },
+    'hint': <class 'dict'> {
+      'text': 'Enter at least one criteria',
+    },
+    'id': 'input-culturalFitCriteria',
+    'itemLabelPrefix': 'Cultural fit criteria',
+    'items': <class 'list'> [
+    ],
+    'maxItems': 5,
+    'name': 'culturalFitCriteria',
+    'question_advice': '<p class="govuk-body">Cultural fit is about how well you and the specialist work together</p>',
+  }
+---
 # name: TestDmListInput.test_with_data
   <class 'dict'> {
     'macro_name': 'dmListInput',
@@ -106,6 +126,16 @@
   }
 ---
 # name: TestTextInput.test_from_question
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible',
+    'hint': <class 'dict'> {
+      'text': '100 characters maximum',
+    },
+    'id': 'input-title',
+    'name': 'title',
+  }
+---
+# name: TestTextInput.test_from_question_with_is_page_heading_false
   <class 'dict'> {
     'classes': 'app-text-input--height-compatible',
     'hint': <class 'dict'> {
