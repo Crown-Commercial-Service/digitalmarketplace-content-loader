@@ -11,6 +11,7 @@ Read the docstring for `from_question` for more detail on how this works.
 from typing import Optional
 
 from dmutils.forms.errors import govuk_error
+from dmutils.forms.helpers import govuk_options
 
 from dmcontent.questions import Question
 
@@ -75,6 +76,12 @@ def from_question(
             "macro_name": "dmListInput",
             "params": dm_list_input(question, data, errors, **kwargs)
         }
+    elif question.type == "radios":
+        return {
+            "fieldset": govuk_fieldset(question, **kwargs),
+            "macro_name": "govukRadios",
+            "params": govuk_radios(question, data, errors, **kwargs)
+        }
     else:
         return None
 
@@ -86,6 +93,26 @@ def govuk_input(
 
     params = _params(question, data, errors)
     params["classes"] = "app-text-input--height-compatible"
+
+    return params
+
+
+def govuk_radios(
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> dict:
+    """Create govukRadios macro parameters from a radios question"""
+
+    if data is None:
+        data = {}
+
+    # we don't pass data to _params because govukRadios deals with value differently
+    params = _params(question, errors=errors)
+
+    # govukRadios wants idPrefix, not id
+    del params["id"]
+    params["idPrefix"] = f"input-{question.id}"
+
+    params["items"] = govuk_options(question.options, data.get(question.id))
 
     return params
 
