@@ -200,6 +200,11 @@ class TestParams:
 
         assert "value" not in _params(question, data)
 
+    def test_value_is_not_present_if_question_answer_is_none(self, question):
+        data = {"another_question": None}
+
+        assert "value" not in _params(question, data)
+
     def test_error_message_is_present_if_question_error_is_in_errors(self, question):
         errors = {
             "question": {
@@ -225,6 +230,11 @@ class TestParams:
                 "message": "Enter whether you are sure or not.",
             }
         }
+
+        assert "errorMessage" not in _params(question, errors=errors)
+
+    def test_error_message_is_not_present_if_question_error_is_none(self, question):
+        errors = {"another_question": None}
 
         assert "errorMessage" not in _params(question, errors=errors)
 
