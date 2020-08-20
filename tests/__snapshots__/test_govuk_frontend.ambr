@@ -125,6 +125,68 @@
     },
   }
 ---
+# name: TestGovukCharacterCount.test_from_question
+  <class 'dict'> {
+    'hint': <class 'dict'> {
+      'text': 'Enter at least one word, and no more than 100',
+    },
+    'id': 'input-description',
+    'maxwords': 100,
+    'name': 'description',
+  }
+---
+# name: TestGovukCharacterCount.test_govuk_character_count
+  <class 'dict'> {
+    'hint': <class 'dict'> {
+      'text': 'Enter at least one word, and no more than 100',
+    },
+    'id': 'input-description',
+    'maxwords': 100,
+    'name': 'description',
+  }
+---
+# name: TestGovukCharacterCount.test_with_data
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-description',
+      'isPageHeading': True,
+      'text': "Describe the specialist's role",
+    },
+    'macro_name': 'govukCharacterCount',
+    'params': <class 'dict'> {
+      'hint': <class 'dict'> {
+        'text': 'Enter at least one word, and no more than 100',
+      },
+      'id': 'input-description',
+      'maxwords': 100,
+      'name': 'description',
+      'value': 'The specialist must know how to make tea and work well with unicorns.',
+    },
+  }
+---
+# name: TestGovukCharacterCount.test_with_errors
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-description',
+      'isPageHeading': True,
+      'text': "Describe the specialist's role",
+    },
+    'macro_name': 'govukCharacterCount',
+    'params': <class 'dict'> {
+      'errorMessage': <class 'dict'> {
+        'text': "Enter a description of the specialist's role.",
+      },
+      'hint': <class 'dict'> {
+        'text': 'Enter at least one word, and no more than 100',
+      },
+      'id': 'input-description',
+      'maxwords': 100,
+      'name': 'description',
+    },
+  }
+---
 # name: TestRadios.test_from_question
   <class 'dict'> {
     'idPrefix': 'input-yesOrNo',
