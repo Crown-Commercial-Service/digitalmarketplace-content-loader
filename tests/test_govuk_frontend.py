@@ -4,6 +4,7 @@ from dmcontent.questions import Question
 
 from dmcontent.govuk_frontend import (
     from_question,
+    govuk_character_count,
     govuk_input,
     govuk_radios,
     dm_list_input,
@@ -183,6 +184,65 @@ class TestDmListInput:
                 "href": "#input-culturalFitCriteria",
                 "question": "Cultural fit criteria",
                 "message": "Enter at least one criterion.",
+            }
+        }
+
+        assert from_question(question, errors=errors) == snapshot
+
+
+class TestGovukCharacterCount:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "description",
+                "name": "Description",
+                "question": "Describe the specialist's role",
+                "question_advice": "Describe the team the specialist will be working with on this project.",
+                "type": "textbox_large",
+                "hint": "Enter at least one word, and no more than 100",
+                "max_length_in_words": 100
+            }
+        )
+
+    @pytest.fixture
+    def question_without_word_count(self):
+        return Question(
+            {
+                "id": "description",
+                "name": "Description",
+                "question": "Describe the specialist's role",
+                "question_advice": "Describe the team the specialist will be working with on this project.",
+                "type": "textbox_large"
+            }
+        )
+
+    def test_govuk_character_count(self, question, snapshot):
+        assert govuk_character_count(question) == snapshot
+
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+
+        assert form["macro_name"] == "govukCharacterCount"
+        assert form["params"] == snapshot
+
+    def test_question_with_no_max_word_length_does_not_have_maxwords_in_params(self, question_without_word_count):
+        assert "maxwords" not in govuk_character_count(question_without_word_count)
+
+    def test_with_data(self, question, snapshot):
+        data = {
+            "description": "The specialist must know how to make tea and work well with unicorns.",
+        }
+
+        assert from_question(question, data) == snapshot
+
+    def test_with_errors(self, question, snapshot):
+        errors = {
+            "description": {
+                "input_name": "description",
+                "href": "#input-description",
+                "question": "Description",
+                "message": "Enter a description of the specialist's role.",
             }
         }
 
