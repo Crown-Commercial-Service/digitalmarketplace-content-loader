@@ -197,10 +197,10 @@ def _params(
     if question.get("hint"):
         params["hint"] = {"text": question.hint}
 
-    if data and question.id in data:
+    if data and data.get(question.id):
         params["value"] = data[question.id]
 
-    if errors and question.id in errors:
+    if errors and errors.get(question.id):
         params["errorMessage"] = govuk_error(errors[question.id])["errorMessage"]
 
     return params
