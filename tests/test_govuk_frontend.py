@@ -5,6 +5,7 @@ from dmcontent.questions import Question
 from dmcontent.govuk_frontend import (
     from_question,
     govuk_character_count,
+    govuk_date_input,
     govuk_input,
     govuk_checkboxes,
     govuk_radios,
@@ -209,6 +210,66 @@ class TestCheckboxes:
                 "href": "#input-oneAndAnother",
                 "question": "Select one and/or another.",
                 "message": "Select one or another",
+            }
+        }
+
+        form = from_question(question, errors=errors)
+
+        assert "errorMessage" in form["params"]
+        assert form == snapshot
+
+
+class TestDateInput:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "startDate",
+                "name": "Latest start date",
+                "question": "What is the latest start date?",
+                "type": "date"
+            }
+        )
+
+    def test_govuk_date_input(self, question, snapshot):
+        assert govuk_date_input(question) == snapshot
+
+    def test_govuk_date_input_name_prefix(self, question):
+        params = govuk_date_input(question)
+
+        assert params["namePrefix"] == question.id
+
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+
+        assert "fieldset" in form
+        assert form["macro_name"] == "govukDateInput"
+        assert form["params"] == snapshot
+
+    def test_from_question_with_is_page_heading_false(self, question, snapshot):
+        fieldset = from_question(question)["fieldset"]
+
+        assert "isPageHeading" not in fieldset or fieldset["isPageHeading"] is False
+        assert fieldset == snapshot
+
+    def test_from_question_with_data(self, question, snapshot):
+        data = {"startDate-day": 1, "startDate-month": 12, "startDate-year": 2020}
+
+        form = from_question(question, data)
+
+        assert "value" not in form["params"]
+        assert form["params"]["items"][0]["value"] == 1
+        assert form["params"]["items"][1]["value"] == 12
+        assert form["params"]["items"][2]["value"] == 2020
+        assert form == snapshot
+
+    def test_from_question_with_errors(self, question, snapshot):
+        errors = {
+            "startDate": {
+                "input_name": "startDate",
+                "href": "#input-startDate-day",
+                "question": "What is the latest start date?",
+                "message": "Enter a start date",
             }
         }
 
