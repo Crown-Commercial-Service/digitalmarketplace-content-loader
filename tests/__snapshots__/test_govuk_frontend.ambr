@@ -1,3 +1,101 @@
+# name: TestCheckboxes.test_from_question
+  <class 'dict'> {
+    'idPrefix': 'input-oneAndAnother',
+    'items': <class 'list'> [
+      <class 'dict'> {
+        'text': 'One',
+        'value': 'one',
+      },
+      <class 'dict'> {
+        'text': 'Another',
+        'value': 'another',
+      },
+    ],
+    'name': 'oneAndAnother',
+  }
+---
+# name: TestCheckboxes.test_from_question_with_data
+  <class 'dict'> {
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'Choose one and/or another',
+      },
+    },
+    'macro_name': 'govukCheckboxes',
+    'params': <class 'dict'> {
+      'idPrefix': 'input-oneAndAnother',
+      'items': <class 'list'> [
+        <class 'dict'> {
+          'checked': True,
+          'text': 'One',
+          'value': 'one',
+        },
+        <class 'dict'> {
+          'checked': True,
+          'text': 'Another',
+          'value': 'another',
+        },
+      ],
+      'name': 'oneAndAnother',
+    },
+  }
+---
+# name: TestCheckboxes.test_from_question_with_errors
+  <class 'dict'> {
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'Choose one and/or another',
+      },
+    },
+    'macro_name': 'govukCheckboxes',
+    'params': <class 'dict'> {
+      'errorMessage': <class 'dict'> {
+        'text': 'Select one or another',
+      },
+      'idPrefix': 'input-oneAndAnother',
+      'items': <class 'list'> [
+        <class 'dict'> {
+          'text': 'One',
+          'value': 'one',
+        },
+        <class 'dict'> {
+          'text': 'Another',
+          'value': 'another',
+        },
+      ],
+      'name': 'oneAndAnother',
+    },
+  }
+---
+# name: TestCheckboxes.test_from_question_with_is_page_heading_false
+  <class 'dict'> {
+    'legend': <class 'dict'> {
+      'classes': 'govuk-fieldset__legend--l',
+      'isPageHeading': True,
+      'text': 'Choose one and/or another',
+    },
+  }
+---
+# name: TestCheckboxes.test_govuk_checkboxes
+  <class 'dict'> {
+    'idPrefix': 'input-oneAndAnother',
+    'items': <class 'list'> [
+      <class 'dict'> {
+        'text': 'One',
+        'value': 'one',
+      },
+      <class 'dict'> {
+        'text': 'Another',
+        'value': 'another',
+      },
+    ],
+    'name': 'oneAndAnother',
+  }
+---
 # name: TestDmListInput.test_dm_list_input
   <class 'dict'> {
     'addButtonName': 'item',
