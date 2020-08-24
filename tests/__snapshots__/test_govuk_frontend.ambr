@@ -96,6 +96,125 @@
     'name': 'oneAndAnother',
   }
 ---
+# name: TestDateInput.test_from_question
+  <class 'dict'> {
+    'id': 'input-startDate',
+    'items': <class 'list'> [
+      <class 'dict'> {
+        'classes': 'govuk-input--width-2',
+        'name': 'day',
+      },
+      <class 'dict'> {
+        'classes': 'govuk-input--width-2',
+        'name': 'month',
+      },
+      <class 'dict'> {
+        'classes': 'govuk-input--width-4',
+        'name': 'year',
+      },
+    ],
+    'name': 'startDate',
+    'namePrefix': 'startDate',
+  }
+---
+# name: TestDateInput.test_from_question_with_data
+  <class 'dict'> {
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'What is the latest start date?',
+      },
+    },
+    'macro_name': 'govukDateInput',
+    'params': <class 'dict'> {
+      'id': 'input-startDate',
+      'items': <class 'list'> [
+        <class 'dict'> {
+          'classes': 'govuk-input--width-2',
+          'name': 'day',
+          'value': 1,
+        },
+        <class 'dict'> {
+          'classes': 'govuk-input--width-2',
+          'name': 'month',
+          'value': 12,
+        },
+        <class 'dict'> {
+          'classes': 'govuk-input--width-4',
+          'name': 'year',
+          'value': 2020,
+        },
+      ],
+      'name': 'startDate',
+      'namePrefix': 'startDate',
+    },
+  }
+---
+# name: TestDateInput.test_from_question_with_errors
+  <class 'dict'> {
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': 'What is the latest start date?',
+      },
+    },
+    'macro_name': 'govukDateInput',
+    'params': <class 'dict'> {
+      'errorMessage': <class 'dict'> {
+        'text': 'Enter a start date',
+      },
+      'id': 'input-startDate',
+      'items': <class 'list'> [
+        <class 'dict'> {
+          'classes': 'govuk-input--width-2 govuk-input--error',
+          'name': 'day',
+        },
+        <class 'dict'> {
+          'classes': 'govuk-input--width-2 govuk-input--error',
+          'name': 'month',
+        },
+        <class 'dict'> {
+          'classes': 'govuk-input--width-4 govuk-input--error',
+          'name': 'year',
+        },
+      ],
+      'name': 'startDate',
+      'namePrefix': 'startDate',
+    },
+  }
+---
+# name: TestDateInput.test_from_question_with_is_page_heading_false
+  <class 'dict'> {
+    'legend': <class 'dict'> {
+      'classes': 'govuk-fieldset__legend--l',
+      'isPageHeading': True,
+      'text': 'What is the latest start date?',
+    },
+  }
+---
+# name: TestDateInput.test_govuk_date_input
+  <class 'dict'> {
+    'id': 'input-startDate',
+    'items': <class 'list'> [
+      <class 'dict'> {
+        'classes': 'govuk-input--width-2',
+        'name': 'day',
+      },
+      <class 'dict'> {
+        'classes': 'govuk-input--width-2',
+        'name': 'month',
+      },
+      <class 'dict'> {
+        'classes': 'govuk-input--width-4',
+        'name': 'year',
+      },
+    ],
+    'name': 'startDate',
+    'namePrefix': 'startDate',
+  }
+---
 # name: TestDmListInput.test_dm_list_input
   <class 'dict'> {
     'addButtonName': 'item',
