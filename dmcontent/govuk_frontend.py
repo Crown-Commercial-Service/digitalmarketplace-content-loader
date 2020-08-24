@@ -82,6 +82,12 @@ def from_question(
             "macro_name": "govukRadios",
             "params": govuk_radios(question, data, errors, **kwargs)
         }
+    elif question.type == "checkboxes":
+        return {
+            "fieldset": govuk_fieldset(question, **kwargs),
+            "macro_name": "govukCheckboxes",
+            "params": govuk_checkboxes(question, data, errors, **kwargs)
+        }
     elif question.type == "textbox_large":
         return {
             "label": govuk_label(question, **kwargs),
@@ -101,6 +107,14 @@ def govuk_input(
     params["classes"] = "app-text-input--height-compatible"
 
     return params
+
+
+def govuk_checkboxes(
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> dict:
+    """Create govukCheckboxes macro parameters from a checkboxes question"""
+
+    return govuk_radios(question, data, errors, **kwargs)
 
 
 def govuk_radios(
