@@ -264,6 +264,7 @@
     'addButtonName': 'item',
     'fieldset': <class 'dict'> {
       'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--m',
         'text': 'Cultural fit criteria',
       },
     },

@@ -437,6 +437,7 @@ class TestGovukFieldset:
     def test_is_page_heading_false_removes_classes_and_ispageheading(self, question):
         assert govuk_fieldset(question, is_page_heading=False) == {
             "legend": {
+                "classes": "govuk-fieldset__legend--m",
                 "text": "Enter your criteria"
             }
         }

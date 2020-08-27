@@ -230,6 +230,7 @@ def govuk_fieldset(question: Question, *, is_page_heading: bool = True, **kwargs
 
     fieldset = {
         "legend": {
+            "classes": "govuk-fieldset__legend--m",
             "text": get_label_text(question),
         }
     }
