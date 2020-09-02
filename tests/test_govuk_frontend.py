@@ -1,6 +1,6 @@
 import pytest
 
-from dmcontent.questions import Question
+from dmcontent.questions import Pricing, Question
 
 from dmcontent.govuk_frontend import (
     from_question,
@@ -10,6 +10,7 @@ from dmcontent.govuk_frontend import (
     govuk_checkboxes,
     govuk_radios,
     dm_list_input,
+    dm_pricing_input,
     govuk_fieldset,
     govuk_label,
     _params,
@@ -465,6 +466,129 @@ class TestDmListInput:
         }
 
         assert from_question(question, errors=errors) == snapshot
+
+
+class TestDmPricingInput:
+    @staticmethod
+    def assert_params(test, form):
+        """Apply a test to all params dictionaries in form"""
+        __tracebackhide__ = True
+        if "params" in form:
+            return test(form["params"])
+        elif "components" in form:
+            for component in form["components"]:
+                assert test(component["params"])
+        else:
+            raise ValueError("form should have params or components with params")
+
+    @pytest.fixture
+    def price_question(self):
+        return Pricing({
+            "id": "cost",
+            "question": "What's the cost?",
+            "type": "pricing",
+            "fields": {
+                "price": "cost",
+            },
+        })
+
+    @pytest.fixture
+    def pricing_question(self):
+        return Pricing({
+            "id": "priceRange",
+            "question": "What's the price range?",
+            "type": "pricing",
+            "fields": {
+                "minimum_price": "minPrice",
+                "maximum_price": "maxPrice",
+            },
+        })
+
+    @pytest.fixture(params=["price_question"])
+    def question(self, request):
+        return request.getfixturevalue(request.param)
+
+    def test_dm_pricing_input_with_price_field(self, price_question, snapshot):
+        form = dm_pricing_input(price_question)
+
+        assert "components" not in form
+        assert form["macro_name"]
+        assert form["label"]
+        assert form["params"]["id"] == "input-cost"
+        assert form == snapshot
+
+    def test_dm_pricing_input_with_multiple_fields(self, pricing_question, snapshot):
+        with pytest.raises(NotImplementedError):
+            dm_pricing_input(pricing_question)
+
+    def test_dm_pricing_input_is_page_heading_false(self, question):
+        form = dm_pricing_input(question, is_page_heading=False)
+
+        if "label" in form:
+            assert "isPageHeading" not in form["label"]
+        elif "fieldset" in form:
+            assert "isPageHeading" not in form["fieldset"]
+        else:
+            raise ValueError("form should have label or fieldset")
+
+    def test_dm_pricing_input_prefix_and_suffix(self, question):
+        form = dm_pricing_input(question)
+
+        self.assert_params(
+            lambda params: params["prefix"]["text"] == "£",
+            form
+        )
+
+    def test_from_question(self, question, snapshot):
+        assert from_question(question) == snapshot
+
+    def test_from_question_with_data(self, question, snapshot):
+        data = {
+            "cost": "1.00",
+            "minPrice": "10.00",
+            "maxPrice": "50.00",
+        }
+
+        form = from_question(question, data)
+
+        self.assert_params(
+            lambda params: params["value"] in data.values(),
+            form
+        )
+
+        assert form == snapshot
+
+    def test_from_question_with_errors(self, question, snapshot):
+        errors = {
+            "cost": {
+                "input_name": "cost",
+                "href": "#input-cost",
+                "question": "What's the cost?",
+                "message": "Enter a cost.",
+            },
+            "priceRange": {
+                "input_name": "priceRange",
+                "href": "#input-priceRange-minPrice",
+                "question": "What's the price range?",
+                "message": "Enter a price range.",
+            },
+        }
+
+        form = from_question(question, errors=errors)
+
+        if "params" in form:
+            assert form["params"]["errorMessage"]
+        elif "components" in form:
+            pytest.skip("TODO: get errors working with pricing form with multiple fields")
+            assert form["errorMessage"]
+            # TODO: get errors working for indivual fields in the pricing form
+            # this will require changes to validation of pricing forms
+            for component in form["components"]:
+                assert "--error" in component["params"]["classes"]
+        else:
+            raise ValueError("form should have params or a fieldset")
+
+        assert form == snapshot
 
 
 class TestGovukCharacterCount:

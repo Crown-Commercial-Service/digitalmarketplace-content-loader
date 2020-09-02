@@ -343,6 +343,90 @@
     },
   }
 ---
+# name: TestDmPricingInput.test_dm_pricing_input_with_price_field
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-cost',
+      'isPageHeading': True,
+      'text': "What's the cost?",
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'id': 'input-cost',
+      'name': 'cost',
+      'prefix': <class 'dict'> {
+        'text': '£',
+      },
+      'spellcheck': False,
+    },
+  }
+---
+# name: TestDmPricingInput.test_from_question[price_question]
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-cost',
+      'isPageHeading': True,
+      'text': "What's the cost?",
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'id': 'input-cost',
+      'name': 'cost',
+      'prefix': <class 'dict'> {
+        'text': '£',
+      },
+      'spellcheck': False,
+    },
+  }
+---
+# name: TestDmPricingInput.test_from_question_with_data[price_question]
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-cost',
+      'isPageHeading': True,
+      'text': "What's the cost?",
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'id': 'input-cost',
+      'name': 'cost',
+      'prefix': <class 'dict'> {
+        'text': '£',
+      },
+      'spellcheck': False,
+      'value': '1.00',
+    },
+  }
+---
+# name: TestDmPricingInput.test_from_question_with_errors[price_question]
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-cost',
+      'isPageHeading': True,
+      'text': "What's the cost?",
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'errorMessage': <class 'dict'> {
+        'text': 'Enter a cost.',
+      },
+      'id': 'input-cost',
+      'name': 'cost',
+      'prefix': <class 'dict'> {
+        'text': '£',
+      },
+      'spellcheck': False,
+    },
+  }
+---
 # name: TestGovukCharacterCount.test_from_question
   <class 'dict'> {
     'hint': <class 'dict'> {

@@ -71,7 +71,9 @@ def from_question(
             "macro_name": "govukInput",
             "params": govuk_input(question, data, errors, **kwargs),
         }
-    if question.type == "date":
+    elif question.type == "pricing":
+        return dm_pricing_input(question, data, errors, **kwargs)
+    elif question.type == "date":
         return {
             "fieldset": govuk_fieldset(question, **kwargs),
             "macro_name": "govukDateInput",
@@ -229,6 +231,37 @@ def dm_list_input(
             )
 
     return params
+
+
+def dm_pricing_input(
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> dict:
+    """Create several parameters for several components based on fields in pricing question"""
+
+    if data is None:
+        data = {}
+
+    # There can either be multiple fields from the set {"maximum_price",
+    # "minimum_price", "pricing_unit", "pricing_interval"}, or a single field
+    # "price". If there is just a price field we don't want a fieldset.
+    if len(question.fields) == 1:
+        return {
+            "label": govuk_label(question, **kwargs),
+            "macro_name": "govukInput",
+            "params": govuk_input(
+                question,
+                data,
+                errors,
+                input_id=question.fields["price"],
+                prefix_text="£",
+            ),
+        }
+
+    # TODO: Handle pricing questions with multiple fields. For now (for the
+    # briefs frontend) we only need to handle the simple case. Have a look at
+    # branch ldeb-spike-pricing-input-multiple-fields for a sketch of how to do
+    # the multiple field case.
+    raise NotImplementedError("cannot yet handle pricing question with multiple fields")
 
 
 def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:
