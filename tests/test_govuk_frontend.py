@@ -504,9 +504,15 @@ class TestDmPricingInput:
             },
         })
 
-    @pytest.fixture(params=["price_question"])
+    @pytest.fixture(params=["price_question", "pricing_question"])
     def question(self, request):
         return request.getfixturevalue(request.param)
+
+    def test_dm_pricing_input_has_classes(self, pricing_question):
+        form = dm_pricing_input(pricing_question)
+        for component in form["components"]:
+            assert "dm-pricing-input__input" in component["params"]["classes"]
+            assert "dm-pricing-input__label" in component["params"]["label"]["classes"]
 
     def test_dm_pricing_input_with_price_field(self, price_question, snapshot):
         form = dm_pricing_input(price_question)
@@ -518,8 +524,20 @@ class TestDmPricingInput:
         assert form == snapshot
 
     def test_dm_pricing_input_with_multiple_fields(self, pricing_question, snapshot):
-        with pytest.raises(NotImplementedError):
-            dm_pricing_input(pricing_question)
+        form = dm_pricing_input(pricing_question)
+
+        assert form["components"]
+        for component in form["components"]:
+            assert component["params"]
+            assert component["params"]["label"]
+            assert "isPageHeading" not in component["params"]["label"]
+            assert component["macro_name"]
+            assert component["params"]["id"].startswith("input-priceRange-")
+            assert component["params"]["id"] == component["params"]["label"]["for"]
+
+        assert form["fieldset"]
+        assert "macro_name" not in form
+        assert form == snapshot
 
     def test_dm_pricing_input_is_page_heading_false(self, question):
         form = dm_pricing_input(question, is_page_heading=False)

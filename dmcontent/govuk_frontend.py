@@ -257,11 +257,132 @@ def dm_pricing_input(
             ),
         }
 
-    # TODO: Handle pricing questions with multiple fields. For now (for the
-    # briefs frontend) we only need to handle the simple case. Have a look at
-    # branch ldeb-spike-pricing-input-multiple-fields for a sketch of how to do
-    # the multiple field case.
-    raise NotImplementedError("cannot yet handle pricing question with multiple fields")
+    components = []
+    form_group = {
+        "fieldset": govuk_fieldset(question),
+        "components": components,
+    }
+
+    if errors and errors.get(question.id):
+        form_group["errorMessage"] = govuk_error(errors[question.id])["errorMessage"]
+
+    id_prefix = question.id
+
+    def _govuk_input(name, label_text, **kwargs):
+        input_id = f"{id_prefix}-{name}"
+        params = govuk_input(
+            question,
+            data,
+            classes=["dm-pricing-input__input"],
+            hint_text="For example, £199.99",
+            input_id=name,
+            prefix_text="£",
+        )
+        params["id"] = f"input-{input_id}"
+        params["label"] = govuk_label(
+            question,
+            input_id=input_id,
+            is_page_heading=False,
+            label_classes=["dm-pricing-input__label"],
+            label_text=label_text,
+        )
+
+        return {
+            "macro_name": "govukInput",
+            "params": params,
+        }
+
+    def _govuk_select(name, label_text, **kwargs):
+        return {
+            "classes": "dm-price-input__input",
+            "id": f"{id_prefix}-{name}",
+            "label": {
+                "text": label_text,
+                "classes": "dm-price-input__label",
+            },
+            "name": name,
+
+            **kwargs
+        }
+
+    def _govuk_select_items(values, data):
+        items = [
+            {"text": f"per {value.lower()}", "value": value}
+            for value in values
+        ]
+        for item in items:
+            if item["value"] == data:
+                item["checked"] = True
+                break
+        return items
+
+    if "price_units" in question.fields:
+        unit_name = question.fields["price_units"]
+
+        unit_data = data.get(unit_name, "")
+        unit_items = _govuk_select_items([
+            "",
+            "Unit",
+            "Person",
+            "Licence",
+            "User",
+            "Instance",
+            "Server",
+            "Virtual machine",
+            "Transaction",
+            "Megabyte",
+            "Gigabyte",
+            "Terabyte",
+        ], unit_data)
+
+        components.append({
+            "macro": "govukSelect",
+            "params": _params(
+                label_text="Unit",
+                name=unit_name,
+                items=unit_items,
+            ),
+        })
+
+    if "price_interval" in question.fields:
+        interval_name = question.fields["price_interval"]
+
+        interval_data = data.get(interval_name, "")
+        interval_items = _govuk_select_items([
+            "",
+            "Second",
+            "Minute",
+            "Hour",
+            "Day",
+            "Week",
+            "Month",
+            "Quarter",
+            "6 months",
+            "Year",
+        ], interval_data)
+
+        components.append({
+            "macro": "govukSelect",
+            "params": _params(
+                label_text="Time",
+                name=interval_name,
+                items=interval_items,
+            ),
+        })
+
+    if "minimum_price" in question.fields:
+        components.append(_govuk_input(
+            label_text="Minimum price",
+            name=question.fields["minimum_price"],
+        ))
+
+    if "maximum_price" in question.fields:
+        components.append(_govuk_input(
+            label_text="Maximum price",
+            name=question.fields["maximum_price"],
+        ))
+
+    return form_group
 
 
 def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:

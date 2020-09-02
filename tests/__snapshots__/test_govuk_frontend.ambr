@@ -343,6 +343,59 @@
     },
   }
 ---
+# name: TestDmPricingInput.test_dm_pricing_input_with_multiple_fields
+  <class 'dict'> {
+    'components': <class 'list'> [
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-minPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-minPrice',
+            'text': 'Minimum price',
+          },
+          'name': 'minPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+        },
+      },
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-maxPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-maxPrice',
+            'text': 'Maximum price',
+          },
+          'name': 'maxPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+        },
+      },
+    ],
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': "What's the price range?",
+      },
+    },
+  }
+---
 # name: TestDmPricingInput.test_dm_pricing_input_with_price_field
   <class 'dict'> {
     'label': <class 'dict'> {
@@ -383,6 +436,59 @@
     },
   }
 ---
+# name: TestDmPricingInput.test_from_question[pricing_question]
+  <class 'dict'> {
+    'components': <class 'list'> [
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-minPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-minPrice',
+            'text': 'Minimum price',
+          },
+          'name': 'minPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+        },
+      },
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-maxPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-maxPrice',
+            'text': 'Maximum price',
+          },
+          'name': 'maxPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+        },
+      },
+    ],
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': "What's the price range?",
+      },
+    },
+  }
+---
 # name: TestDmPricingInput.test_from_question_with_data[price_question]
   <class 'dict'> {
     'label': <class 'dict'> {
@@ -401,6 +507,61 @@
       },
       'spellcheck': False,
       'value': '1.00',
+    },
+  }
+---
+# name: TestDmPricingInput.test_from_question_with_data[pricing_question]
+  <class 'dict'> {
+    'components': <class 'list'> [
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-minPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-minPrice',
+            'text': 'Minimum price',
+          },
+          'name': 'minPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+          'value': '10.00',
+        },
+      },
+      <class 'dict'> {
+        'macro_name': 'govukInput',
+        'params': <class 'dict'> {
+          'classes': 'dm-pricing-input__input govuk-input--width-5',
+          'hint': <class 'dict'> {
+            'text': 'For example, £199.99',
+          },
+          'id': 'input-priceRange-maxPrice',
+          'label': <class 'dict'> {
+            'classes': 'dm-pricing-input__label',
+            'for': 'input-priceRange-maxPrice',
+            'text': 'Maximum price',
+          },
+          'name': 'maxPrice',
+          'prefix': <class 'dict'> {
+            'text': '£',
+          },
+          'spellcheck': False,
+          'value': '50.00',
+        },
+      },
+    ],
+    'fieldset': <class 'dict'> {
+      'legend': <class 'dict'> {
+        'classes': 'govuk-fieldset__legend--l',
+        'isPageHeading': True,
+        'text': "What's the price range?",
+      },
     },
   }
 ---
