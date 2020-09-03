@@ -65,7 +65,7 @@ def from_question(
     :returns: A dict with the macro name, macro parameters, and labels, or None
               if we don't know how to handle this type of question
     """
-    if question.type == "text":
+    if question.type == "text" or question.type == "number":
         return {
             "label": govuk_label(question, **kwargs),
             "macro_name": "govukInput",
@@ -107,10 +107,27 @@ def from_question(
 def govuk_input(
     question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
-    """Create govukInput macro parameters from a text question"""
+    """Create govukInput macro parameters from a text or number question"""
 
     params = _params(question, data, errors)
     params["classes"] = "app-text-input--height-compatible"
+
+    if question.type == "number":
+        params["classes"] += " govuk-input--width-5"
+        params["spellcheck"] = False
+        if question.get("limits") and question.limits.get("integer_only") is True:
+            params["inputmode"] = "numeric"
+            params["pattern"] = "[0-9]*"
+
+        if question.get("unit"):
+            prefix_or_suffix = {"before": "prefix", "after": "suffix"}[question.unit_position]
+            params[prefix_or_suffix] = {"text": question.unit}
+            if params.get("pattern"):
+                unit_regex = f"{question.unit}?"
+                if prefix_or_suffix == "prefix":
+                    params["pattern"] = unit_regex + params["pattern"]
+                elif prefix_or_suffix == "suffix":
+                    params["pattern"] += unit_regex
 
     return params
 
@@ -246,6 +263,8 @@ def govuk_character_count(
     question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     params = _params(question, data, errors)
+
+    params["spellcheck"] = True
 
     if question.get("max_length_in_words"):
         params["maxwords"] = question.max_length_in_words

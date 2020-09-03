@@ -65,6 +65,122 @@ class TestTextInput:
         assert from_question(question, errors=errors) == snapshot
 
 
+class TestNumberInput:
+    @pytest.fixture
+    def question(self):
+        return Question({
+            "id": "howMany",
+            "question": "How many?",
+            "type": "number",
+        })
+
+    def test_govuk_input(self, question, snapshot):
+        assert govuk_input(question) == snapshot
+
+    def test_govuk_input_asking_for_whole_numbers(self, question):
+        """Test that we follow Design System guidance on asking for numbers
+
+        https://design-system.service.gov.uk/components/text-input/#numbers
+        """
+
+        question.limits = {"integer_only": True}
+
+        params = govuk_input(question)
+
+        assert params["inputmode"] == "numeric"
+        assert params["pattern"] == "[0-9]*"
+        assert params["spellcheck"] is False
+
+    @pytest.mark.parametrize("integer_only", (False, None))
+    def test_govuk_input_asking_for_decimal_numbers(self, integer_only, question):
+        """Test that we follow Design System guidance on asking for numbers
+
+        https://design-system.service.gov.uk/components/text-input/#numbers
+        """
+
+        if integer_only is False:
+            question.limits = {"integer_only": False}
+
+        params = govuk_input(question)
+
+        assert "inputmode" not in params
+        assert params["spellcheck"] is False
+
+    def test_govuk_input_prefix(self, question):
+        question.unit = "£"
+        question.unit_position = "before"
+
+        params = govuk_input(question)
+
+        assert params["prefix"] == {"text": "£"}
+
+    def test_govuk_input_suffix(self, question):
+        question.unit = "%"
+        question.unit_position = "after"
+
+        params = govuk_input(question)
+
+        assert params["suffix"] == {"text": "%"}
+
+    @pytest.mark.parametrize(
+        "unit, unit_position, expected_pattern",
+        (
+            ("%", "after", "[0-9]*%?"),
+            ("£", "before", "£?[0-9]*"),
+        ),
+    )
+    def test_govuk_input_pattern_includes_prefix_or_suffix(
+        self,
+        unit,
+        unit_position,
+        expected_pattern,
+        question,
+    ):
+        question.limits = {"integer_only": True}
+
+        question.unit = unit
+        question.unit_position = unit_position
+
+        params = govuk_input(question)
+
+        assert params["pattern"] == expected_pattern
+
+    def test_govuk_input_width(self, question):
+        """Number inputs should be a reasonably small width"""
+        params = govuk_input(question)
+        assert "govuk-input--width-5" in params["classes"]
+
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+
+        assert "label" in form
+        assert form["macro_name"] == "govukInput"
+        assert form["params"] == snapshot
+
+    def test_from_question_with_data(self, question, snapshot):
+        data = {"howMany": "10"}
+
+        form = from_question(question, data)
+
+        assert form["params"]["value"] == "10"
+        assert form == snapshot
+
+    def test_from_question_with_errors(self, question, snapshot):
+        errors = {
+            "howMany": {
+                "input_name": "howMany",
+                "href": "#input-howMany",
+                "question": "How many?",
+                "message": "Enter how many",
+            }
+        }
+
+        form = from_question(question, errors=errors)
+
+        assert "errorMessage" in form["params"]
+        assert form == snapshot
+
+
 class TestRadios:
     @pytest.fixture
     def question(self):
@@ -360,6 +476,11 @@ class TestGovukCharacterCount:
 
     def test_govuk_character_count(self, question, snapshot):
         assert govuk_character_count(question) == snapshot
+
+    def test_govuk_character_count_spellcheck_is_true(self, question):
+        params = govuk_character_count(question)
+
+        assert params["spellcheck"] is True
 
     def test_from_question(self, question, snapshot):
         form = from_question(question)

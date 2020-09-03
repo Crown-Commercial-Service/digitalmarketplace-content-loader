@@ -351,6 +351,7 @@
     'id': 'input-description',
     'maxwords': 100,
     'name': 'description',
+    'spellcheck': True,
   }
 ---
 # name: TestGovukCharacterCount.test_govuk_character_count
@@ -361,6 +362,7 @@
     'id': 'input-description',
     'maxwords': 100,
     'name': 'description',
+    'spellcheck': True,
   }
 ---
 # name: TestGovukCharacterCount.test_with_data
@@ -379,6 +381,7 @@
       'id': 'input-description',
       'maxwords': 100,
       'name': 'description',
+      'spellcheck': True,
       'value': 'The specialist must know how to make tea and work well with unicorns.',
     },
   }
@@ -402,7 +405,62 @@
       'id': 'input-description',
       'maxwords': 100,
       'name': 'description',
+      'spellcheck': True,
     },
+  }
+---
+# name: TestNumberInput.test_from_question
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible govuk-input--width-5',
+    'id': 'input-howMany',
+    'name': 'howMany',
+    'spellcheck': False,
+  }
+---
+# name: TestNumberInput.test_from_question_with_data
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-howMany',
+      'isPageHeading': True,
+      'text': 'How many?',
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'id': 'input-howMany',
+      'name': 'howMany',
+      'spellcheck': False,
+      'value': '10',
+    },
+  }
+---
+# name: TestNumberInput.test_from_question_with_errors
+  <class 'dict'> {
+    'label': <class 'dict'> {
+      'classes': 'govuk-label--l',
+      'for': 'input-howMany',
+      'isPageHeading': True,
+      'text': 'How many?',
+    },
+    'macro_name': 'govukInput',
+    'params': <class 'dict'> {
+      'classes': 'app-text-input--height-compatible govuk-input--width-5',
+      'errorMessage': <class 'dict'> {
+        'text': 'Enter how many',
+      },
+      'id': 'input-howMany',
+      'name': 'howMany',
+      'spellcheck': False,
+    },
+  }
+---
+# name: TestNumberInput.test_govuk_input
+  <class 'dict'> {
+    'classes': 'app-text-input--height-compatible govuk-input--width-5',
+    'id': 'input-howMany',
+    'name': 'howMany',
+    'spellcheck': False,
   }
 ---
 # name: TestRadios.test_from_question
