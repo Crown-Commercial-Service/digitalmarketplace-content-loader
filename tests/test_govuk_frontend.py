@@ -477,6 +477,11 @@ class TestGovukCharacterCount:
     def test_govuk_character_count(self, question, snapshot):
         assert govuk_character_count(question) == snapshot
 
+    def test_govuk_character_count_spellcheck_is_true(self, question):
+        params = govuk_character_count(question)
+
+        assert params["spellcheck"] is True
+
     def test_from_question(self, question, snapshot):
         form = from_question(question)
 

@@ -264,6 +264,8 @@ def govuk_character_count(
 ) -> dict:
     params = _params(question, data, errors)
 
+    params["spellcheck"] = True
+
     if question.get("max_length_in_words"):
         params["maxwords"] = question.max_length_in_words
 
