@@ -33,6 +33,10 @@ class TestTextInput:
     def test_govuk_input(self, question, snapshot):
         assert govuk_input(question) == snapshot
 
+    def test_govuk_input_classes(self, question, snapshot):
+        assert govuk_input(question)["classes"] == "app-text-input--height-compatible"
+        assert govuk_input(question, classes=["app-input"])["classes"] == "app-input"
+
     def test_from_question(self, question, snapshot):
         form = from_question(question)
 
@@ -114,11 +118,21 @@ class TestNumberInput:
 
         assert params["prefix"] == {"text": "£"}
 
+    def test_govuk_input_prefix_text_kwarg(self, question):
+        params = govuk_input(question, prefix_text="£")
+
+        assert params["prefix"] == {"text": "£"}
+
     def test_govuk_input_suffix(self, question):
         question.unit = "%"
         question.unit_position = "after"
 
         params = govuk_input(question)
+
+        assert params["suffix"] == {"text": "%"}
+
+    def test_govuk_input_suffix_text_kwarg(self, question):
+        params = govuk_input(question, suffix_text="%")
 
         assert params["suffix"] == {"text": "%"}
 
@@ -530,6 +544,15 @@ class TestGovukLabel:
             "text": "Yes or no?",
         }
 
+    def test_input_id_kwarg(self, question):
+        assert govuk_label(question, input_id="q1")["for"] == "input-q1"
+
+    def test_label_classes_kwarg(self, question):
+        assert "app-label" in govuk_label(question, label_classes=["app-label"])["classes"]
+
+    def test_label_text_kwarg(self, question):
+        assert govuk_label(question, label_text="This is a label")["text"] == "This is a label"
+
     def test_is_page_heading_false_removes_classes_and_ispageheading(self, question):
         assert govuk_label(question, is_page_heading=False) == {
             "for": "input-question",
@@ -593,12 +616,26 @@ class TestParams:
             "name": "question",
         }
 
+    def test_classes_kwarg(self, question):
+        assert _params(question, classes=["app-input"])["classes"] == "app-input"
+        assert _params(question, classes=["app-input", "app-input--l"])["classes"] == "app-input app-input--l"
+
+    def test_input_id_kwarg(self, question):
+        params = _params(question, input_id="question")
+        assert params["id"] == "input-question"
+        assert params["name"] == "question"
+
     def test_hint(self, question):
         question.hint = "Answer yes or no"
 
         assert _params(question)["hint"] == {
             "text": "Answer yes or no",
         }
+
+    def test_hint_classes_kwarg(self, question):
+        question.hint = "Choose yes or no"
+
+        assert _params(question, hint_classes=["app-hint"])["hint"]["classes"] == "app-hint"
 
     def test_value_is_present_if_question_answer_is_in_data(self, question):
         data = {"question": "Yes"}

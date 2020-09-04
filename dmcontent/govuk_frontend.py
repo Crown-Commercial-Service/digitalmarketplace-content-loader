@@ -8,7 +8,7 @@ content loader Question.
 Read the docstring for `from_question` for more detail on how this works.
 """
 
-from typing import Optional
+from typing import List, Optional
 
 from dmutils.forms.errors import govuk_error
 from dmutils.forms.helpers import govuk_options
@@ -109,8 +109,8 @@ def govuk_input(
 ) -> dict:
     """Create govukInput macro parameters from a text or number question"""
 
-    params = _params(question, data, errors)
-    params["classes"] = "app-text-input--height-compatible"
+    kwargs.setdefault("classes", ["app-text-input--height-compatible"])
+    params = _params(question, data, errors, **kwargs)
 
     if question.type == "number":
         params["classes"] += " govuk-input--width-5"
@@ -122,12 +122,19 @@ def govuk_input(
         if question.get("unit"):
             prefix_or_suffix = {"before": "prefix", "after": "suffix"}[question.unit_position]
             params[prefix_or_suffix] = {"text": question.unit}
-            if params.get("pattern"):
-                unit_regex = f"{question.unit}?"
-                if prefix_or_suffix == "prefix":
-                    params["pattern"] = unit_regex + params["pattern"]
-                elif prefix_or_suffix == "suffix":
-                    params["pattern"] += unit_regex
+
+        if kwargs.get("prefix_text"):
+            params["prefix"] = {"text": kwargs["prefix_text"]}
+        if kwargs.get("suffix_text"):
+            params["suffix"] = {"text": kwargs["suffix_text"]}
+
+        if params.get("pattern"):
+            if params.get("prefix"):
+                unit_regex = f"{params['prefix']['text']}?"
+                params["pattern"] = unit_regex + params["pattern"]
+            if params.get("suffix"):
+                unit_regex = f"{params['suffix']['text']}?"
+                params["pattern"] += unit_regex
 
     return params
 
@@ -228,14 +235,19 @@ def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -
     """
     :param bool is_page_heading: If True, the label will be set to display as a page heading
     """
+    input_id: str = kwargs.get("input_id", question.id)
+    label_classes: List[str] = kwargs.get("label_classes", [])
 
     label = {
-        "for": f"input-{question.id}",
-        "text": get_label_text(question),
+        "for": f"input-{input_id}",
+        "text": get_label_text(question, **kwargs),
     }
     if is_page_heading:
-        label["classes"] = "govuk-label--l"
+        label_classes += ["govuk-label--l"]
         label["isPageHeading"] = is_page_heading
+
+    if label_classes:
+        label["classes"] = " ".join(label_classes)
 
     return label
 
@@ -272,8 +284,8 @@ def govuk_character_count(
     return params
 
 
-def get_label_text(question: Question) -> str:
-    label_text = question.question
+def get_label_text(question: Question, **kwargs) -> str:
+    label_text = kwargs.get("label_text", question.question)
     if question.is_optional:
         # GOV.UK Design System says
         # > mark the labels of optional fields with '(optional)'
@@ -283,7 +295,7 @@ def get_label_text(question: Question) -> str:
 
 
 def _params(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None
+    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Common parameters for govuk-frontent components
 
@@ -308,18 +320,27 @@ def _params(
     :returns: A dictionary with parameters that are generally useful for
               govuk-frontend component macros
     """
+    classes: Optional[List[str]] = kwargs.get("classes")
+    hint_text: Optional[str] = kwargs.get("hint_text", question.get("hint"))
+    input_id: str = kwargs.get("input_id", question.id)
+
     params = {
-        "id": f"input-{question.id}",
-        "name": question.id,
+        "id": f"input-{input_id}",
+        "name": input_id,
     }
 
-    if question.get("hint"):
-        params["hint"] = {"text": question.hint}
+    if classes:
+        params["classes"] = " ".join(classes)
 
-    if data and data.get(question.id):
-        params["value"] = data[question.id]
+    if hint_text:
+        params["hint"] = {"text": hint_text}
+        if kwargs.get("hint_classes"):
+            params["hint"]["classes"] = " ".join(kwargs["hint_classes"])
 
-    if errors and errors.get(question.id):
-        params["errorMessage"] = govuk_error(errors[question.id])["errorMessage"]
+    if data and data.get(input_id):
+        params["value"] = data[input_id]
+
+    if errors and errors.get(input_id):
+        params["errorMessage"] = govuk_error(errors[input_id])["errorMessage"]
 
     return params
