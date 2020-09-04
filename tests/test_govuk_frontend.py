@@ -355,6 +355,12 @@ class TestDateInput:
 
         assert params["namePrefix"] == question.id
 
+    def test_govuk_date_input_classes(self, question):
+        params = govuk_date_input(question)
+
+        for item in params["items"]:
+            assert "app-text-input--height-compatible" in item["classes"]
+
     def test_from_question(self, question, snapshot):
         form = from_question(question)
 

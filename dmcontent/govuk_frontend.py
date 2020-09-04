@@ -152,15 +152,15 @@ def govuk_date_input(
     params["items"] = [
         {
             "name": "day",
-            "classes": "govuk-input--width-2"
+            "classes": "app-text-input--height-compatible govuk-input--width-2"
         },
         {
             "name": "month",
-            "classes": "govuk-input--width-2"
+            "classes": "app-text-input--height-compatible govuk-input--width-2"
         },
         {
             "name": "year",
-            "classes": "govuk-input--width-4"
+            "classes": "app-text-input--height-compatible govuk-input--width-4"
         }
     ]
 

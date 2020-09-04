@@ -101,15 +101,15 @@
     'id': 'input-startDate',
     'items': <class 'list'> [
       <class 'dict'> {
-        'classes': 'govuk-input--width-2',
+        'classes': 'app-text-input--height-compatible govuk-input--width-2',
         'name': 'day',
       },
       <class 'dict'> {
-        'classes': 'govuk-input--width-2',
+        'classes': 'app-text-input--height-compatible govuk-input--width-2',
         'name': 'month',
       },
       <class 'dict'> {
-        'classes': 'govuk-input--width-4',
+        'classes': 'app-text-input--height-compatible govuk-input--width-4',
         'name': 'year',
       },
     ],
@@ -131,17 +131,17 @@
       'id': 'input-startDate',
       'items': <class 'list'> [
         <class 'dict'> {
-          'classes': 'govuk-input--width-2',
+          'classes': 'app-text-input--height-compatible govuk-input--width-2',
           'name': 'day',
           'value': 1,
         },
         <class 'dict'> {
-          'classes': 'govuk-input--width-2',
+          'classes': 'app-text-input--height-compatible govuk-input--width-2',
           'name': 'month',
           'value': 12,
         },
         <class 'dict'> {
-          'classes': 'govuk-input--width-4',
+          'classes': 'app-text-input--height-compatible govuk-input--width-4',
           'name': 'year',
           'value': 2020,
         },
@@ -168,15 +168,15 @@
       'id': 'input-startDate',
       'items': <class 'list'> [
         <class 'dict'> {
-          'classes': 'govuk-input--width-2 govuk-input--error',
+          'classes': 'app-text-input--height-compatible govuk-input--width-2 govuk-input--error',
           'name': 'day',
         },
         <class 'dict'> {
-          'classes': 'govuk-input--width-2 govuk-input--error',
+          'classes': 'app-text-input--height-compatible govuk-input--width-2 govuk-input--error',
           'name': 'month',
         },
         <class 'dict'> {
-          'classes': 'govuk-input--width-4 govuk-input--error',
+          'classes': 'app-text-input--height-compatible govuk-input--width-4 govuk-input--error',
           'name': 'year',
         },
       ],
@@ -199,15 +199,15 @@
     'id': 'input-startDate',
     'items': <class 'list'> [
       <class 'dict'> {
-        'classes': 'govuk-input--width-2',
+        'classes': 'app-text-input--height-compatible govuk-input--width-2',
         'name': 'day',
       },
       <class 'dict'> {
-        'classes': 'govuk-input--width-2',
+        'classes': 'app-text-input--height-compatible govuk-input--width-2',
         'name': 'month',
       },
       <class 'dict'> {
-        'classes': 'govuk-input--width-4',
+        'classes': 'app-text-input--height-compatible govuk-input--width-4',
         'name': 'year',
       },
     ],
