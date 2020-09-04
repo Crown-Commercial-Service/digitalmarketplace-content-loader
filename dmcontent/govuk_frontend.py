@@ -107,12 +107,12 @@ def from_question(
 def govuk_input(
     question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
-    """Create govukInput macro parameters from a text or number question"""
+    """Create govukInput macro parameters from a text, number or pricing question"""
 
     kwargs.setdefault("classes", ["app-text-input--height-compatible"])
     params = _params(question, data, errors, **kwargs)
 
-    if question.type == "number":
+    if question.type in ("number", "pricing"):
         params["classes"] += " govuk-input--width-5"
         params["spellcheck"] = False
         if question.get("limits") and question.limits.get("integer_only") is True:
