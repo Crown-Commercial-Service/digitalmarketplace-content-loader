@@ -1,6 +1,6 @@
 import pytest
 
-from dmcontent.questions import Question
+from dmcontent.questions import Pricing, Question
 
 from dmcontent.govuk_frontend import (
     from_question,
@@ -10,6 +10,7 @@ from dmcontent.govuk_frontend import (
     govuk_checkboxes,
     govuk_radios,
     dm_list_input,
+    dm_pricing_input,
     govuk_fieldset,
     govuk_label,
     _params,
@@ -32,6 +33,10 @@ class TestTextInput:
 
     def test_govuk_input(self, question, snapshot):
         assert govuk_input(question) == snapshot
+
+    def test_govuk_input_classes(self, question, snapshot):
+        assert govuk_input(question)["classes"] == "app-text-input--height-compatible"
+        assert govuk_input(question, classes=["app-input"])["classes"] == "app-input"
 
     def test_from_question(self, question, snapshot):
         form = from_question(question)
@@ -114,11 +119,21 @@ class TestNumberInput:
 
         assert params["prefix"] == {"text": "£"}
 
+    def test_govuk_input_prefix_text_kwarg(self, question):
+        params = govuk_input(question, prefix_text="£")
+
+        assert params["prefix"] == {"text": "£"}
+
     def test_govuk_input_suffix(self, question):
         question.unit = "%"
         question.unit_position = "after"
 
         params = govuk_input(question)
+
+        assert params["suffix"] == {"text": "%"}
+
+    def test_govuk_input_suffix_text_kwarg(self, question):
+        params = govuk_input(question, suffix_text="%")
 
         assert params["suffix"] == {"text": "%"}
 
@@ -453,6 +468,129 @@ class TestDmListInput:
         assert from_question(question, errors=errors) == snapshot
 
 
+class TestDmPricingInput:
+    @staticmethod
+    def assert_params(test, form):
+        """Apply a test to all params dictionaries in form"""
+        __tracebackhide__ = True
+        if "params" in form:
+            return test(form["params"])
+        elif "components" in form:
+            for component in form["components"]:
+                assert test(component["params"])
+        else:
+            raise ValueError("form should have params or components with params")
+
+    @pytest.fixture
+    def price_question(self):
+        return Pricing({
+            "id": "cost",
+            "question": "What's the cost?",
+            "type": "pricing",
+            "fields": {
+                "price": "cost",
+            },
+        })
+
+    @pytest.fixture
+    def pricing_question(self):
+        return Pricing({
+            "id": "priceRange",
+            "question": "What's the price range?",
+            "type": "pricing",
+            "fields": {
+                "minimum_price": "minPrice",
+                "maximum_price": "maxPrice",
+            },
+        })
+
+    @pytest.fixture(params=["price_question"])
+    def question(self, request):
+        return request.getfixturevalue(request.param)
+
+    def test_dm_pricing_input_with_price_field(self, price_question, snapshot):
+        form = dm_pricing_input(price_question)
+
+        assert "components" not in form
+        assert form["macro_name"]
+        assert form["label"]
+        assert form["params"]["id"] == "input-cost"
+        assert form == snapshot
+
+    def test_dm_pricing_input_with_multiple_fields(self, pricing_question, snapshot):
+        with pytest.raises(NotImplementedError):
+            dm_pricing_input(pricing_question)
+
+    def test_dm_pricing_input_is_page_heading_false(self, question):
+        form = dm_pricing_input(question, is_page_heading=False)
+
+        if "label" in form:
+            assert "isPageHeading" not in form["label"]
+        elif "fieldset" in form:
+            assert "isPageHeading" not in form["fieldset"]
+        else:
+            raise ValueError("form should have label or fieldset")
+
+    def test_dm_pricing_input_prefix_and_suffix(self, question):
+        form = dm_pricing_input(question)
+
+        self.assert_params(
+            lambda params: params["prefix"]["text"] == "£",
+            form
+        )
+
+    def test_from_question(self, question, snapshot):
+        assert from_question(question) == snapshot
+
+    def test_from_question_with_data(self, question, snapshot):
+        data = {
+            "cost": "1.00",
+            "minPrice": "10.00",
+            "maxPrice": "50.00",
+        }
+
+        form = from_question(question, data)
+
+        self.assert_params(
+            lambda params: params["value"] in data.values(),
+            form
+        )
+
+        assert form == snapshot
+
+    def test_from_question_with_errors(self, question, snapshot):
+        errors = {
+            "cost": {
+                "input_name": "cost",
+                "href": "#input-cost",
+                "question": "What's the cost?",
+                "message": "Enter a cost.",
+            },
+            "priceRange": {
+                "input_name": "priceRange",
+                "href": "#input-priceRange-minPrice",
+                "question": "What's the price range?",
+                "message": "Enter a price range.",
+            },
+        }
+
+        form = from_question(question, errors=errors)
+
+        if "params" in form:
+            assert form["params"]["errorMessage"]
+        elif "components" in form:
+            pytest.skip("TODO: get errors working with pricing form with multiple fields")
+            assert form["errorMessage"]
+            # TODO: get errors working for indivual fields in the pricing form
+            # this will require changes to validation of pricing forms
+            for component in form["components"]:
+                assert "--error" in component["params"]["classes"]
+        else:
+            raise ValueError("form should have params or a fieldset")
+
+        assert form == snapshot
+
+
 class TestGovukCharacterCount:
     @pytest.fixture
     def question(self):
@@ -530,6 +668,15 @@ class TestGovukLabel:
             "text": "Yes or no?",
         }
 
+    def test_input_id_kwarg(self, question):
+        assert govuk_label(question, input_id="q1")["for"] == "input-q1"
+
+    def test_label_classes_kwarg(self, question):
+        assert "app-label" in govuk_label(question, label_classes=["app-label"])["classes"]
+
+    def test_label_text_kwarg(self, question):
+        assert govuk_label(question, label_text="This is a label")["text"] == "This is a label"
+
     def test_is_page_heading_false_removes_classes_and_ispageheading(self, question):
         assert govuk_label(question, is_page_heading=False) == {
             "for": "input-question",
@@ -593,12 +740,26 @@ class TestParams:
             "name": "question",
         }
 
+    def test_classes_kwarg(self, question):
+        assert _params(question, classes=["app-input"])["classes"] == "app-input"
+        assert _params(question, classes=["app-input", "app-input--l"])["classes"] == "app-input app-input--l"
+
+    def test_input_id_kwarg(self, question):
+        params = _params(question, input_id="question")
+        assert params["id"] == "input-question"
+        assert params["name"] == "question"
+
     def test_hint(self, question):
         question.hint = "Answer yes or no"
 
         assert _params(question)["hint"] == {
             "text": "Answer yes or no",
         }
+
+    def test_hint_classes_kwarg(self, question):
+        question.hint = "Choose yes or no"
+
+        assert _params(question, hint_classes=["app-hint"])["hint"]["classes"] == "app-hint"
 
     def test_value_is_present_if_question_answer_is_in_data(self, question):
         data = {"question": "Yes"}
