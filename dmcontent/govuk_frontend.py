@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 __all__ = ["from_question", "govuk_input", "govuk_label"]
 
+# Version of govuk-frontend templates expected. This is just the default,
+# set this in your app to change the behaviour of this code.
+govuk_frontend_version = (2, 13, 0)
+
 
 def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
@@ -331,6 +335,11 @@ def get_href(question: 'Question', **kwargs) -> str:
 
     if question_type == "date":
         href = f"{href}-day"
+
+    # govuk-frontend version 3 and up doesn't have suffixes for the first
+    # input of a fieldset by default, so we can skip this logic
+    if govuk_frontend_version[0] >= 3:
+        return href
 
     if question_type in ("checkboxes", "list", "radios"):
         href = f"{href}-1"
