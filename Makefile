@@ -14,7 +14,8 @@ requirements-dev: virtualenv requirements.txt requirements-dev.txt
 	${VIRTUALENV_ROOT}/bin/pip install -r requirements.txt -r requirements-dev.txt
 
 .PHONY: freeze-requirements
-freeze-requirements: virtualenv requirements-dev requirements-dev.in
+freeze-requirements: virtualenv requirements-dev requirements.in setup.py requirements-dev.in
+	${VIRTUALENV_ROOT}/bin/pip-compile requirements.in
 	${VIRTUALENV_ROOT}/bin/pip-compile requirements-dev.in
 
 .PHONY: test
