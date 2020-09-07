@@ -9,6 +9,7 @@ from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 from .converters import convert_to_boolean, convert_to_number
 from .errors import ContentNotFoundError
 from .formats import format_price
+from .govuk_frontend import get_href
 from .utils import TemplateField, drop_followups, get_option_value
 
 
@@ -143,22 +144,7 @@ class Question(object):
     @property
     def href(self):
         """Return the URL fragment for the first input element for this question"""
-        # This code unfortunately couples us to the template used to render the question
-        # TODO: be better
-        href = f"#input-{self.id}"
-
-        question_type = self.get("type")
-
-        if question_type in ("checkboxes", "list", "radios"):
-            href = f"{href}-1"
-
-        if question_type == "checkbox_tree":
-            href = f"{href}-1-1"
-
-        if question_type == "date":
-            href = f"{href}-day"
-
-        return href
+        return get_href(self)
 
     @property
     def label(self):

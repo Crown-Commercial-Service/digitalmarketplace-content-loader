@@ -8,19 +8,20 @@ content loader Question.
 Read the docstring for `from_question` for more detail on how this works.
 """
 
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from dmutils.forms.errors import govuk_error
 from dmutils.forms.helpers import govuk_options
 
-from dmcontent.questions import Question
+if TYPE_CHECKING:
+    from dmcontent.questions import Question
 
 
 __all__ = ["from_question", "govuk_input", "govuk_label"]
 
 
 def from_question(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> Optional[dict]:
     """Create parameters object for govuk-frontend macros from a question
 
@@ -107,7 +108,7 @@ def from_question(
 
 
 def govuk_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create govukInput macro parameters from a text, number or pricing question"""
 
@@ -142,7 +143,7 @@ def govuk_input(
 
 
 def govuk_checkboxes(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create govukCheckboxes macro parameters from a checkboxes question"""
 
@@ -150,7 +151,7 @@ def govuk_checkboxes(
 
 
 def govuk_date_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create govukDateInput macro parameters from a date question"""
 
@@ -185,7 +186,7 @@ def govuk_date_input(
 
 
 def govuk_radios(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create govukRadios macro parameters from a radios question"""
 
@@ -205,7 +206,7 @@ def govuk_radios(
 
 
 def dm_list_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create dmListInput macro parameters from a list question"""
 
@@ -234,7 +235,7 @@ def dm_list_input(
 
 
 def dm_pricing_input(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Create several parameters for several components based on fields in pricing question"""
 
@@ -264,7 +265,7 @@ def dm_pricing_input(
     raise NotImplementedError("cannot yet handle pricing question with multiple fields")
 
 
-def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
     """
     :param bool is_page_heading: If True, the label will be set to display as a page heading
     """
@@ -285,7 +286,7 @@ def govuk_label(question: Question, *, is_page_heading: bool = True, **kwargs) -
     return label
 
 
-def govuk_fieldset(question: Question, *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_fieldset(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
     """
     :param bool is_page_heading: If True, the legend will be set to display as a page heading
     """
@@ -305,7 +306,7 @@ def govuk_fieldset(question: Question, *, is_page_heading: bool = True, **kwargs
 
 
 def govuk_character_count(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     params = _params(question, data, errors)
 
@@ -317,7 +318,27 @@ def govuk_character_count(
     return params
 
 
-def get_label_text(question: Question, **kwargs) -> str:
+def get_href(question: 'Question', **kwargs) -> str:
+    """The default url fragment for a question's input field."""
+    # This code unfortunately couples us to the template used to render the question
+    # TODO: be better
+    href = f"#input-{question.id}"
+
+    question_type = question.get("type")
+
+    if question_type == "checkbox_tree":
+        href = f"{href}-1-1"
+
+    if question_type == "date":
+        href = f"{href}-day"
+
+    if question_type in ("checkboxes", "list", "radios"):
+        href = f"{href}-1"
+
+    return href
+
+
+def get_label_text(question: 'Question', **kwargs) -> str:
     label_text = kwargs.get("label_text", question.question)
     if question.is_optional:
         # GOV.UK Design System says
@@ -328,7 +349,7 @@ def get_label_text(question: Question, **kwargs) -> str:
 
 
 def _params(
-    question: Question, data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> dict:
     """Common parameters for govuk-frontent components
 
