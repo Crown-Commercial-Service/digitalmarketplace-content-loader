@@ -132,6 +132,18 @@ class QuestionTest(object):
                     if subfield in item:
                         assert type(item[subfield]) == Markup
 
+    def test_question_has_href_property(self):
+        question = self.question()
+
+        href = question.href
+        assert href.startswith("#input-")
+        if question.type in ("checkboxes", "list", "radios"):
+            assert href.endswith("-1")
+        elif question.type == "checkbox_tree":
+            assert href.endswith("-1-1")
+        elif question.type == "date":
+            assert href.endswith("-day")
+
 
 class TestText(QuestionTest):
     def question(self, **kwargs):
