@@ -6,9 +6,10 @@ import pytest
 import six
 from werkzeug.datastructures import OrderedMultiDict
 
+import dmcontent.govuk_frontend
+from dmcontent import ContentTemplateError
 from dmcontent.content_loader import ContentQuestion
 from dmcontent.utils import TemplateField
-from dmcontent import ContentTemplateError
 
 
 class QuestionTest(object):
@@ -131,6 +132,27 @@ class QuestionTest(object):
                 for item in question[field]:
                     if subfield in item:
                         assert type(item[subfield]) == Markup
+
+    def test_question_has_href_property(self):
+        question = self.question()
+
+        href = question.href
+        assert href.startswith("#input-")
+        if question.type in ("checkboxes", "list", "radios"):
+            assert href.endswith("-1")
+        elif question.type == "checkbox_tree":
+            assert href.endswith("-1-1")
+        elif question.type == "date":
+            assert href.endswith("-day")
+
+    def test_question_href_property_govuk_frontend_v3(self, monkeypatch):
+        monkeypatch.setattr(dmcontent.govuk_frontend, "govuk_frontend_version", (3,), raising=False)
+
+        question = self.question()
+
+        href = question.href
+        if question.type in ("checkboxes", "list", "radios"):
+            assert not href.endswith("-1")
 
 
 class TestText(QuestionTest):
