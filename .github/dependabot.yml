@@ -1,0 +1,15 @@
+# Dependabot config
+# https://dependabot.com/docs/config-file/
+# Checks and updates dependencies in
+# `requirements.in`, `requirements.txt`,
+# and `setup.py`
+
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      time: "03:00"
+    allow:
+      - dependency-type: "production"
