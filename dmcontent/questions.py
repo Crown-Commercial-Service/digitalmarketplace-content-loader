@@ -811,7 +811,7 @@ class PricingSummary(QuestionSummary, Pricing):
         hours_for_price = self._service_data.get(self.fields.get('hours_for_price'),
                                                  self._default_for_field('hours_for_price'))
 
-        if price or minimum_price:
+        if price or minimum_price or maximum_price:
             return format_price(price or minimum_price, maximum_price, price_unit, price_interval, hours_for_price)
         else:
             return ''
