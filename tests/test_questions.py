@@ -317,6 +317,9 @@ class TestPricing(QuestionTest):
             {'priceMax': '20'}
         ) == {'priceMax': '20'}
 
+    def test_no_minimum(self):
+        assert self.question().summary({'priceMax': '20'}).value == "£20"
+
     def test_form_fields(self):
         assert sorted(self.question().form_fields) == sorted(['priceMin', 'priceMax'])
 
@@ -1199,8 +1202,8 @@ class TestPricingSummary(QuestionSummaryTest):
 
     @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
     def test_value_without_price_min(self, summary_inplace_allowed):
-        question = self.question().summary({'priceMax': '25.00'}, inplace_allowed=summary_inplace_allowed)
-        assert question.value == ''
+        question = self.question().summary({'priceMax': '25.01'}, inplace_allowed=summary_inplace_allowed)
+        assert question.value == '£25.01'
 
     @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
     def test_value_price_field(self, summary_inplace_allowed):

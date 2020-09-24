@@ -11,14 +11,26 @@ import pytest
     ((12, 13, 'Unit', None), u'£12 to £13 per unit'),
     (('34', None, 'Lab', None, '4 hours'), u'4 hours for £34'),
     (('12', None, None, None), u'£12'),
+    ((0, None, None, None), u'£0'),
+    (('12', "", None, None), u'£12'),
+    (('12', None, None, 'Second'), '£12 per second'),
+    ((None, '12', None, None), '£12'),
+    ((None, 0, None, None), '£0'),
+    (("", '12', None, None), '£12'),
 ])
 def test_format_price(args, formatted_price):
     assert format_price(*args) == formatted_price
 
 
-def test_format_price_errors():
-    with pytest.raises((TypeError, AttributeError)):
-        format_price(*(None, None, None, None))
+@pytest.mark.parametrize('args', [
+    (None, None, None, None),
+    (None, None, 'Unit', 'Second'),
+    (None, "", 'Unit', 'Second'),
+    ("", None, 'Unit', 'Second'),
+])
+def test_format_price_errors(args):
+    with pytest.raises(TypeError):
+        format_price(*args)
 
 
 @pytest.mark.parametrize('price_min, formatted_price', [
