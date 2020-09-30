@@ -27,9 +27,9 @@ def format_price(min_price: Optional[Union[str, float]],
     if max_price:
         formatted_price += u'£{}'.format(max_price)
     if unit:
-        formatted_price += ' per ' + unit.lower()
+        formatted_price += ' a ' + unit.lower()
     if interval:
-        formatted_price += ' per ' + interval.lower()
+        formatted_price += ' a ' + interval.lower()
     return formatted_price
 
 

@@ -4,16 +4,16 @@ import pytest
 
 
 @pytest.mark.parametrize('args, formatted_price', [
-    ((u'12', None, 'Unit', None), u'£12 per unit'),
-    (('12', '13', 'Unit', None), u'£12 to £13 per unit'),
-    (('12', '13', 'Unit', 'Second'), u'£12 to £13 per unit per second'),
-    (('12', None, 'Unit', 'Second'), u'£12 per unit per second'),
-    ((12, 13, 'Unit', None), u'£12 to £13 per unit'),
+    ((u'12', None, 'Unit', None), u'£12 a unit'),
+    (('12', '13', 'Unit', None), u'£12 to £13 a unit'),
+    (('12', '13', 'Unit', 'Second'), u'£12 to £13 a unit a second'),
+    (('12', None, 'Unit', 'Second'), u'£12 a unit a second'),
+    ((12, 13, 'Unit', None), u'£12 to £13 a unit'),
     (('34', None, 'Lab', None, '4 hours'), u'4 hours for £34'),
     (('12', None, None, None), u'£12'),
     ((0, None, None, None), u'£0'),
     (('12', "", None, None), u'£12'),
-    (('12', None, None, 'Second'), '£12 per second'),
+    (('12', None, None, 'Second'), '£12 a second'),
     ((None, '12', None, None), '£12'),
     ((None, 0, None, None), '£0'),
     (("", '12', None, None), '£12'),
@@ -34,7 +34,7 @@ def test_format_price_errors(args):
 
 
 @pytest.mark.parametrize('price_min, formatted_price', [
-    ('12.12', u'£12.12 to £13.13 per unit per second'),
+    ('12.12', u'£12.12 to £13.13 a unit a second'),
     ('', ''),
     (None, ''),
 ])
