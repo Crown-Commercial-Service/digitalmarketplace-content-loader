@@ -418,7 +418,7 @@ class TestContentManifest(object):
         assert summary.get_question('q4').assurance == ''  # question without assurance returns an empty string
         assert summary.get_question('q5').answer_required
         assert not summary.get_question('q6').answer_required
-        assert summary.get_question('q7').value == u'£10 per day'
+        assert summary.get_question('q7').value == u'£10 a day'
         assert not summary.get_question('q7').answer_required
         assert summary.get_question('q8').answer_required
         assert not summary.get_question('q9').answer_required

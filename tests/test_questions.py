@@ -1229,7 +1229,7 @@ class TestPricingSummary(QuestionSummaryTest):
             {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service'},
             inplace_allowed=summary_inplace_allowed,
         )
-        assert question.value == u'£20.41 to £25.00 per service'
+        assert question.value == u'£20.41 to £25.00 a service'
 
     @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
     def test_value_with_interval(self, summary_inplace_allowed):
@@ -1237,7 +1237,7 @@ class TestPricingSummary(QuestionSummaryTest):
             {'priceMin': '20.41', 'priceMax': '25.00', 'priceInterval': 'day'},
             inplace_allowed=summary_inplace_allowed,
         )
-        assert question.value == u'£20.41 to £25.00 per day'
+        assert question.value == u'£20.41 to £25.00 a day'
 
     @pytest.mark.parametrize("summary_inplace_allowed", (False, True,))
     def test_value_with_unit_and_interval(self, summary_inplace_allowed):
@@ -1245,7 +1245,7 @@ class TestPricingSummary(QuestionSummaryTest):
             {'priceMin': '20.41', 'priceMax': '25.00', 'priceUnit': 'service', 'priceInterval': 'day'},
             inplace_allowed=summary_inplace_allowed,
         )
-        assert question.value == u'£20.41 to £25.00 per service per day'
+        assert question.value == u'£20.41 to £25.00 a service a day'
 
 
 class TestMultiquestionSummary(QuestionSummaryTest):
