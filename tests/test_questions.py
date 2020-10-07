@@ -571,6 +571,14 @@ class TestNumberQuestion(QuestionTest):
     def test_get_data(self):
         assert self.question().get_data({"example": "100"}) == {"example": 100}
 
+    def test_get_data_with_prefix(self):
+        question_with_prefix = self.question(unit="£", unit_position="before")
+        assert question_with_prefix.get_data({"example": "£20.50"}) == {"example": 20.5}
+
+    def test_get_data_with_suffix(self):
+        question_with_suffix = self.question(unit="%", unit_position="after")
+        assert question_with_suffix.get_data({"example": "50%"}) == {"example": 50}
+
 
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
