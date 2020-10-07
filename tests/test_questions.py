@@ -557,6 +557,21 @@ class TestMultiquestion(QuestionTest):
         ])
 
 
+class TestNumberQuestion(QuestionTest):
+
+    def question(self, **kwargs):
+        data = {
+            "id": "example",
+            "type": "number"
+        }
+        data.update(kwargs)
+
+        return ContentQuestion(data)
+
+    def test_get_data(self):
+        assert self.question().get_data({"example": "100"}) == {"example": 100}
+
+
 class TestDynamicListQuestion(QuestionTest):
     default_context = {'context': {'field': ['First Need', 'Second Need', 'Third Need', 'Fourth need']}}
 
