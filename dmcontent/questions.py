@@ -84,7 +84,14 @@ class Question(object):
         elif self.type == 'boolean':
             value = convert_to_boolean(form_data[self.id])
         elif self.type == 'number':
-            value = convert_to_number(form_data[self.id])
+            kwargs = {}
+            if self.get("unit"):
+                if self.unit_position == "after":
+                    kwargs["suffix"] = self.unit
+                elif self.unit_position == "before":
+                    kwargs["prefix"] = self.unit
+
+            value = convert_to_number(form_data[self.id], **kwargs)
         elif self.type != 'upload':
             value = form_data[self.id]
         else:

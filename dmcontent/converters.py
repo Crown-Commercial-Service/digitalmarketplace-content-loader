@@ -24,7 +24,7 @@ def convert_to_boolean(value):
     return value
 
 
-def convert_to_number(value):
+def convert_to_number(value, *, prefix=None, suffix=None):
     """Turns numeric looking things into floats or ints
 
     Integery things should be integers
@@ -38,7 +38,16 @@ def convert_to_number(value):
     Other things should be unchanged
     >>> for value in [0, 'other', True, 123]:
     ...   assert convert_to_number(value) == value
+
+    :param str prefix: if present removes prefix from value
+    :param str suffix: if present removes suffix from value
     """
+
+    if prefix and value.startswith(prefix):
+        value = value[len(prefix):]
+    if suffix and value.endswith(suffix):
+        value = value[:-len(suffix)]
+
     try:
         return float(value) if "." in value else int(value)
     except (TypeError, ValueError):
