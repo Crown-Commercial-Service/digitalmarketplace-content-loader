@@ -13,13 +13,13 @@ def comma_format(number: Union[str, float, int]) -> str:
     :param number: The number to be formatted. Either an int, a float or a str.
     :return: A string of the comma formatted number
     """
-    if type(number) == str:
+    if isinstance(number, str):
         try:
             number = int(number)
         except ValueError:
             number = float(number)
 
-    if type(number) == int:
+    if isinstance(number, int):
         # Don't need to add decimal places to an int
         return f"{number:,}"
     else:
