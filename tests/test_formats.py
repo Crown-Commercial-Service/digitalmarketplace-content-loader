@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from dmcontent.formats import format_price, format_service_price
+from dmcontent.formats import format_price, format_service_price, comma_format
 import pytest
 
 
@@ -47,3 +47,15 @@ def test_format_service_price(price_min, formatted_price):
     }
 
     assert format_service_price(service) == formatted_price
+
+
+@pytest.mark.parametrize('number, formatted_number', [
+    (1000, '1,000'),
+    (123456.78, '123,456.78'),
+    ('1000000', '1,000,000'),
+    (500, '500'),
+    (0.12, '0.12'),
+    (999.99, '999.99'),
+])
+def test_comma_format(number, formatted_number):
+    assert comma_format(number) == formatted_number
