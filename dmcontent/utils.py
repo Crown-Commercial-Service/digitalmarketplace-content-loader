@@ -80,9 +80,9 @@ class TemplateField(object):
 def template_all(item):
     if isinstance(item, str):
         return TemplateField(item)
-    elif isinstance(item, collections.Sequence):
+    elif isinstance(item, collections.abc.Sequence):
         return [template_all(i) for i in item]
-    elif isinstance(item, collections.Mapping):
+    elif isinstance(item, collections.abc.Mapping):
         result = {}
         for (key, val) in item.items():
             result[key] = template_all(val)
