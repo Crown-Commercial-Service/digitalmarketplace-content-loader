@@ -766,7 +766,6 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
         """
         if self.get('optional'):
             return False
-        print('IN HERE')
 
         lookup_question_by_id = {q.id: q for q in self.questions}
         ignorable_ids = set()
@@ -786,10 +785,14 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
             answers_provided_set = frozenset(question_value if isinstance(question_value, list) else (question_value,))
 
             for followup_id, answers_triggering_followup in question.get('followup', {}).items():
-                if answers_provided_set.intersection(answers_triggering_followup) and \
-                        lookup_question_by_id.get(followup_id, False) \
-                        and lookup_question_by_id[followup_id].answer_required:
+                try:
+                    if answers_provided_set.intersection(answers_triggering_followup) and \
+                             lookup_question_by_id[followup_id].answer_required:
+                             # lookup_question_by_id.get(followup_id, False) \
                     return True
+                except KeyError:
+                    print(lookup_question_by_id)
+
 
                 # ignorable because it's listed as a followup to a question that hasn't been triggered or is not
                 # `.answer_required`
