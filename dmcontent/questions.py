@@ -766,10 +766,10 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
         """
         if self.get('optional'):
             return False
+        print('IN HERE')
 
         lookup_question_by_id = {q.id: q for q in self.questions}
         ignorable_ids = set()
-
         # note iteration order is important here: followups coming "before" their referring question will cause trouble
         for question in self.questions:
             if not question.get('followup'):
@@ -787,7 +787,8 @@ class MultiquestionSummary(QuestionSummary, Multiquestion):
 
             for followup_id, answers_triggering_followup in question.get('followup', {}).items():
                 if answers_provided_set.intersection(answers_triggering_followup) and \
-                        lookup_question_by_id[followup_id].answer_required:
+                        lookup_question_by_id.get(followup_id, False) \
+                        and lookup_question_by_id[followup_id].answer_required:
                     return True
 
                 # ignorable because it's listed as a followup to a question that hasn't been triggered or is not
