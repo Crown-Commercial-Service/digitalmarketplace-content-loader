@@ -33,7 +33,7 @@ itsdangerous==1.1.0       # via flask, flask-wtf
 jinja2==2.11.2            # via digitalmarketplace-content-loader, flask
 jmespath==0.10.0          # via boto3, botocore
 mailchimp3==3.0.6         # via digitalmarketplace-utils
-markdown==3.3             # via digitalmarketplace-content-loader
+markdown==3.3.3           # via digitalmarketplace-content-loader
 markupsafe==1.1.1         # via jinja2, wtforms
 monotonic==1.5            # via notifications-python-client
 notifications-python-client==5.7.0  # via digitalmarketplace-utils
