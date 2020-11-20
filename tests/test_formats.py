@@ -5,9 +5,11 @@ import pytest
 
 @pytest.mark.parametrize('args, formatted_price', [
     ((u'12', None, 'Unit', None), u'£12 a unit'),
+    ((u'12', None, 'Hour', None), u'£12 an hour'),
     (('12', '13', 'Unit', None), u'£12 to £13 a unit'),
     (('12', '13', 'Unit', 'Second'), u'£12 to £13 a unit a second'),
     (('12', None, 'Unit', 'Second'), u'£12 a unit a second'),
+    (('12', None, 'Instance', 'Hour'), u'£12 an instance an hour'),
     ((12, 13, 'Unit', None), u'£12 to £13 a unit'),
     (('34', None, 'Lab', None, '4 hours'), u'4 hours for £34'),
     (('12', None, None, None), u'£12'),

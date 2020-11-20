@@ -26,6 +26,20 @@ def comma_format(number: Union[str, float, int]) -> str:
         return f"{number:,.2f}"
 
 
+def _with_a(name: str) -> str:
+    """
+    Try to work out whether to use 'a' or 'an'. The rule is that we should use 'an' where the word starts with a vowel
+    sound. This is not the same as starting with a vowel (e.g. 'an hour', 'a unit'). Apply a heuristic that should work
+    most of the time, with a special case for an obvious edge-case.
+
+    If this is not enough, we shouldn't try to make this heuristic work better - english is hard. Instead, we should use
+    https://github.com/jaraco/inflect and rely on people who've already done the hard work to make it simple.
+    """
+    if name.startswith(("a", "e", "i", "o", "hour")):
+        return f" an {name}"
+    return f" a {name}"
+
+
 def format_price(min_price: Optional[Union[str, float]],
                  max_price: Optional[Union[str, float]],
                  unit: Optional[str],
@@ -51,9 +65,9 @@ def format_price(min_price: Optional[Union[str, float]],
     if max_price:
         formatted_price += u'£{}'.format(max_price)
     if unit:
-        formatted_price += ' a ' + unit.lower()
+        formatted_price += _with_a(unit.lower())
     if interval:
-        formatted_price += ' a ' + interval.lower()
+        formatted_price += _with_a(interval.lower())
     return formatted_price
 
 
