@@ -341,7 +341,7 @@ def get_href(question: 'Question', **kwargs) -> str:
     if govuk_frontend_version[0] >= 3:
         return href
 
-    if question_type in ("checkboxes", "list", "radios"):
+    if question_type in ("checkboxes", "list", "radios", "boolean"):
         href = f"{href}-1"
 
     return href
