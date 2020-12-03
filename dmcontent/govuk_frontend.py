@@ -101,6 +101,12 @@ def from_question(
             "macro_name": "govukCheckboxes",
             "params": govuk_checkboxes(question, data, errors, **kwargs)
         }
+    elif question.type == "boolean":
+        return {
+            "fieldset": govuk_fieldset(question, **kwargs),
+            "macro_name": "govukRadios",
+            "params": govuk_radios(question, data, errors, **kwargs)
+        }
     elif question.type == "textbox_large":
         return {
             "label": govuk_label(question, **kwargs),
@@ -203,6 +209,12 @@ def govuk_radios(
     # govukRadios wants idPrefix, not id
     del params["id"]
     params["idPrefix"] = f"input-{question.id}"
+
+    if question.get("type") == "boolean":
+        if params.get("classes"):
+            params["classes"] += " govuk-radios--inline"
+        else:
+            params["classes"] = "govuk-radios--inline"
 
     params["items"] = govuk_options(question.options, data.get(question.id))
 
@@ -341,7 +353,7 @@ def get_href(question: 'Question', **kwargs) -> str:
     if govuk_frontend_version[0] >= 3:
         return href
 
-    if question_type in ("checkboxes", "list", "radios"):
+    if question_type in ("checkboxes", "list", "radios", "boolean"):
         href = f"{href}-1"
 
     return href
