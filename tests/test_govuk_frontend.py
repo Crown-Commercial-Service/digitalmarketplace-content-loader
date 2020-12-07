@@ -279,11 +279,7 @@ class TestBoolean:
                 "id": "yesOrNo",
                 "name": "Yes or no",
                 "question": "Yes or no?",
-                "type": "boolean",
-                "options": [
-                    {"label": "Yes", "value": "yes"},
-                    {"label": "No", "value": "no"},
-                ],
+                "type": "boolean"
             }
         )
 
@@ -293,6 +289,12 @@ class TestBoolean:
         assert "id" not in params
         assert params["idPrefix"] == "input-yesOrNo"
         assert params["classes"] == "govuk-radios--inline"
+
+    def test_boolean_options_are_yes_and_no(self, question):
+        assert govuk_radios(question)["items"] == [
+            {"value": "True", "text": "Yes"},
+            {"value": "False", "text": "No"},
+        ]
 
 
 class TestCheckboxes:
