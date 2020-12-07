@@ -271,6 +271,30 @@ class TestRadios:
         assert form == snapshot
 
 
+class TestBoolean:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "yesOrNo",
+                "name": "Yes or no",
+                "question": "Yes or no?",
+                "type": "boolean",
+                "options": [
+                    {"label": "Yes", "value": "yes"},
+                    {"label": "No", "value": "no"},
+                ],
+            }
+        )
+
+    def test_govuk_radios_with_type_boolean(self, question, snapshot):
+        params = govuk_radios(question)
+
+        assert "id" not in params
+        assert params["idPrefix"] == "input-yesOrNo"
+        assert params["classes"] == "govuk-radios--inline"
+
+
 class TestCheckboxes:
     @pytest.fixture
     def question(self):
