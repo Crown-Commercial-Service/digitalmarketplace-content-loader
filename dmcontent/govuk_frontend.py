@@ -215,8 +215,10 @@ def govuk_radios(
             params["classes"] += " govuk-radios--inline"
         else:
             params["classes"] = "govuk-radios--inline"
-
-    params["items"] = govuk_options(question.options, data.get(question.id))
+        options = [{"label": "Yes", "value": "True"}, {"label": "No", "value": "False"}]
+        params["items"] = govuk_options(options, str(data.get(question.id)))
+    else:
+        params["items"] = govuk_options(question.options, data.get(question.id))
 
     return params
 
