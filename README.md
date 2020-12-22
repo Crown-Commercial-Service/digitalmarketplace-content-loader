@@ -1,7 +1,6 @@
 Digital Marketplace Content Loader
 ==================================
 
-[![Coverage Status](https://coveralls.io/repos/alphagov/digitalmarketplace-content-loader/badge.svg?branch=master&service=github)](https://coveralls.io/github/alphagov/digitalmarketplace-content-loader?branch=master)
 ![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)
 
 
