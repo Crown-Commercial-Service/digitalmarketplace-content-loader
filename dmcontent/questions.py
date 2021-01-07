@@ -631,7 +631,7 @@ class Date(Question):
 
     def unformat_data(self, data):
         result = {}
-        value = data[self.id]
+        value = data.get(self.id, None)
         if value:
             for partial_value, field in zip(value.split('-'), self.FIELDS):
                 result['-'.join([self.id, field])] = partial_value
