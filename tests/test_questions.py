@@ -154,6 +154,9 @@ class QuestionTest(object):
         if question.type in ("checkboxes", "list", "radios"):
             assert not href.endswith("-1")
 
+    def test_unformat_data_with_no_data_returns_empty(self):
+        assert all(v is None for v in self.question().unformat_data({}).values())
+
 
 class TestText(QuestionTest):
     def question(self, **kwargs):
@@ -265,9 +268,6 @@ class TestDates(QuestionTest):
             'example-month': 'bb',
             'example-year': '2017',
         }
-
-    def test_unformat_data_with_no_data_returns_empty(self):
-        assert self.question().unformat_data({}) == {}
 
     @pytest.mark.parametrize(
         ("value", "expected"),
