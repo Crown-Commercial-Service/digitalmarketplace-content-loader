@@ -266,6 +266,9 @@ class TestDates(QuestionTest):
             'example-year': '2017',
         }
 
+    def test_unformat_data_with_no_data_returns_empty(self):
+        assert self.question().unformat_data({}) == {}
+
     @pytest.mark.parametrize(
         ("value", "expected"),
         (("11", "11"), ('a', 'a'), ('a ', 'a'), ('01', '01'), (' 0', '0'), ('--', ''), ('-1', ''), ('', ''), (None, ''))
