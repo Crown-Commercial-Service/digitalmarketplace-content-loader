@@ -10,6 +10,9 @@ Read the docstring for `from_question` for more detail on how this works.
 
 from typing import List, Optional, TYPE_CHECKING
 
+import jinja2
+from jinja2 import Markup, escape
+
 from dmutils.forms.errors import govuk_error
 from dmutils.forms.helpers import govuk_options
 
@@ -38,30 +41,21 @@ def from_question(
     in a way that requires the developer to know as little as possible about
     the Question object in question.
 
-    `from_question` takes a Question and returns a dict containing the name of
+    `from_question()` takes a `Question` and returns a dict containing the name of
     the govuk-frontend macro to call and the parameters to call it with, as
-    well as associated components such as labels or fieldsets.  Calling the
-    macro(s) with the parameters is left to the app developer.
+    well as associated components such as labels or fieldsets.
 
         >>> from dmcontent import Question
         >>> from_question(Question({'id': 'q1', 'type': 'text', 'question': ...})
         {'label': {...}, 'macro_name': 'govukInput', 'params': {...}}
 
-    A little bit of Jinja magic is required for this;  you need a table of
-    macro names to macros in a Jinja template:
+    Calling the macro(s) with the parameters is then done by `render()`, below.
+    If `render()` and all the macros you need are in your template environment,
+    then no extra Jinja magic is required.
 
-        {% set govuk_forms = {
-            'govukInput': govukInput,
-            'govukRadios': govukRadios,
-            ...
-        } %}
-
-        {% set form = from_question(question) %}
-
-        {% if form.label %}
-        {{ govukLabel[form.label] }}
-        {% endif %}
-        {{ govuk_forms[form.macro_name](form.parameters) }}
+    `from_question()` mainly just takes care of dispatching the `Question`
+    object to the right function (defined below) for further processing; if you
+    need to handle a new type of `Question` try and follow that pattern.
 
     :param question: A Question or QuestionSummary
     :param data: A dict that may contain the answer for question
@@ -421,3 +415,62 @@ def _params(
         params["errorMessage"] = govuk_error(errors[input_id])["errorMessage"]
 
     return params
+
+
+# TODO: The code in `render()` is more complicated than it needs to be because
+# we are trying to maintain backwards compatibility with the interface of
+# `from_question()`. Once all apps are using `render_question()` instead of
+# `from_question()` we can safely change the objects emitted by `from_question()`
+# and experiment a bit more.
+
+@jinja2.contextfunction  # noqa: C901
+def render(ctx, obj, *, question=None) -> Markup:
+    """Call Jinja2 macros using Python objects
+
+    We want to be able to create HTML using govuk-frontend macros within Python
+    (not Jinja) code. To do that we need a template environment, so we have
+    come up with a method of creating deferred call objects and a new function
+    `render()` that evaluates the deferred calls.
+
+    For convenience `render()` will also accept strings (either `str` or
+    `Markup`) and pass them through, and if given a list of objects it will
+    call itself on each object and join the result into one piece of HTML.
+
+    `render()` always returns `Markup` (i.e. unescaped HTML), so it should be
+    used with caution. Do not use it on user input!!
+    """
+    if isinstance(obj, list):
+        return Markup("".join(render(ctx, el) for el in obj))
+    elif isinstance(obj, dict):
+        html = Markup("")
+        if "label" in obj:
+            html += ctx.resolve("govukLabel")(obj["label"])
+        if "macro_name" in obj:
+            macro = ctx.resolve(obj["macro_name"])
+            params = obj.get("params", {}).copy()
+            inner_html = Markup("")
+
+            # TODO: this shouldn't be here
+            if (
+                "question_advice" not in params
+                and question and question.get("question_advice")
+            ):
+                inner_html += question.question_advice + "\n"
+
+            if params:
+                inner_html += Markup(macro(params))
+            else:
+                inner_html += Markup(macro())
+
+            if "fieldset" in obj:
+                inner_html = Markup(
+                    ctx.resolve("govukFieldset")(obj["fieldset"], caller=lambda: inner_html)
+                )
+
+            html += inner_html
+
+        return html
+    elif isinstance(obj, (str, Markup)):
+        return escape(obj)
+    else:
+        raise TypeError("render() expects a dict or string type, or a list of dicts or string types")
