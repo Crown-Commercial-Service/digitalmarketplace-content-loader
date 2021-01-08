@@ -945,3 +945,30 @@ bar
         assert test_govuk_fieldset.call_args_list == [
             mock.call({"fizz": "buzz"}, caller=mock.ANY)
         ]
+
+    def test_macro_call_params_can_contain_macro_calls_in_html_key(self, env):
+        template = env.from_string("""{% macro test() -%}
+<p>foo</p>
+{%- endmacro %}
+{% macro wrapper(params) -%}
+<div>{{ params.html | safe }}</div>
+{%- endmacro %}
+{{ render([{'macro_name': 'wrapper', 'params': {'html': {'macro_name': 'test'}}}]) }}""")
+        assert template.render() == "<div><p>foo</p></div>"
+
+    def test_macro_call_params_can_contain_macro_calls_in_html_key_even_if_nested(self, env):
+        template = env.from_string("""{% macro test() -%}
+<p>foo</p>
+{%- endmacro %}
+{% macro wrapper(params) -%}
+{% for item in params['items'] -%}
+{% if item.conditional -%}
+<div>{{ item.conditional.html | safe }}</div>
+{%- endif %}
+{%- endfor %}
+{%- endmacro %}
+{{ render([{
+    'macro_name': 'wrapper',
+    'params': {'items': [{'conditional': {'html': {'macro_name': 'test'}}}]},
+}]) }}""")
+        assert template.render() == "<div><p>foo</p></div>"

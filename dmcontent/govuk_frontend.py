@@ -432,6 +432,10 @@ def render(ctx, obj, *, question=None) -> Markup:
     come up with a method of creating deferred call objects and a new function
     `render()` that evaluates the deferred calls.
 
+    `render()` still needs to be called from within a Jinja2 template, but it
+    should be able to handle expressions of arbitrary complexity (i.e. you can
+    have a macro call which calls other macros in its arguments).
+
     For convenience `render()` will also accept strings (either `str` or
     `Markup`) and pass them through, and if given a list of objects it will
     call itself on each object and join the result into one piece of HTML.
@@ -458,6 +462,25 @@ def render(ctx, obj, *, question=None) -> Markup:
                 inner_html += question.question_advice + "\n"
 
             if params:
+                # look for structures that are {'html': {'macro_name': ...}}
+                # and render them
+                def visit(inner_obj):
+                    if isinstance(inner_obj, dict):
+                        for k, v in inner_obj.items():
+                            if (
+                                k == "html"
+                                and isinstance(v, dict)
+                                and "macro_name" in v
+                            ):
+                                inner_obj["html"] = render(ctx, v)
+                            else:
+                                visit(v)
+                    elif isinstance(inner_obj, list):
+                        for el in inner_obj:
+                            visit(el)
+
+                visit(params)
+
                 inner_html += Markup(macro(params))
             else:
                 inner_html += Markup(macro())
