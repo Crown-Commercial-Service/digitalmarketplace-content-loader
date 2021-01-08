@@ -1,11 +1,48 @@
 """
 Create forms to answer questions using govuk-frontend macros.
 
-The main function in this module is `from_question`. It should be possible to
-do everything you might want to do just by calling `from_question` with a
-content loader Question.
 
-Read the docstring for `from_question` for more detail on how this works.
+This module aims to solve the developer need of
+
+    Given a content loader Question
+    I want to create a form element using the GOV.UK Design System
+    So that the user gets a good experience
+
+in a way that requires the developer to know as little as possible about the
+Question object in question.
+
+The main function in this module is `render_question()`. It will take a content
+loader Question and turn it into HTML that can be used directly in a template.
+
+`render_question()` needs to be called from within a Jinja2 template, so it
+should be added to your template environment. You can add it to all your
+templates by adding it to your environment globals like so:
+
+    >>> import jinja2
+    >>> from dmcontent.govuk_frontend import render_question
+    >>> env = jinja2.Environment()
+    >>> env.globals["render_question"] = render_question
+
+You will also need to make sure all the GOV.UK (and Digital Marketplace) macros
+are in the template environment where you call `render_question()`; currently
+this function can call (this is not an exhaustive list):
+
+    - govukCharacterCount
+    - govukCheckboxes
+    - govukDateInput
+    - govukFieldset
+    - govukInput
+    - govukLabel
+    - govukRadios
+    - dmListInput
+
+`render_question()` should cover all the usual cases of creating a form from a
+Question, but if for some reason you need to do more you can use
+`from_question()` and `render()` individually; `render_question()` just calls
+`render()` on the output of `from_question()`.
+
+Read the docstring for `from_question()` for more detail on how Questions are
+handled.
 """
 
 from typing import List, Optional, TYPE_CHECKING
@@ -20,7 +57,7 @@ if TYPE_CHECKING:
     from dmcontent.questions import Question
 
 
-__all__ = ["from_question", "govuk_input", "govuk_label"]
+__all__ = ["render_question", "from_question", "govuk_input", "govuk_label"]
 
 # Version of govuk-frontend templates expected. This is just the default,
 # set this in your app to change the behaviour of this code.
@@ -31,15 +68,6 @@ def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> Optional[dict]:
     """Create parameters object for govuk-frontend macros from a question
-
-    `from_question` aims to solve the developer need of
-
-        Given a content loader Question
-        I want to create a form element using the GOV.UK Design System
-        So that the user gets a good experience
-
-    in a way that requires the developer to know as little as possible about
-    the Question object in question.
 
     `from_question()` takes a `Question` and returns a dict containing the name of
     the govuk-frontend macro to call and the parameters to call it with, as
@@ -497,3 +525,23 @@ def render(ctx, obj, *, question=None) -> Markup:
         return escape(obj)
     else:
         raise TypeError("render() expects a dict or string type, or a list of dicts or string types")
+
+
+@jinja2.contextfunction
+def render_question(
+    ctx,
+    question: 'Question',
+    data: Optional[dict] = None,
+    errors: Optional[dict] = None,
+    **kwargs
+) -> Markup:
+    """Turn a content loader Question into HTML
+
+    Convenience function that calls `render()` on the output of
+    `from_question()`. In most circumstances this should be all you need.
+    """
+    return render(
+        ctx,
+        from_question(question, data, errors, **kwargs),
+        question=question
+    )
