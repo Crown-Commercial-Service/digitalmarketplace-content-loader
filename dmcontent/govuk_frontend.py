@@ -451,7 +451,7 @@ def _params(
 # `from_question()` we can safely change the objects emitted by `from_question()`
 # and experiment a bit more.
 
-@jinja2.contextfunction  # noqa: C901
+@jinja2.contextfunction
 def render(ctx, obj, *, question=None) -> Markup:
     """Call Jinja2 macros using Python objects
 
