@@ -142,7 +142,7 @@ class ContentManifest(object):
 
 
 class ContentSection(object):
-    TEMPLATE_FIELDS = ['name', 'description']
+    TEMPLATE_FIELDS = ['name', 'description', 'summary_page_description']
 
     @classmethod
     def create(cls, section):
