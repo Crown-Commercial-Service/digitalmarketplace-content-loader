@@ -1,14 +1,54 @@
 """
 Create forms to answer questions using govuk-frontend macros.
 
-The main function in this module is `from_question`. It should be possible to
-do everything you might want to do just by calling `from_question` with a
-content loader Question.
 
-Read the docstring for `from_question` for more detail on how this works.
+This module aims to solve the developer need of
+
+    Given a content loader Question
+    I want to create a form element using the GOV.UK Design System
+    So that the user gets a good experience
+
+in a way that requires the developer to know as little as possible about the
+Question object in question.
+
+The main function in this module is `render_question()`. It will take a content
+loader Question and turn it into HTML that can be used directly in a template.
+
+`render_question()` needs to be called from within a Jinja2 template, so it
+should be added to your template environment. You can add it to all your
+templates by adding it to your environment globals like so:
+
+    >>> import jinja2
+    >>> from dmcontent.govuk_frontend import render_question
+    >>> env = jinja2.Environment()
+    >>> env.globals["render_question"] = render_question
+
+You will also need to make sure all the GOV.UK (and Digital Marketplace) macros
+are in the template environment where you call `render_question()`; currently
+this function can call (this is not an exhaustive list):
+
+    - govukCharacterCount
+    - govukCheckboxes
+    - govukDateInput
+    - govukFieldset
+    - govukInput
+    - govukLabel
+    - govukRadios
+    - dmListInput
+
+`render_question()` should cover all the usual cases of creating a form from a
+Question, but if for some reason you need to do more you can use
+`from_question()` and `render()` individually; `render_question()` just calls
+`render()` on the output of `from_question()`.
+
+Read the docstring for `from_question()` for more detail on how Questions are
+handled.
 """
 
 from typing import List, Optional, TYPE_CHECKING
+
+import jinja2
+from jinja2 import Markup, escape
 
 from dmutils.forms.errors import govuk_error
 from dmutils.forms.helpers import govuk_options
@@ -17,7 +57,7 @@ if TYPE_CHECKING:
     from dmcontent.questions import Question
 
 
-__all__ = ["from_question", "govuk_input", "govuk_label"]
+__all__ = ["render_question", "from_question", "govuk_input", "govuk_label"]
 
 # Version of govuk-frontend templates expected. This is just the default,
 # set this in your app to change the behaviour of this code.
@@ -29,39 +69,21 @@ def from_question(
 ) -> Optional[dict]:
     """Create parameters object for govuk-frontend macros from a question
 
-    `from_question` aims to solve the developer need of
-
-        Given a content loader Question
-        I want to create a form element using the GOV.UK Design System
-        So that the user gets a good experience
-
-    in a way that requires the developer to know as little as possible about
-    the Question object in question.
-
-    `from_question` takes a Question and returns a dict containing the name of
+    `from_question()` takes a `Question` and returns a dict containing the name of
     the govuk-frontend macro to call and the parameters to call it with, as
-    well as associated components such as labels or fieldsets.  Calling the
-    macro(s) with the parameters is left to the app developer.
+    well as associated components such as labels or fieldsets.
 
         >>> from dmcontent import Question
         >>> from_question(Question({'id': 'q1', 'type': 'text', 'question': ...})
         {'label': {...}, 'macro_name': 'govukInput', 'params': {...}}
 
-    A little bit of Jinja magic is required for this;  you need a table of
-    macro names to macros in a Jinja template:
+    Calling the macro(s) with the parameters is then done by `render()`, below.
+    If `render()` and all the macros you need are in your template environment,
+    then no extra Jinja magic is required.
 
-        {% set govuk_forms = {
-            'govukInput': govukInput,
-            'govukRadios': govukRadios,
-            ...
-        } %}
-
-        {% set form = from_question(question) %}
-
-        {% if form.label %}
-        {{ govukLabel[form.label] }}
-        {% endif %}
-        {{ govuk_forms[form.macro_name](form.parameters) }}
+    `from_question()` mainly just takes care of dispatching the `Question`
+    object to the right function (defined below) for further processing; if you
+    need to handle a new type of `Question` try and follow that pattern.
 
     :param question: A Question or QuestionSummary
     :param data: A dict that may contain the answer for question
@@ -421,3 +443,105 @@ def _params(
         params["errorMessage"] = govuk_error(errors[input_id])["errorMessage"]
 
     return params
+
+
+# TODO: The code in `render()` is more complicated than it needs to be because
+# we are trying to maintain backwards compatibility with the interface of
+# `from_question()`. Once all apps are using `render_question()` instead of
+# `from_question()` we can safely change the objects emitted by `from_question()`
+# and experiment a bit more.
+
+@jinja2.contextfunction
+def render(ctx, obj, *, question=None) -> Markup:
+    """Call Jinja2 macros using Python objects
+
+    We want to be able to create HTML using govuk-frontend macros within Python
+    (not Jinja) code. To do that we need a template environment, so we have
+    come up with a method of creating deferred call objects and a new function
+    `render()` that evaluates the deferred calls.
+
+    `render()` still needs to be called from within a Jinja2 template, but it
+    should be able to handle expressions of arbitrary complexity (i.e. you can
+    have a macro call which calls other macros in its arguments).
+
+    For convenience `render()` will also accept strings (either `str` or
+    `Markup`) and pass them through, and if given a list of objects it will
+    call itself on each object and join the result into one piece of HTML.
+
+    `render()` always returns `Markup` (i.e. unescaped HTML), so it should be
+    used with caution. Do not use it on user input!!
+    """
+    if isinstance(obj, list):
+        return Markup("".join(render(ctx, el) for el in obj))
+    elif isinstance(obj, dict):
+        html = Markup("")
+        if "label" in obj:
+            html += ctx.resolve("govukLabel")(obj["label"])
+        if "macro_name" in obj:
+            macro = ctx.resolve(obj["macro_name"])
+            params = obj.get("params", {}).copy()
+            inner_html = Markup("")
+
+            # TODO: this shouldn't be here
+            if (
+                "question_advice" not in params
+                and question and question.get("question_advice")
+            ):
+                inner_html += question.question_advice + "\n"
+
+            if params:
+                # look for structures that are {'html': {'macro_name': ...}}
+                # and render them
+                def visit(inner_obj):
+                    if isinstance(inner_obj, dict):
+                        for k, v in inner_obj.items():
+                            if (
+                                k == "html"
+                                and isinstance(v, dict)
+                                and "macro_name" in v
+                            ):
+                                inner_obj["html"] = render(ctx, v)
+                            else:
+                                visit(v)
+                    elif isinstance(inner_obj, list):
+                        for el in inner_obj:
+                            visit(el)
+
+                visit(params)
+
+                inner_html += Markup(macro(params))
+            else:
+                inner_html += Markup(macro())
+
+            if "fieldset" in obj:
+                inner_html = Markup(
+                    ctx.resolve("govukFieldset")(obj["fieldset"], caller=lambda: inner_html)
+                )
+
+            html += inner_html
+
+        return html
+    elif isinstance(obj, (str, Markup)):
+        return escape(obj)
+    else:
+        raise TypeError("render() expects a dict or string type, or a list of dicts or string types")
+
+
+@jinja2.contextfunction
+def render_question(
+    ctx,
+    question: 'Question',
+    data: Optional[dict] = None,
+    errors: Optional[dict] = None,
+    **kwargs
+) -> Markup:
+    """Turn a content loader Question into HTML
+
+    Convenience function that calls `render()` on the output of
+    `from_question()`. In most circumstances this should be all you need.
+    """
+    return render(
+        ctx,
+        from_question(question, data, errors, **kwargs),
+        question=question
+    )

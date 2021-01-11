@@ -1,5 +1,10 @@
 import pytest
 
+from unittest import mock
+
+import jinja2
+from jinja2 import Markup
+
 from dmcontent.questions import Pricing, Question
 
 from dmcontent.govuk_frontend import (
@@ -14,6 +19,8 @@ from dmcontent.govuk_frontend import (
     govuk_fieldset,
     govuk_label,
     _params,
+    render,
+    render_question,
 )
 
 
@@ -849,3 +856,170 @@ class TestParams:
         params = _params(question, data, errors)
         assert params["value"] == "Definitely"
         assert params["errorMessage"]["text"] == "Answer yes or no only."
+
+
+class TestRender:
+    @pytest.fixture
+    def context(self):
+        return mock.Mock()
+
+    @pytest.fixture
+    def env(self):
+        env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
+        env.globals["render"] = render
+        return env
+
+    def test_it_returns_markup(self, context):
+        assert isinstance(render(context, []), Markup)
+        assert isinstance(render(context, ""), Markup)
+        assert isinstance(render(context, "Hello World"), Markup)
+        assert isinstance(render(context, Markup("<p>Hello World</p>")), Markup)
+
+    def test_it_returns_the_empty_string_if_called_with_nothing(self, context):
+        assert render(context, []) == ""
+        assert render(context, "") == ""
+
+    def test_it_escapes_strings(self, context):
+        assert render(context, "<p>Hello World</p>") == "&lt;p&gt;Hello World&lt;/p&gt;"
+
+    def test_it_does_not_escape_markup(self, context):
+        assert render(context, Markup("<p>Hello World</p>")) == "<p>Hello World</p>"
+
+    def test_it_joins_lists_of_strings(self, context):
+        assert render(context, [Markup("<p>"), "Hello World", Markup("</p>")]) \
+            == Markup("<p>Hello World</p>")
+
+    def test_it_is_passed_context_automatically_when_called_in_jinja_template(self, env):
+        assert env.from_string(
+            "{{ render([]) }}"
+        ).render() == ""
+
+    def test_it_calls_jinja_macros(self, env):
+        template = env.from_string("""{% macro test() -%}
+foo
+{%- endmacro %}
+{{ render([{'macro_name': 'test'}]) }}""")
+        assert template.render() == "foo"
+
+    def test_it_calls_macros_with_params(self, env):
+        test_macro = mock.Mock(return_value="bar")
+        template = env.from_string(
+            "{{ render([{'macro_name': 'test', 'params': {'a': 1, 'b': 2}}]) }}"
+        )
+        assert template.render(test=test_macro) == "bar"
+        assert test_macro.called_with({"a": 1, "b": 2})
+
+    def test_jinja_macros_are_not_escaped(self, env):
+        template = env.from_string("""{% macro test() -%}
+<p>foo</p>
+{%- endmacro %}
+{{ render([{'macro_name': 'test'}]) }}""")
+        assert template.render() == "<p>foo</p>"
+
+        template = env.from_string("""{% macro test(params) -%}
+<p>foo</p>
+{%- endmacro %}
+{{ render([{'macro_name': 'test', 'params': {'bar': 'baz'}}]) }}""")
+        assert template.render() == "<p>foo</p>"
+
+    def test_it_can_wrap_jinja_macros_in_fieldset(self, env):
+        template = env.from_string("""{% macro test() -%}
+bar
+{%- endmacro %}
+{% macro govukFieldset(params) -%}
+<fieldset>{{ caller() }}</fieldset>
+{%- endmacro %}
+{{ render([{'macro_name': 'test', 'fieldset': None}]) }}""")
+
+        assert template.render() == "<fieldset>bar</fieldset>"
+
+    def test_it_calls_fieldset_with_params(self, env):
+        test_macro = mock.Mock(return_value="foo")
+        test_govuk_fieldset = mock.Mock(
+            side_effect=lambda params, caller: params["fizz"]
+        )
+        template = env.from_string(
+            "{{ render([{'macro_name': 'test', 'fieldset': {'fizz': 'buzz'}}]) }}"
+        )
+        assert template.render(test=test_macro, govukFieldset=test_govuk_fieldset) \
+            == "buzz"
+        assert test_govuk_fieldset.call_args_list == [
+            mock.call({"fizz": "buzz"}, caller=mock.ANY)
+        ]
+
+    def test_macro_call_params_can_contain_macro_calls_in_html_key(self, env):
+        template = env.from_string("""{% macro test() -%}
+<p>foo</p>
+{%- endmacro %}
+{% macro wrapper(params) -%}
+<div>{{ params.html | safe }}</div>
+{%- endmacro %}
+{{ render([{'macro_name': 'wrapper', 'params': {'html': {'macro_name': 'test'}}}]) }}""")
+        assert template.render() == "<div><p>foo</p></div>"
+
+    def test_macro_call_params_can_contain_macro_calls_in_html_key_even_if_nested(self, env):
+        template = env.from_string("""{% macro test() -%}
+<p>foo</p>
+{%- endmacro %}
+{% macro wrapper(params) -%}
+{% for item in params['items'] -%}
+{% if item.conditional -%}
+<div>{{ item.conditional.html | safe }}</div>
+{%- endif %}
+{%- endfor %}
+{%- endmacro %}
+{{ render([{
+    'macro_name': 'wrapper',
+    'params': {'items': [{'conditional': {'html': {'macro_name': 'test'}}}]},
+}]) }}""")
+        assert template.render() == "<div><p>foo</p></div>"
+
+
+class TestRenderQuestion:
+
+    def test_it_calls_from_question_and_render(self):
+        ctx = mock.Mock()
+        question = mock.Mock()
+        data = mock.Mock()
+        errors = mock.Mock()
+
+        with mock.patch("dmcontent.govuk_frontend.from_question") as from_question:
+            with mock.patch("dmcontent.govuk_frontend.render") as render:
+                # with default args
+                render_question(ctx, question)
+
+                assert from_question.call_args == mock.call(question, None, None)
+                assert render.call_args == mock.call(
+                    ctx,
+                    from_question(question, None, None),
+                    question=question
+                )
+
+                # with args and kwargs
+                render_question(ctx, question, data, errors, some_kwarg="foobar")
+
+                assert from_question.call_args == mock.call(
+                    question, data, errors, some_kwarg="foobar"
+                )
+                assert render.call_args == mock.call(
+                    ctx,
+                    from_question(question, data, errors, some_kwarg="foobar"),
+                    question=question
+                )
+
+    def test_it_renders_question_advice(self):
+        ctx = mock.Mock()
+        ctx.resolve.return_value = str
+
+        question = Question(
+            {
+                "id": "title",
+                "name": "Title",
+                "question": "What you want to call your requirements",
+                "question_advice": "This will help you to refer to your requirements",
+                "hint": "100 characters maximum",
+                "type": "text",
+            }
+        )
+
+        assert "This will help you to refer to your requirements" in render_question(ctx, question)
