@@ -540,8 +540,11 @@ def render_question(
     Convenience function that calls `render()` on the output of
     `from_question()`. In most circumstances this should be all you need.
     """
+    to_render = from_question(question, data, errors, **kwargs)
+    if to_render is None:
+        raise jinja2.UndefinedError(f"unable to render question of type '{question.type}'")
     return render(
         ctx,
-        from_question(question, data, errors, **kwargs),
+        to_render,
         question=question
     )
