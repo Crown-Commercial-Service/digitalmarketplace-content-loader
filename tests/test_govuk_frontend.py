@@ -1007,6 +1007,21 @@ class TestRenderQuestion:
                     question=question
                 )
 
+    def test_it_raises_jinja2_undefined_error_if_question_type_is_not_handled(self):
+        ctx = mock.Mock()
+
+        question = Question(
+            {
+                "id": "q1",
+                "name": "Mysterious question",
+                "question": "A question we don't know how to render",
+                "type": "unhandled",
+            }
+        )
+
+        with pytest.raises(jinja2.UndefinedError):
+            render_question(ctx, question)
+
     def test_it_renders_question_advice(self):
         ctx = mock.Mock()
         ctx.resolve.return_value = str
