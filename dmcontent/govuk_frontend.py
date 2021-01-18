@@ -135,6 +135,8 @@ def from_question(
             "macro_name": "govukCharacterCount",
             "params": govuk_character_count(question, data, errors, **kwargs)
         }
+    elif question.type == "multiquestion":
+        return dm_multiquestion(question, data, errors, **kwargs)
     else:
         return None
 
@@ -303,6 +305,22 @@ def dm_pricing_input(
     # branch ldeb-spike-pricing-input-multiple-fields for a sketch of how to do
     # the multiple field case.
     raise NotImplementedError("cannot yet handle pricing question with multiple fields")
+
+
+def dm_multiquestion(
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> list:
+    to_render = []
+
+    if question.get("question_advice"):
+        to_render.append(question.question_advice)
+
+    to_render += [
+        from_question(q, data, errors, is_page_heading=False)
+        for q in question.questions
+    ]
+
+    return to_render
 
 
 def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
