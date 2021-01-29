@@ -470,6 +470,8 @@ def render(ctx, obj, *, question=None) -> Markup:
 
     `render()` always returns `Markup` (i.e. unescaped HTML), so it should be
     used with caution. Do not use it on user input!!
+
+    :type obj: list[dict or str or Markup] or dict or str or Markup
     """
     if isinstance(obj, list):
         return Markup("".join(render(ctx, el) for el in obj))
