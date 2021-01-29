@@ -313,7 +313,7 @@ def dm_multiquestion(
     to_render = []
 
     if question.get("question_advice"):
-        to_render.append(question.question_advice)
+        to_render.append(_question_advice(question))
 
     to_render += [
         from_question(q, data, errors, is_page_heading=False)
@@ -461,6 +461,17 @@ def _params(
         params["errorMessage"] = govuk_error(errors[input_id])["errorMessage"]
 
     return params
+
+
+def _question_advice(
+    question: 'Question', **kwargs
+) -> Markup:
+    """Render `question_advice` for `question`"""
+    return (
+        Markup('<span class="dm-question-advice">\n')
+        + question.question_advice
+        + Markup('\n</span>')
+    )
 
 
 # TODO: The code in `render()` is more complicated than it needs to be because

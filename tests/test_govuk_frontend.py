@@ -685,7 +685,9 @@ class TestDmMultiquestion:
             ]
 
     def test_dm_multiquestion_shows_question_advice(self, question):
+        question_advice_html = dm_multiquestion(question)[0]
         assert question.question_advice in dm_multiquestion(question)[0]
+        assert isinstance(question_advice_html, Markup)
 
     def test_dm_multiquestion_shows_questions(self, question):
         result = dm_multiquestion(question)
