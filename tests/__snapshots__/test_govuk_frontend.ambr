@@ -474,6 +474,164 @@
     },
   ]
 ---
+# name: TestDmMultiquestion.test_from_question_with_followup
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'fieldset': <class 'dict'> {
+        'legend': <class 'dict'> {
+          'classes': 'govuk-fieldset__legend--m',
+          'text': 'Yes or no?',
+        },
+      },
+      'macro_name': 'govukRadios',
+      'params': <class 'dict'> {
+        'classes': 'govuk-radios--inline',
+        'idPrefix': 'input-yesNo',
+        'items': <class 'list'> [
+          <class 'dict'> {
+            'conditional': <class 'dict'> {
+              'html': <class 'dict'> {
+                'label': <class 'dict'> {
+                  'for': 'input-tellUsMore',
+                  'text': 'Tell us more',
+                },
+                'macro_name': 'govukCharacterCount',
+                'params': <class 'dict'> {
+                  'hint': <class 'dict'> {
+                    'text': 'Enter at least one word, and no more than 100',
+                  },
+                  'id': 'input-tellUsMore',
+                  'maxwords': 100,
+                  'name': 'tellUsMore',
+                  'spellcheck': True,
+                },
+              },
+            },
+            'text': 'Yes',
+            'value': 'True',
+          },
+          <class 'dict'> {
+            'text': 'No',
+            'value': 'False',
+          },
+        ],
+        'name': 'yesNo',
+      },
+    },
+  ]
+---
+# name: TestDmMultiquestion.test_from_question_with_followup_with_data
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'fieldset': <class 'dict'> {
+        'legend': <class 'dict'> {
+          'classes': 'govuk-fieldset__legend--m',
+          'text': 'Yes or no?',
+        },
+      },
+      'macro_name': 'govukRadios',
+      'params': <class 'dict'> {
+        'classes': 'govuk-radios--inline',
+        'idPrefix': 'input-yesNo',
+        'items': <class 'list'> [
+          <class 'dict'> {
+            'checked': True,
+            'conditional': <class 'dict'> {
+              'html': <class 'dict'> {
+                'label': <class 'dict'> {
+                  'for': 'input-tellUsMore',
+                  'text': 'Tell us more',
+                },
+                'macro_name': 'govukCharacterCount',
+                'params': <class 'dict'> {
+                  'hint': <class 'dict'> {
+                    'text': 'Enter at least one word, and no more than 100',
+                  },
+                  'id': 'input-tellUsMore',
+                  'maxwords': 100,
+                  'name': 'tellUsMore',
+                  'spellcheck': True,
+                  'value': "Gosh, there's a lot to say.",
+                },
+              },
+            },
+            'text': 'Yes',
+            'value': 'True',
+          },
+          <class 'dict'> {
+            'text': 'No',
+            'value': 'False',
+          },
+        ],
+        'name': 'yesNo',
+      },
+    },
+  ]
+---
+# name: TestDmMultiquestion.test_from_question_with_followup_with_errors
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'fieldset': <class 'dict'> {
+        'legend': <class 'dict'> {
+          'classes': 'govuk-fieldset__legend--m',
+          'text': 'Yes or no?',
+        },
+      },
+      'macro_name': 'govukRadios',
+      'params': <class 'dict'> {
+        'classes': 'govuk-radios--inline',
+        'idPrefix': 'input-yesNo',
+        'items': <class 'list'> [
+          <class 'dict'> {
+            'conditional': <class 'dict'> {
+              'html': <class 'dict'> {
+                'label': <class 'dict'> {
+                  'for': 'input-tellUsMore',
+                  'text': 'Tell us more',
+                },
+                'macro_name': 'govukCharacterCount',
+                'params': <class 'dict'> {
+                  'errorMessage': <class 'dict'> {
+                    'text': 'Enter an answer.',
+                  },
+                  'hint': <class 'dict'> {
+                    'text': 'Enter at least one word, and no more than 100',
+                  },
+                  'id': 'input-tellUsMore',
+                  'maxwords': 100,
+                  'name': 'tellUsMore',
+                  'spellcheck': True,
+                },
+              },
+            },
+            'text': 'Yes',
+            'value': 'True',
+          },
+          <class 'dict'> {
+            'text': 'No',
+            'value': 'False',
+          },
+        ],
+        'name': 'yesNo',
+      },
+    },
+  ]
+---
 # name: TestDmMultiquestion.test_multiquestion
   <class 'list'> [
   '
