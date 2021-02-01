@@ -135,6 +135,8 @@ def from_question(
             "macro_name": "govukCharacterCount",
             "params": govuk_character_count(question, data, errors, **kwargs)
         }
+    elif question.type == "multiquestion":
+        return dm_multiquestion(question, data, errors, **kwargs)
     else:
         return None
 
@@ -305,6 +307,22 @@ def dm_pricing_input(
     raise NotImplementedError("cannot yet handle pricing question with multiple fields")
 
 
+def dm_multiquestion(
+    question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> list:
+    to_render = []
+
+    if question.get("question_advice"):
+        to_render.append(_question_advice(question))
+
+    to_render += [
+        from_question(q, data, errors, is_page_heading=False)
+        for q in question.questions
+    ]
+
+    return to_render
+
+
 def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
     """
     :param bool is_page_heading: If True, the label will be set to display as a page heading
@@ -445,6 +463,17 @@ def _params(
     return params
 
 
+def _question_advice(
+    question: 'Question', **kwargs
+) -> Markup:
+    """Render `question_advice` for `question`"""
+    return (
+        Markup('<span class="dm-question-advice">\n')
+        + question.question_advice
+        + Markup('\n</span>')
+    )
+
+
 # TODO: The code in `render()` is more complicated than it needs to be because
 # we are trying to maintain backwards compatibility with the interface of
 # `from_question()`. Once all apps are using `render_question()` instead of
@@ -470,6 +499,8 @@ def render(ctx, obj, *, question=None) -> Markup:
 
     `render()` always returns `Markup` (i.e. unescaped HTML), so it should be
     used with caution. Do not use it on user input!!
+
+    :type obj: list[dict or str or Markup] or dict or str or Markup
     """
     if isinstance(obj, list):
         return Markup("".join(render(ctx, el) for el in obj))

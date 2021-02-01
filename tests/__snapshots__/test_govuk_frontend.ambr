@@ -343,6 +343,178 @@
     },
   }
 ---
+# name: TestDmMultiquestion.test_from_question
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-question',
+        'text': 'Write the question',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-question',
+        'maxwords': 100,
+        'name': 'question',
+        'spellcheck': True,
+      },
+    },
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-answer',
+        'text': 'Write the answer',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-answer',
+        'maxwords': 100,
+        'name': 'answer',
+        'spellcheck': True,
+      },
+    },
+  ]
+---
+# name: TestDmMultiquestion.test_from_question_with_data
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-question',
+        'text': 'Write the question',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-question',
+        'maxwords': 100,
+        'name': 'question',
+        'spellcheck': True,
+        'value': 'What is going on?',
+      },
+    },
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-answer',
+        'text': 'Write the answer',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-answer',
+        'maxwords': 100,
+        'name': 'answer',
+        'spellcheck': True,
+        'value': "I don't know.",
+      },
+    },
+  ]
+---
+# name: TestDmMultiquestion.test_from_question_with_errors
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-question',
+        'text': 'Write the question',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'errorMessage': <class 'dict'> {
+          'text': 'Enter a question.',
+        },
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-question',
+        'maxwords': 100,
+        'name': 'question',
+        'spellcheck': True,
+      },
+    },
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-answer',
+        'text': 'Write the answer',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'errorMessage': <class 'dict'> {
+          'text': 'Enter an answer.',
+        },
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-answer',
+        'maxwords': 100,
+        'name': 'answer',
+        'spellcheck': True,
+      },
+    },
+  ]
+---
+# name: TestDmMultiquestion.test_multiquestion
+  <class 'list'> [
+  '
+      <span class="dm-question-advice">
+      This is some question advice
+      </span>
+    ',
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-question',
+        'text': 'Write the question',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-question',
+        'maxwords': 100,
+        'name': 'question',
+        'spellcheck': True,
+      },
+    },
+    <class 'dict'> {
+      'label': <class 'dict'> {
+        'for': 'input-answer',
+        'text': 'Write the answer',
+      },
+      'macro_name': 'govukCharacterCount',
+      'params': <class 'dict'> {
+        'hint': <class 'dict'> {
+          'text': 'Enter at least one word, and no more than 100',
+        },
+        'id': 'input-answer',
+        'maxwords': 100,
+        'name': 'answer',
+        'spellcheck': True,
+      },
+    },
+  ]
+---
 # name: TestDmPricingInput.test_dm_pricing_input_with_price_field
   <class 'dict'> {
     'label': <class 'dict'> {

@@ -5,7 +5,7 @@ from unittest import mock
 import jinja2
 from jinja2 import Markup
 
-from dmcontent.questions import Pricing, Question
+from dmcontent.questions import Pricing, Question, Multiquestion
 
 from dmcontent.govuk_frontend import (
     from_question,
@@ -16,6 +16,7 @@ from dmcontent.govuk_frontend import (
     govuk_radios,
     dm_list_input,
     dm_pricing_input,
+    dm_multiquestion,
     govuk_fieldset,
     govuk_label,
     _params,
@@ -620,6 +621,127 @@ class TestDmPricingInput:
                 assert "--error" in component["params"]["classes"]
         else:
             raise ValueError("form should have params or a fieldset")
+
+        assert form == snapshot
+
+
+class TestDmMultiquestion:
+    @pytest.fixture
+    def question(self):
+        return Multiquestion(
+            {
+                "id": "questionAndAnswer",
+                "name": "questionAndAnswer",
+                "type": "multiquestion",
+                "question": "This is a Multiquestion",
+                "question_advice": "This is some question advice",
+                "questions": [
+                    {
+                        "id": "question",
+                        "name": "Question",
+                        "question": "Write the question",
+                        "type": "textbox_large",
+                        "hint": "Enter at least one word, and no more than 100",
+                        "max_length_in_words": 100,
+                    },
+                    {
+                        "id": "answer",
+                        "name": "Answer",
+                        "question": "Write the answer",
+                        "type": "textbox_large",
+                        "hint": "Enter at least one word, and no more than 100",
+                        "max_length_in_words": 100,
+                    }
+                ]
+            }
+        )
+
+    def test_multiquestion(self, question, snapshot):
+        assert dm_multiquestion(question) == snapshot
+
+    def test_dm_multiquestion_returns_a_list_of_renderables(self, question):
+        """Test that the ouput of dm_multiquestion can be handled by render()"""
+        assert isinstance(dm_multiquestion(question), list)
+        for sub_question in dm_multiquestion(question):
+            assert isinstance(sub_question, (dict, Markup, str))
+
+    def test_dm_multiquestion_calls_from_question_on_each_of_its_questions(self, question):
+        with mock.patch("dmcontent.govuk_frontend.from_question") as from_question:
+            dm_multiquestion(question)
+            assert from_question.call_count == len(question.questions)
+            assert from_question.call_args_list == [
+                mock.call(sub_question, None, None, is_page_heading=False)
+                for sub_question in question.questions
+            ]
+
+    def test_dm_multiquestion_passes_data_and_errors_for_each_of_its_questions(self, question):
+        with mock.patch("dmcontent.govuk_frontend.from_question") as from_question:
+            data = mock.MagicMock()
+            errors = mock.MagicMock()
+            dm_multiquestion(question, data, errors)
+            assert from_question.call_args_list == [
+                mock.call(sub_question, data, errors, is_page_heading=False)
+                for sub_question in question.questions
+            ]
+
+    def test_dm_multiquestion_shows_question_advice(self, question):
+        question_advice_html = dm_multiquestion(question)[0]
+        assert question.question_advice in dm_multiquestion(question)[0]
+        assert isinstance(question_advice_html, Markup)
+
+    def test_dm_multiquestion_shows_questions(self, question):
+        result = dm_multiquestion(question)
+
+        assert result[1]["label"]["text"] == "Write the question"
+        assert result[1]["macro_name"] == "govukCharacterCount"
+        assert result[1]["params"]["id"] == "input-question"
+
+        assert result[2]["label"]["text"] == "Write the answer"
+        assert result[2]["macro_name"] == "govukCharacterCount"
+        assert result[2]["params"]["id"] == "input-answer"
+
+    def test_dm_multiquestion_question_labels_are_not_page_headings(self, question):
+        output = dm_multiquestion(question)
+
+        for q in output[1:]:
+            assert not q["label"].get("isPageHeading")
+
+    def test_from_question(self, question, snapshot):
+        assert from_question(question) == snapshot
+
+    def test_from_question_with_data(self, question, snapshot):
+        data = {
+            "question": "What is going on?",
+            "answer": "I don't know.",
+        }
+
+        form = from_question(question, data)
+
+        assert form[1]["params"]["value"] == "What is going on?"
+        assert form[2]["params"]["value"] == "I don't know."
+
+        assert form == snapshot
+
+    def test_from_question_with_errors(self, question, snapshot):
+        errors = {
+            "question": {
+                "input_name": "question",
+                "href": "#input-question",
+                "question": "What's the question?",
+                "message": "Enter a question.",
+            },
+            "answer": {
+                "input_name": "answer",
+                "href": "#input-answer",
+                "question": "What's the answer?",
+                "message": "Enter an answer.",
+            },
+        }
+
+        form = from_question(question, errors=errors)
+
+        assert form[1]["params"]["errorMessage"]
+        assert form[2]["params"]["errorMessage"]
 
         assert form == snapshot
 
