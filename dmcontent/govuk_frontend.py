@@ -45,7 +45,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -315,10 +315,36 @@ def dm_multiquestion(
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
 
-    to_render += [
-        from_question(q, data, errors, is_page_heading=False)
-        for q in question.questions
-    ]
+    # We need to be able to skip followup questions. Questions which have
+    # followups always come before the followup, so we create a variable
+    # outside of the loop scope which is used to flag when a subsequent
+    # question should be skipped. Followups are referred to by id in the
+    # question object, so our variable should be a set of ids.
+    to_skip: Set[str] = set()
+
+    for q in question.questions:
+        if q.id in to_skip:
+            continue
+
+        to_render.append(
+            from_question(q, data, errors, is_page_heading=False)
+        )
+
+        if q.get("followup"):
+            # flag that the followup question(s) should be skipped later
+            to_skip.update(q.followup.keys())
+
+            # convert the values in values_followup to str
+            # to match the form input item values
+            followups = {str(v): qs for v, qs in q.values_followup.items()}
+            items = to_render[-1]["params"]["items"]
+
+            for item in items:
+                if item["value"] in followups:
+                    followup_q = question.get_question(followups[item["value"]][0])
+                    item["conditional"] = {
+                        "html": from_question(followup_q, data, errors, is_page_heading=False)
+                    }
 
     return to_render
 

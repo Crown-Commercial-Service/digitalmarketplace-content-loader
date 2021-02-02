@@ -656,6 +656,38 @@ class TestDmMultiquestion:
             }
         )
 
+    @pytest.fixture
+    def question_with_followup(self):
+        return Multiquestion(
+            {
+                "id": "questionAndAnswer",
+                "name": "questionAndAnswer",
+                "type": "multiquestion",
+                "question": "This is a Multiquestion with followup",
+                "question_advice": "This is some question advice",
+                "questions": [
+                    {
+                        "id": "yesNo",
+                        "name": "yesNo",
+                        "question": "Yes or no?",
+                        "type": "boolean",
+                        "followup": {
+                            "tellUsMore": [True],
+                        },
+                    },
+                    {
+                        "id": "tellUsMore",
+                        "name": "tellUsMore",
+                        "question": "Tell us more",
+                        "hide": True,
+                        "type": "textbox_large",
+                        "hint": "Enter at least one word, and no more than 100",
+                        "max_length_in_words": 100,
+                    }
+                ]
+            }
+        )
+
     def test_multiquestion(self, question, snapshot):
         assert dm_multiquestion(question) == snapshot
 
@@ -706,6 +738,27 @@ class TestDmMultiquestion:
         for q in output[1:]:
             assert not q["label"].get("isPageHeading")
 
+    def test_dm_multiquestion_folds_followup_questions(self, question_with_followup):
+        """If a question is a followup to another then it should not be in top-level list"""
+        questions = dm_multiquestion(question_with_followup)[1:]
+        assert [q["params"]["name"] for q in questions] == [
+            "yesNo",
+            # not "tellUsMore"
+        ]
+
+    def test_dm_multiquestion_puts_followup_macro_in_conditional(self, question_with_followup):
+        selection_question = dm_multiquestion(question_with_followup)[1]
+        items = {i["text"]: i for i in selection_question["params"]["items"]}
+
+        assert items.keys() == {"Yes", "No"}
+
+        assert "conditional" in items["Yes"]
+        conditional_html = items["Yes"]["conditional"]["html"]
+        assert conditional_html["macro_name"] == "govukCharacterCount"
+        assert conditional_html["params"]
+
+        assert "conditional" not in items["No"]
+
     def test_from_question(self, question, snapshot):
         assert from_question(question) == snapshot
 
@@ -742,6 +795,42 @@ class TestDmMultiquestion:
 
         assert form[1]["params"]["errorMessage"]
         assert form[2]["params"]["errorMessage"]
+
+        assert form == snapshot
+
+    def test_from_question_with_followup(self, question_with_followup, snapshot):
+        assert from_question(question_with_followup) == snapshot
+
+    def test_from_question_with_followup_with_data(self, question_with_followup, snapshot):
+        data = {
+            "yesNo": "True",
+            "tellUsMore": "Gosh, there's a lot to say.",
+        }
+
+        form = from_question(question_with_followup, data)
+
+        assert form[1]["params"]["items"][0]["checked"]
+        assert (
+            form[1]["params"]["items"][0]["conditional"]["html"]["params"]["value"]
+            == "Gosh, there's a lot to say."
+        )
+
+        assert form == snapshot
+
+    def test_from_question_with_followup_with_errors(self, question_with_followup, snapshot):
+        errors = {
+            "tellUsMore": {
+                "input_name": "tellUsMore",
+                "href": "#input-answer",
+                "question": "Tell us more",
+                "message": "Enter an answer.",
+            },
+        }
+
+        form = from_question(question_with_followup, errors=errors)
+
+        assert "errorMessage" not in form[1]["params"]
+        assert form[1]["params"]["items"][0]["conditional"]["html"]["params"]["errorMessage"]
 
         assert form == snapshot
 
