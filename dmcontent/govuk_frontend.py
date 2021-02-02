@@ -45,7 +45,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -315,7 +315,13 @@ def dm_multiquestion(
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
 
-    to_skip = set()  # we need to be able to skip some questions, such as followups
+    # We need to be able to skip followup questions. Questions which have
+    # followups always come before the followup, so we create a variable
+    # outside of the loop scope which is used to flag when a subsequent
+    # question should be skipped. Followups are referred to by id in the
+    # question object, so our variable should be a set of ids.
+    to_skip: Set[str] = set()
+
     for q in question.questions:
         if q.id in to_skip:
             continue
@@ -325,7 +331,8 @@ def dm_multiquestion(
         )
 
         if q.get("followup"):
-            to_skip |= q.followup.keys()
+            # flag that the followup question(s) should be skipped later
+            to_skip.update(q.followup.keys())
 
             # convert the values in values_followup to str
             # to match the form input item values
