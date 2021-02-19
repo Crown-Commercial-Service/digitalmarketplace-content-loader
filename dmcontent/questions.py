@@ -102,7 +102,7 @@ class Question(object):
 
         return {self.id: value}
 
-    def get_error_messages(self, errors, question_descriptor_from="label"):
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
         error_fields = set(errors.keys()) & set(self.form_fields)
         if not error_fields:
             return {}
@@ -305,7 +305,7 @@ class Multiquestion(Question):
     def get_question_ids(self, type=None):
         return [question.id for question in self.questions if type in [question.type, None]]
 
-    def get_error_messages(self, errors, question_descriptor_from="label"):
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         # Multi-question errors should have the same ordering as the questions
         errors = super(Multiquestion, self).get_error_messages(
             errors, question_descriptor_from=question_descriptor_from
@@ -439,7 +439,7 @@ class DynamicList(Multiquestion):
 
         return result
 
-    def get_error_messages(self, errors, question_descriptor_from="label"):
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         if self.id not in errors:
             return {}
 
@@ -651,7 +651,7 @@ class QuestionSummary(Question):
     def _default_for_field(self, field_key):
         return self.get('field_defaults', {}).get(field_key)
 
-    def get_error_messages(self, errors, question_descriptor_from="label"):
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
 
         question_errors = super(QuestionSummary, self).get_error_messages(
             errors,
