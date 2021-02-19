@@ -355,7 +355,7 @@ class ContentSection(object):
             any(form_field not in service for form_field in self.get_field_names())
         ])
 
-    def get_error_messages(self, errors, question_descriptor_from="label"):
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         """Convert API error keys into error messages
 
         :param errors: error dictionary as returned by the data API
