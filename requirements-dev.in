@@ -1,6 +1,6 @@
 -c requirements.txt
 
-pip-tools>5.0.0
+pip-tools>=5.5.0
 
 flake8<3.8.0,>=3.7.7
 mock
