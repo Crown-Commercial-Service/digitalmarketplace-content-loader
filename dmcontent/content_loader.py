@@ -6,7 +6,7 @@ import re
 import os
 import copy
 
-from typing import Optional
+from typing import Optional, Dict, MutableMapping, List
 
 from collections import defaultdict, OrderedDict
 from functools import partial
@@ -16,7 +16,7 @@ from .errors import ContentNotFoundError, QuestionNotFoundError
 from .questions import Question, ContentQuestion
 from .messages import ContentMessage
 from .metadata import ContentMetadata
-from .utils import TemplateField, template_all, drop_followups
+from .utils import TemplateField, template_all, drop_followups, LazyDict
 
 
 class ContentManifest(object):
@@ -486,7 +486,7 @@ class ContentLoader(object):
     """
     def __init__(self, content_path):
         self.content_path = content_path
-        self._content = defaultdict(dict)
+        self._content: Dict[str, MutableMapping] = defaultdict(dict)
         self._messages = defaultdict(dict)
         self._metadata = defaultdict(dict)
 
@@ -503,21 +503,51 @@ class ContentLoader(object):
 
     get_builder = get_manifest  # TODO remove once apps have switched to .get_manifest
 
-    def load_manifest(self, framework_slug, question_set, manifest):
+    def generate_manifest(self, framework_slug, question_set, manifest) -> List:
+        manifest_path = os.path.join(
+            self._root_path(framework_slug), 'manifests', f'{manifest}.yml'
+        )
+        try:
+            manifest_sections = read_yaml(manifest_path)
+        except IOError:
+            raise ContentNotFoundError(f"No manifest at {manifest_path}")
+
+        return [
+            self._process_section(framework_slug, question_set, section)
+            for section in manifest_sections
+        ]
+
+    def load_manifest(self, framework_slug, question_set, manifest) -> Optional[List]:
         if manifest in self._content[framework_slug]:
             return
 
-        try:
-            manifest_path = os.path.join(self._root_path(framework_slug), 'manifests', '{}.yml'.format(manifest))
-            manifest_sections = read_yaml(manifest_path)
-        except IOError:
-            raise ContentNotFoundError("No manifest at {}".format(manifest_path))
-
-        self._content[framework_slug][manifest] = [
-            self._process_section(framework_slug, question_set, section) for section in manifest_sections
-        ]
-
+        self._content[framework_slug][manifest] = self.generate_manifest(framework_slug, question_set, manifest)
         return self._content[framework_slug][manifest]
+
+    def lazy_load_manifests(
+        self, framework_slug: str, manifests_to_question_sets: Dict[str, str]
+    ):
+        """
+        Lazily load all the manifests for a framework.
+
+        Use this for framework manifests that users are unlikely to use. This decreases application startup time at the
+        cost of slowing down the first request to access a manifest.
+
+        As of March 2021, the effect is about a second a manifest.
+        """
+        existing_manifests = self._content[framework_slug]
+
+        self._content[framework_slug] = LazyDict(
+            {
+                manifest: partial(
+                    self.generate_manifest, framework_slug, question_set, manifest
+                )
+                for (manifest, question_set) in manifests_to_question_sets.items()
+            }
+        )
+
+        if existing_manifests:
+            self._content[framework_slug].update(existing_manifests)
 
     def _process_section(self, framework_slug, question_set, section):
         section = self._load_nested_questions(framework_slug, question_set, section)
