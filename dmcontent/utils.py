@@ -175,3 +175,32 @@ def count_unanswered_questions(service_attributes: "ContentManifest") -> typing.
                 unanswered_optional += 1
 
     return unanswered_required, unanswered_optional
+
+
+class LazyDict(collections.MutableMapping):
+    """
+    A dictionary for values that will be lazily evaluated the first time they are requested.
+    If a value is callable, then it will be called the first time that value is requested and the result cached.
+
+    This is probably not thread safe, so any callable inserted should be idempotent
+    """
+    def __init__(self, *args, **kw):
+        self._raw_dict = dict(*args, **kw)
+
+    def __getitem__(self, key):
+        if key in self._raw_dict and callable(self._raw_dict.get(key)):
+            self._raw_dict[key] = self._raw_dict[key]()
+
+        return self._raw_dict.__getitem__(key)
+
+    def __iter__(self):
+        return iter(self._raw_dict)
+
+    def __len__(self):
+        return len(self._raw_dict)
+
+    def __setitem__(self, key, value):
+        self._raw_dict.__setitem__(key, value)
+
+    def __delitem__(self, value):
+        self._raw_dict.__delitem__(value)

@@ -13,7 +13,7 @@ from dmcontent.utils import (
     try_load_manifest,
     try_load_metadata,
     try_load_messages,
-    count_unanswered_questions,
+    count_unanswered_questions, LazyDict,
 )
 
 
@@ -359,3 +359,33 @@ def test_count_unanswered_questions():
     )
 
     assert count_unanswered_questions(mock_content_manifest) == (6, 3)
+
+
+class TestLazyDict:
+    def setup(self):
+        self.callable_mock = mock.Mock()
+
+    def test_stores_callables(self):
+        LazyDict(test=self.callable_mock)
+
+        assert self.callable_mock.call_count == 0
+
+    def test_calls_lazily(self):
+        test_dict = LazyDict(test=self.callable_mock)
+
+        test_dict.get("test")
+
+        assert self.callable_mock.call_count == 1
+
+    def test_caches_result(self):
+        test_dict = LazyDict(test=self.callable_mock)
+
+        test_dict.get("test")
+        test_dict.get("test")
+
+        assert self.callable_mock.call_count == 1
+
+    def test_stores_non_callables(self):
+        test_dict = LazyDict(test="test")
+
+        assert test_dict.get("test") == "test"
