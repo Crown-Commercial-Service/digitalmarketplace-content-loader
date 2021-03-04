@@ -202,5 +202,5 @@ class LazyDict(collections.MutableMapping):
     def __setitem__(self, key, value):
         self._raw_dict.__setitem__(key, value)
 
-    def __delitem__(self, value):
-        self._raw_dict.__delitem__(value)
+    def __delitem__(self, key):
+        self._raw_dict.__delitem__(key)
