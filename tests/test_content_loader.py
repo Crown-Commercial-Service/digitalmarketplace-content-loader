@@ -1729,6 +1729,8 @@ class TestReadYaml(object):
 
 @mock.patch('dmcontent.content_loader.read_yaml')
 class TestContentLoader(object):
+    yaml_file_count = 4
+
     def set_read_yaml_mock_response(self, read_yaml_mock):
         read_yaml_mock.side_effect = [
             self.manifest1(),
@@ -1788,7 +1790,7 @@ class TestContentLoader(object):
         yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
         yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
 
-        assert read_yaml_mock.call_count == 4
+        assert read_yaml_mock.call_count == self.yaml_file_count
 
     def test_manifest_loading_fails_if_manifest_cannot_be_read(self, read_yaml_mock):
         read_yaml_mock.side_effect = IOError
@@ -1808,6 +1810,41 @@ class TestContentLoader(object):
 
         with pytest.raises(ContentNotFoundError):
             yaml_loader.load_manifest('framework-slug', 'question-set', 'my-manifest')
+
+    def test_lazy_loading_is_lazy(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.lazy_load_manifests('framework-slug', {'my-manifest': 'question-set'})
+
+        assert read_yaml_mock.call_count == 0
+
+    def test_lazy_loading_loads(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.lazy_load_manifests('framework-slug', {'my-manifest': 'question-set'})
+        yaml_loader.get_manifest('framework-slug', 'my-manifest')
+
+        assert read_yaml_mock.call_count == self.yaml_file_count
+
+    def test_lazy_then_non_lazy_loads(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.lazy_load_manifests('framework-slug', {'one-manifest': 'question-set'})
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'two-manifest')
+
+        assert read_yaml_mock.call_count == self.yaml_file_count
+
+    def test_non_lazy_then_lazy_loads(self, read_yaml_mock):
+        self.set_read_yaml_mock_response(read_yaml_mock)
+        yaml_loader = ContentLoader('content/')
+
+        yaml_loader.load_manifest('framework-slug', 'question-set', 'one-manifest')
+        yaml_loader.lazy_load_manifests('framework-slug', {'two-manifest': 'question-set'})
+
+        assert read_yaml_mock.call_count == self.yaml_file_count
 
     def test_get_question(self, read_yaml_mock):
         read_yaml_mock.return_value = self.question1()
