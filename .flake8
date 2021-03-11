@@ -10,3 +10,4 @@ max-line-length = 120
 per-file-ignores =
     **/__init__.py : F401
     dmcontent/govuk_frontend.py: C901
+    tasks.py: F401

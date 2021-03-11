@@ -16,13 +16,14 @@ Originally was part of [Digital Marketplace Utils](https://github.com/alphagov/d
 Install Python dependencies
 
 ```
-make requirements-dev
+make bootstrap
+invoke requirements-dev
 ```
 
 Run the tests
 
 ```
-make test
+invoke test
 ```
 
 
