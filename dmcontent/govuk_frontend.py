@@ -34,6 +34,7 @@ this function can call (this is not an exhaustive list):
     - govukInput
     - govukLabel
     - govukRadios
+    - govukFileUpload
     - dmListInput
 
 `render_question()` should cover all the usual cases of creating a form from a
