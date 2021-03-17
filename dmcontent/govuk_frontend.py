@@ -135,6 +135,11 @@ def from_question(
             "macro_name": "govukCharacterCount",
             "params": govuk_character_count(question, data, errors, **kwargs)
         }
+    elif question.type == "upload":
+        return {
+            "macro_name": "govukFileUpload",
+            "params": govuk_file_upload(question, data, errors, **kwargs)
+        }
     elif question.type == "multiquestion":
         return dm_multiquestion(question, data, errors, **kwargs)
     else:
@@ -243,6 +248,36 @@ def govuk_radios(
         params["items"] = govuk_options(options, str(data.get(question.id)))
     else:
         params["items"] = govuk_options(question.options, data.get(question.id))
+
+    return params
+
+
+def govuk_file_upload(
+        question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
+) -> dict:
+    """Create govukFileUpload macro parameters from a file upload question"""
+    params = _params(question, data, errors, **kwargs)
+
+    params["label"] = {"text": question.question}
+
+    params["hint"] = {"html": ""}
+    if question.get("question_advice"):
+        params["hint"]["html"] += question.get("question_advice")
+
+    if question.get("hint"):
+        params["hint"]["html"] += question.get("hint")
+
+    # If the user has previously uploaded a file for this question
+    # add a line to the hint text rather than pre-filling the input
+    if data and data.get(params["name"]):
+        params["hint"]["html"] += Markup("<p>Previously uploaded file:<br>")
+        params["hint"]["html"] += Markup(data.get(params["name"]))
+        params["hint"]["html"] += Markup("</p>")
+
+    # Set an empty key in params for `question_advice` so `render` doesn't
+    # add the advice again.
+    # TODO: remove this once `render` doesn't check for question advice
+    params["question_advice"] = ""
 
     return params
 
