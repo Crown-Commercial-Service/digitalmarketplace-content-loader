@@ -14,6 +14,7 @@ from dmcontent.govuk_frontend import (
     govuk_input,
     govuk_checkboxes,
     govuk_radios,
+    govuk_file_upload,
     dm_list_input,
     dm_pricing_input,
     dm_multiquestion,
@@ -447,6 +448,62 @@ class TestDateInput:
         form = from_question(question, errors=errors)
 
         assert "errorMessage" in form["params"]
+        assert form == snapshot
+
+
+class TestFileUpload:
+    @pytest.fixture
+    def question(self):
+        return Question(
+            {
+                "id": "file-upload",
+                "name": Markup("File upload required"),
+                "question": Markup("Upload a file"),
+                "question_advice": Markup("Your file should meet accessibility standards"),
+                "type": "upload",
+                "hint": Markup("Read the guidance on accessible documents (opens in new tab)")
+            }
+        )
+
+    @pytest.fixture
+    def errors(self):
+        return {
+            "file-upload": {
+                "input_name": "file-upload",
+                "href": "#input-file-upload",
+                "question": "Upload a file",
+                "message": "You must select a file to upload.",
+            }
+        }
+
+    @pytest.fixture
+    def data(self):
+        return {
+            "file-upload": "https://assets.digitalmarketplace.com/path/to/file.pdf"
+        }
+
+    def test_govuk_file_upload(self, question, snapshot):
+        params = govuk_file_upload(question)
+        assert params == snapshot
+
+    def test_govuk_file_upload_with_errors(self, question, errors, snapshot):
+        params = govuk_file_upload(question, errors=errors)
+        assert params == snapshot
+
+    def test_govuk_file_upload_with_data(self, question, data, snapshot):
+        params = govuk_file_upload(question, data=data)
+        assert params == snapshot
+
+    def test_from_question(self, question, snapshot):
+        form = from_question(question)
+        assert snapshot == form
+
+    def test_from_question_with_errors(self, question, errors, snapshot):
+        form = from_question(question, errors=errors)
+        assert snapshot == form
+
+    def test_from_question_with_data(self, question, data, snapshot):
+        form = from_question(question, data=data)
         assert form == snapshot
 
 
