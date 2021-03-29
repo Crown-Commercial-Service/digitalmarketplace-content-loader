@@ -35,7 +35,8 @@ class GOVUKFrontendExtension(Extension):
         "ul": "govuk-list govuk-list--bullet",
         "ol": "govuk-list govuk-list--number",
         "a": "govuk-link",
-        "h2": "govuk-heading-m"
+        "h2": "govuk-heading-m",
+        "h3": "govuk-heading-s",
     }
 
     def extendMarkdown(self, md, md_globals):
