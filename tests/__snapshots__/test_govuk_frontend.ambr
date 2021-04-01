@@ -490,7 +490,6 @@
       },
       'macro_name': 'govukRadios',
       'params': <class 'dict'> {
-        'classes': 'govuk-radios--inline',
         'idPrefix': 'input-yesNo',
         'items': <class 'list'> [
           <class 'dict'> {
@@ -541,7 +540,6 @@
       },
       'macro_name': 'govukRadios',
       'params': <class 'dict'> {
-        'classes': 'govuk-radios--inline',
         'idPrefix': 'input-yesNo',
         'items': <class 'list'> [
           <class 'dict'> {
@@ -594,7 +592,6 @@
       },
       'macro_name': 'govukRadios',
       'params': <class 'dict'> {
-        'classes': 'govuk-radios--inline',
         'idPrefix': 'input-yesNo',
         'items': <class 'list'> [
           <class 'dict'> {
@@ -755,6 +752,101 @@
       },
       'spellcheck': False,
     },
+  }
+---
+# name: TestFileUpload.test_from_question
+  <class 'dict'> {
+    'macro_name': 'govukFileUpload',
+    'params': <class 'dict'> {
+      'hint': <class 'dict'> {
+        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
+      },
+      'id': 'input-file-upload',
+      'label': <class 'dict'> {
+        'text': Markup('Upload a file'),
+      },
+      'name': 'file-upload',
+      'question_advice': '',
+    },
+  }
+---
+# name: TestFileUpload.test_from_question_with_data
+  <class 'dict'> {
+    'macro_name': 'govukFileUpload',
+    'params': <class 'dict'> {
+      'hint': <class 'dict'> {
+        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)<p>Previously uploaded file:<br>https://assets.digitalmarketplace.com/path/to/file.pdf</p>'),
+      },
+      'id': 'input-file-upload',
+      'label': <class 'dict'> {
+        'text': Markup('Upload a file'),
+      },
+      'name': 'file-upload',
+      'question_advice': '',
+      'value': 'https://assets.digitalmarketplace.com/path/to/file.pdf',
+    },
+  }
+---
+# name: TestFileUpload.test_from_question_with_errors
+  <class 'dict'> {
+    'macro_name': 'govukFileUpload',
+    'params': <class 'dict'> {
+      'errorMessage': <class 'dict'> {
+        'text': 'You must select a file to upload.',
+      },
+      'hint': <class 'dict'> {
+        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
+      },
+      'id': 'input-file-upload',
+      'label': <class 'dict'> {
+        'text': Markup('Upload a file'),
+      },
+      'name': 'file-upload',
+      'question_advice': '',
+    },
+  }
+---
+# name: TestFileUpload.test_govuk_file_upload
+  <class 'dict'> {
+    'hint': <class 'dict'> {
+      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
+    },
+    'id': 'input-file-upload',
+    'label': <class 'dict'> {
+      'text': Markup('Upload a file'),
+    },
+    'name': 'file-upload',
+    'question_advice': '',
+  }
+---
+# name: TestFileUpload.test_govuk_file_upload_with_data
+  <class 'dict'> {
+    'hint': <class 'dict'> {
+      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)<p>Previously uploaded file:<br>https://assets.digitalmarketplace.com/path/to/file.pdf</p>'),
+    },
+    'id': 'input-file-upload',
+    'label': <class 'dict'> {
+      'text': Markup('Upload a file'),
+    },
+    'name': 'file-upload',
+    'question_advice': '',
+    'value': 'https://assets.digitalmarketplace.com/path/to/file.pdf',
+  }
+---
+# name: TestFileUpload.test_govuk_file_upload_with_errors
+  <class 'dict'> {
+    'errorMessage': <class 'dict'> {
+      'text': 'You must select a file to upload.',
+    },
+    'hint': <class 'dict'> {
+      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
+    },
+    'id': 'input-file-upload',
+    'label': <class 'dict'> {
+      'text': Markup('Upload a file'),
+    },
+    'name': 'file-upload',
+    'question_advice': '',
   }
 ---
 # name: TestGovukCharacterCount.test_from_question
@@ -1043,101 +1135,6 @@
       },
       'id': 'input-title',
       'name': 'title',
-    },
-  }
----
-# name: TestFileUpload.test_govuk_file_upload
-  <class 'dict'> {
-    'hint': <class 'dict'> {
-      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
-    },
-    'id': 'input-file-upload',
-    'label': <class 'dict'> {
-      'text': Markup('Upload a file'),
-    },
-    'name': 'file-upload',
-    'question_advice': '',
-  }
----
-# name: TestFileUpload.test_govuk_file_upload_with_errors
-  <class 'dict'> {
-    'errorMessage': <class 'dict'> {
-      'text': 'You must select a file to upload.',
-    },
-    'hint': <class 'dict'> {
-      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
-    },
-    'id': 'input-file-upload',
-    'label': <class 'dict'> {
-      'text': Markup('Upload a file'),
-    },
-    'name': 'file-upload',
-    'question_advice': '',
-  }
----
-# name: TestFileUpload.test_govuk_file_upload_with_data
-  <class 'dict'> {
-    'hint': <class 'dict'> {
-      'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)<p>Previously uploaded file:<br>https://assets.digitalmarketplace.com/path/to/file.pdf</p>'),
-    },
-    'id': 'input-file-upload',
-    'label': <class 'dict'> {
-      'text': Markup('Upload a file'),
-    },
-    'name': 'file-upload',
-    'question_advice': '',
-    'value': 'https://assets.digitalmarketplace.com/path/to/file.pdf',
-  }
----
-# name: TestFileUpload.test_from_question
-  <class 'dict'> {
-    'macro_name': 'govukFileUpload',
-    'params': <class 'dict'> {
-      'hint': <class 'dict'> {
-        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
-      },
-      'id': 'input-file-upload',
-      'label': <class 'dict'> {
-        'text': Markup('Upload a file'),
-      },
-      'name': 'file-upload',
-      'question_advice': '',
-    },
-  }
----
-# name: TestFileUpload.test_from_question_with_errors
-  <class 'dict'> {
-    'macro_name': 'govukFileUpload',
-    'params': <class 'dict'> {
-      'errorMessage': <class 'dict'> {
-        'text': 'You must select a file to upload.',
-      },
-      'hint': <class 'dict'> {
-        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)'),
-      },
-      'id': 'input-file-upload',
-      'label': <class 'dict'> {
-        'text': Markup('Upload a file'),
-      },
-      'name': 'file-upload',
-      'question_advice': '',
-    },
-  }
----
-# name: TestFileUpload.test_from_question_with_data
-  <class 'dict'> {
-    'macro_name': 'govukFileUpload',
-    'params': <class 'dict'> {
-      'hint': <class 'dict'> {
-        'html': Markup('Your file should meet accessibility standardsRead the guidance on accessible documents (opens in new tab)<p>Previously uploaded file:<br>https://assets.digitalmarketplace.com/path/to/file.pdf</p>'),
-      },
-      'id': 'input-file-upload',
-      'label': <class 'dict'> {
-        'text': Markup('Upload a file'),
-      },
-      'name': 'file-upload',
-      'question_advice': '',
-      'value': 'https://assets.digitalmarketplace.com/path/to/file.pdf',
     },
   }
 ---

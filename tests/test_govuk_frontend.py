@@ -795,6 +795,12 @@ class TestDmMultiquestion:
         for q in output[1:]:
             assert not q["label"].get("isPageHeading")
 
+    def test_dm_multiquestion_radio_with_followups_is_not_inline(self, question_with_followup):
+        """Radios with conditional content should not have inline styling"""
+        questions = dm_multiquestion(question_with_followup)[1:]
+        assert questions[0].get("macro_name") == "govukRadios"
+        assert "govuk-radios--inline" not in questions[0].get("classes", "")
+
     def test_dm_multiquestion_folds_followup_questions(self, question_with_followup):
         """If a question is a followup to another then it should not be in top-level list"""
         questions = dm_multiquestion(question_with_followup)[1:]
