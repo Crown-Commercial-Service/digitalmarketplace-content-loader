@@ -31,7 +31,7 @@ cryptography==3.3.2
 defusedxml==0.6.0
     # via odfpy
 digitalmarketplace-utils==57.0.0
-    # via sanitized-package
+    # via digitalmarketplace-content-loader
 docopt==0.6.2
     # via notifications-python-client
 docutils==0.15.2
@@ -46,13 +46,13 @@ flask-wtf==0.14.3
     # via digitalmarketplace-utils
 flask==1.0.4
     # via
+    #   digitalmarketplace-content-loader
     #   digitalmarketplace-utils
     #   flask-gzip
     #   flask-login
     #   flask-session
     #   flask-wtf
     #   gds-metrics
-    #   sanitized-package
 fleep==1.0.1
     # via digitalmarketplace-utils
 future==0.18.2
@@ -63,16 +63,18 @@ govuk-country-register==0.5.0
     # via digitalmarketplace-utils
 idna==2.10
     # via requests
+importlib-metadata==3.10.0
+    # via markdown
 inflection==0.5.1
-    # via sanitized-package
+    # via digitalmarketplace-content-loader
 itsdangerous==1.1.0
     # via
     #   flask
     #   flask-wtf
 jinja2==2.11.3
     # via
+    #   digitalmarketplace-content-loader
     #   flask
-    #   sanitized-package
 jmespath==0.10.0
     # via
     #   boto3
@@ -80,7 +82,7 @@ jmespath==0.10.0
 mailchimp3==3.0.6
     # via digitalmarketplace-utils
 markdown==3.3.4
-    # via sanitized-package
+    # via digitalmarketplace-content-loader
 markupsafe==1.1.1
     # via
     #   jinja2
@@ -104,7 +106,7 @@ python-json-logger==0.1.11
 pytz==2020.1
     # via digitalmarketplace-utils
 pyyaml==5.4.1
-    # via sanitized-package
+    # via digitalmarketplace-content-loader
 redis==3.5.3
     # via digitalmarketplace-utils
 requests==2.24.0
@@ -118,6 +120,8 @@ six==1.15.0
     # via
     #   cryptography
     #   python-dateutil
+typing-extensions==3.7.4.3
+    # via importlib-metadata
 unicodecsv==0.14.1
     # via digitalmarketplace-utils
 urllib3==1.25.10
@@ -132,3 +136,5 @@ workdays==1.4
     # via digitalmarketplace-utils
 wtforms==2.3.3
     # via flask-wtf
+zipp==3.4.1
+    # via importlib-metadata
