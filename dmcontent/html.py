@@ -15,7 +15,7 @@ Note: this code doesn't provide for formatting of assurance approach
 information, as that hasn't been used since G-Cloud 8.
 """
 
-from typing import List
+from typing import List, Dict
 
 from jinja2 import Markup, escape
 
@@ -87,7 +87,7 @@ def to_summary_list_rows(questions, *, filter_empty=True, **kwargs) -> List[dict
     ]
 
 
-def to_summary_list_row(question, *, action_link=None, **kwargs) -> List[dict]:
+def to_summary_list_row(question, *, action_link=None, **kwargs) -> Dict[str, dict]:
     """Convert a QuestionSummary into a row for govukSummaryList.
 
     This method expects a QuestionSummary.
@@ -106,7 +106,7 @@ def to_summary_list_row(question, *, action_link=None, **kwargs) -> List[dict]:
         else:
             question_value = to_html(question, **kwargs)
         if not question.is_empty:
-            output = {
+            return {
                 "key": {"text": question_label},
                 "value": {"html": question_value},
                 "actions": {
@@ -118,19 +118,17 @@ def to_summary_list_row(question, *, action_link=None, **kwargs) -> List[dict]:
                 }
             }
         else:
-            output = {
+            return {
                 "key": {"text": question_label},
                 "value": {"html": question_value}
             }
     else:
         question_label = question.label
         question_value = to_html(question, **kwargs)
-        output = {
+        return {
             "key": {"text": question_label},
             "value": {"html": question_value}
         }
-
-    return output
 
 
 def text_to_html(
