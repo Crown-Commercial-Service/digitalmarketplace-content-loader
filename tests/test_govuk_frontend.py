@@ -745,6 +745,47 @@ class TestDmMultiquestion:
             }
         )
 
+    @pytest.fixture
+    def question_with_multiple_followups(self):
+        return Multiquestion(
+            {
+                "id": "questionAndAnswer",
+                "name": "questionAndAnswer",
+                "type": "multiquestion",
+                "question": "This is a Multiquestion with multiple followups",
+                "question_advice": "This is some question advice",
+                "questions": [
+                    {
+                        "id": "yesNo",
+                        "name": "yesNo",
+                        "question": "Yes or no?",
+                        "type": "boolean",
+                        "followup": {
+                            "tellUsMore": [True],
+                            "letUsContactYou": [True]
+                        },
+                    },
+                    {
+                        "id": "tellUsMore",
+                        "name": "tellUsMore",
+                        "question": "Tell us more",
+                        "hide": True,
+                        "type": "textbox_large",
+                        "hint": "Enter at least one word, and no more than 100",
+                        "max_length_in_words": 100,
+                    },
+                    {
+                        "id": "letUsContactYou",
+                        "name": "letUsContactYou",
+                        "question": "Enter your email so we can ask you to tell us even more",
+                        "hide": True,
+                        "type": "text",
+                        "hint": "Enter an email, like bob@example.com"
+                    }
+                ]
+            }
+        )
+
     def test_multiquestion(self, question, snapshot):
         assert dm_multiquestion(question) == snapshot
 
@@ -817,8 +858,24 @@ class TestDmMultiquestion:
 
         assert "conditional" in items["Yes"]
         conditional_html = items["Yes"]["conditional"]["html"]
-        assert conditional_html["macro_name"] == "govukCharacterCount"
-        assert conditional_html["params"]
+        assert conditional_html[0]["macro_name"] == "govukCharacterCount"
+        assert conditional_html[0]["params"]
+
+        assert "conditional" not in items["No"]
+
+    def test_dm_multiquestion_lists_multiple_followups(self, question_with_multiple_followups):
+        selection_question = dm_multiquestion(question_with_multiple_followups)[1]
+        items = {i["text"]: i for i in selection_question["params"]["items"]}
+
+        assert items.keys() == {"Yes", "No"}
+
+        assert "conditional" in items["Yes"]
+        conditional_html = items["Yes"]["conditional"]["html"]
+        assert isinstance(conditional_html, list)
+        assert conditional_html[0]["macro_name"] == "govukCharacterCount"
+        assert conditional_html[1]["macro_name"] == "govukInput"
+        assert conditional_html[0]["params"]
+        assert conditional_html[1]["params"]
 
         assert "conditional" not in items["No"]
 
@@ -874,7 +931,7 @@ class TestDmMultiquestion:
 
         assert form[1]["params"]["items"][0]["checked"]
         assert (
-            form[1]["params"]["items"][0]["conditional"]["html"]["params"]["value"]
+            form[1]["params"]["items"][0]["conditional"]["html"][0]["params"]["value"]
             == "Gosh, there's a lot to say."
         )
 
@@ -893,7 +950,55 @@ class TestDmMultiquestion:
         form = from_question(question_with_followup, errors=errors)
 
         assert "errorMessage" not in form[1]["params"]
-        assert form[1]["params"]["items"][0]["conditional"]["html"]["params"]["errorMessage"]
+        assert form[1]["params"]["items"][0]["conditional"]["html"][0]["params"]["errorMessage"]
+
+        assert form == snapshot
+
+    def test_from_question_with_multiple_followups(self, question_with_multiple_followups, snapshot):
+        assert from_question(question_with_multiple_followups) == snapshot
+
+    def test_from_question_with_multiple_followups_with_data(self, question_with_multiple_followups, snapshot):
+        data = {
+            "yesNo": "True",
+            "tellUsMore": "Gosh, there's a lot to say.",
+            "letUsContactYou": "bob@example.com",
+        }
+
+        form = from_question(question_with_multiple_followups, data)
+
+        assert form[1]["params"]["items"][0]["checked"]
+        assert (
+            form[1]["params"]["items"][0]["conditional"]["html"][0]["params"]["value"]
+            == "Gosh, there's a lot to say."
+        )
+        assert (
+            form[1]["params"]["items"][0]["conditional"]["html"][1]["params"]["value"]
+            == "bob@example.com"
+        )
+
+        assert form == snapshot
+
+    def test_from_question_with_multiple_followups_with_errors(self, question_with_multiple_followups, snapshot):
+        errors = {
+            "tellUsMore": {
+                "input_name": "tellUsMore",
+                "href": "#input-answer",
+                "question": "Tell us more",
+                "message": "Enter an answer.",
+            },
+            "letUsContactYou": {
+                "input_name": "letUsContactYou",
+                "href": "#input-other-answer",
+                "question": "Enter your email so we can ask you to tell us even more",
+                "message": "Enter an email",
+            }
+        }
+
+        form = from_question(question_with_multiple_followups, errors=errors)
+
+        assert "errorMessage" not in form[1]["params"]
+        assert form[1]["params"]["items"][0]["conditional"]["html"][0]["params"]["errorMessage"]
+        assert form[1]["params"]["items"][0]["conditional"]["html"][1]["params"]["errorMessage"]
 
         assert form == snapshot
 
