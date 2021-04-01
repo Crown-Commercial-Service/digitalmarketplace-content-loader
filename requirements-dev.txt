@@ -18,7 +18,7 @@ entrypoints==0.3
     # via flake8
 flake8==3.7.9
     # via -r requirements-dev.in
-importlib-metadata==3.4.0
+importlib-metadata==3.10.0
     # via
     #   -c requirements.txt
     #   pluggy
@@ -31,6 +31,10 @@ mock==4.0.2
     # via -r requirements-dev.in
 more-itertools==8.4.0
     # via pytest
+mypy-extensions==0.4.3
+    # via mypy
+mypy==0.812
+    # via -r requirements-dev.in
 packaging==20.4
     # via pytest
 pip-tools==5.5.0
@@ -57,12 +61,15 @@ syrupy==0.6.1
     # via -r requirements-dev.in
 toml==0.10.1
     # via pytest
+typed-ast==1.4.2
+    # via mypy
 typing-extensions==3.7.4.3
     # via
     #   -c requirements.txt
     #   importlib-metadata
+    #   mypy
     #   syrupy
-zipp==3.4.0
+zipp==3.4.1
     # via
     #   -c requirements.txt
     #   importlib-metadata
