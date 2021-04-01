@@ -241,10 +241,11 @@ def govuk_radios(
     params["idPrefix"] = f"input-{question.id}"
 
     if question.get("type") == "boolean":
-        if params.get("classes"):
-            params["classes"] += " govuk-radios--inline"
-        else:
-            params["classes"] = "govuk-radios--inline"
+        if "followup" not in question:
+            if params.get("classes"):
+                params["classes"] += " govuk-radios--inline"
+            else:
+                params["classes"] = "govuk-radios--inline"
         options = [{"label": "Yes", "value": "True"}, {"label": "No", "value": "False"}]
         params["items"] = govuk_options(options, str(data.get(question.id)))
     else:
