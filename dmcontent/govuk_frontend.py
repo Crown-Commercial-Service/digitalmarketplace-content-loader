@@ -378,10 +378,10 @@ def dm_multiquestion(
 
             for item in items:
                 if item["value"] in followups:
-                    followup_items = []
-                    for followup_id in followups[item["value"]]:
-                        followup_q = question.get_question(followup_id)
-                        followup_items.append(from_question(followup_q, data, errors, is_page_heading=False))
+                    followup_items = [
+                        from_question(question.get_question(followup_id), data, errors, is_page_heading=False)
+                        for followup_id in followups[item["value"]]
+                    ]
                     item["conditional"] = {
                         "html": followup_items
                     }
