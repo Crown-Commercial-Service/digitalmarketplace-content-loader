@@ -378,9 +378,12 @@ def dm_multiquestion(
 
             for item in items:
                 if item["value"] in followups:
-                    followup_q = question.get_question(followups[item["value"]][0])
+                    followup_items = [
+                        from_question(question.get_question(followup_id), data, errors, is_page_heading=False)
+                        for followup_id in followups[item["value"]]
+                    ]
                     item["conditional"] = {
-                        "html": from_question(followup_q, data, errors, is_page_heading=False)
+                        "html": followup_items
                     }
 
     return to_render
@@ -589,11 +592,7 @@ def render(ctx, obj, *, question=None) -> Markup:
                 def visit(inner_obj):
                     if isinstance(inner_obj, dict):
                         for k, v in inner_obj.items():
-                            if (
-                                k == "html"
-                                and isinstance(v, dict)
-                                and "macro_name" in v
-                            ):
+                            if k == "html":
                                 inner_obj["html"] = render(ctx, v)
                             else:
                                 visit(v)
