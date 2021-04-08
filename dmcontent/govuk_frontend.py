@@ -273,7 +273,7 @@ def govuk_file_upload(
     # add a line to the hint text rather than pre-filling the input
     if data and data.get(params["name"]):
         params["hint"]["html"] += Markup("<p>Previously uploaded file:<br>")
-        params["hint"]["html"] += Markup(data.get(params["name"]))
+        params["hint"]["html"] += Markup(str(data.get(params["name"])))
         params["hint"]["html"] += Markup("</p>")
 
     # Set an empty key in params for `question_advice` so `render` doesn't
