@@ -46,7 +46,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Set, Union, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -64,10 +64,12 @@ __all__ = ["render_question", "from_question", "govuk_input", "govuk_label"]
 # set this in your app to change the behaviour of this code.
 govuk_frontend_version = (2, 13, 0)
 
+Renderable = Union[dict, str, Markup, List[Union[dict, str, Markup]]]
+
 
 def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> Optional[dict]:
+) -> Renderable:
     """Create parameters object for govuk-frontend macros from a question
 
     `from_question()` takes a `Question` and returns a dict containing the name of
@@ -144,7 +146,7 @@ def from_question(
     elif question.type == "multiquestion":
         return dm_multiquestion(question, data, errors, **kwargs)
     else:
-        return None
+        raise jinja2.UndefinedError(f"unable to render question of type '{question.type}'")
 
 
 def govuk_input(
@@ -273,7 +275,7 @@ def govuk_file_upload(
     # add a line to the hint text rather than pre-filling the input
     if data and data.get(params["name"]):
         params["hint"]["html"] += Markup("<p>Previously uploaded file:<br>")
-        params["hint"]["html"] += Markup(data.get(params["name"]))
+        params["hint"]["html"] += Markup(str(data.get(params["name"])))
         params["hint"]["html"] += Markup("</p>")
 
     # Set an empty key in params for `question_advice` so `render` doesn't
@@ -346,8 +348,8 @@ def dm_pricing_input(
 
 def dm_multiquestion(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> list:
-    to_render = []
+) -> Renderable:
+    to_render: List[Union[dict, Markup, str]] = []
 
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
@@ -363,9 +365,8 @@ def dm_multiquestion(
         if q.id in to_skip:
             continue
 
-        to_render.append(
-            from_question(q, data, errors, is_page_heading=False)
-        )
+        # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
+        question_to_render = cast(dict, from_question(q, data, errors, is_page_heading=False))
 
         if q.get("followup"):
             # flag that the followup question(s) should be skipped later
@@ -374,7 +375,7 @@ def dm_multiquestion(
             # convert the values in values_followup to str
             # to match the form input item values
             followups = {str(v): qs for v, qs in q.values_followup.items()}
-            items = to_render[-1]["params"]["items"]
+            items = question_to_render["params"]["items"]
 
             for item in items:
                 if item["value"] in followups:
@@ -386,17 +387,19 @@ def dm_multiquestion(
                         "html": followup_items
                     }
 
+        to_render.append(question_to_render)
+
     return to_render
 
 
-def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> Dict[str, Union[str, bool]]:
     """
     :param bool is_page_heading: If True, the label will be set to display as a page heading
     """
     input_id: str = kwargs.get("input_id", question.id)
     label_classes: List[str] = kwargs.get("label_classes", [])
 
-    label = {
+    label: Dict[str, Union[str, bool]] = {
         "for": f"input-{input_id}",
         "text": get_label_text(question, **kwargs),
     }
@@ -410,12 +413,14 @@ def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs)
     return label
 
 
-def govuk_fieldset(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_fieldset(
+        question: 'Question', *, is_page_heading: bool = True, **kwargs
+) -> Dict[str, Dict[str, Union[str, bool]]]:
     """
     :param bool is_page_heading: If True, the legend will be set to display as a page heading
     """
 
-    fieldset = {
+    fieldset: Dict[str, Dict[str, Union[str, bool]]] = {
         "legend": {
             "classes": "govuk-fieldset__legend--m",
             "text": get_label_text(question),
@@ -507,7 +512,7 @@ def _params(
     hint_text: Optional[str] = kwargs.get("hint_text", question.get("hint"))
     input_id: str = kwargs.get("input_id", question.id)
 
-    params = {
+    params: Dict[str, Union[str, dict]] = {
         "id": f"input-{input_id}",
         "name": input_id,
     }
@@ -516,9 +521,10 @@ def _params(
         params["classes"] = " ".join(classes)
 
     if hint_text:
-        params["hint"] = {"text": hint_text}
+        hint = {"text": hint_text}
         if kwargs.get("hint_classes"):
-            params["hint"]["classes"] = " ".join(kwargs["hint_classes"])
+            hint["classes"] = " ".join(kwargs["hint_classes"])
+        params["hint"] = hint
 
     if data and data.get(input_id):
         params["value"] = data[input_id]
@@ -547,7 +553,7 @@ def _question_advice(
 # and experiment a bit more.
 
 @jinja2.contextfunction
-def render(ctx, obj, *, question=None) -> Markup:
+def render(ctx, obj: Renderable, *, question=None) -> Markup:
     """Call Jinja2 macros using Python objects
 
     We want to be able to create HTML using govuk-frontend macros within Python
@@ -634,8 +640,6 @@ def render_question(
     `from_question()`. In most circumstances this should be all you need.
     """
     to_render = from_question(question, data, errors, **kwargs)
-    if to_render is None:
-        raise jinja2.UndefinedError(f"unable to render question of type '{question.type}'")
     return render(
         ctx,
         to_render,
