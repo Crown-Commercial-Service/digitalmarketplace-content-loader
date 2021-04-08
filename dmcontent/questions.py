@@ -111,12 +111,12 @@ class Question(object):
 
         return {self.id: value}
 
-    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         error_fields = set(errors.keys()) & set(self.form_fields)
         if not error_fields:
-            return {}
+            return OrderedDict()
 
-        question_errors = {}
+        question_errors = OrderedDict()
         for field_name in sorted(error_fields):
             question = self.get_question(field_name)
             message_key = errors[field_name]
@@ -660,7 +660,7 @@ class QuestionSummary(Question):
     def _default_for_field(self, field_key):
         return self.get('field_defaults', {}).get(field_key)
 
-    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
 
         question_errors = super(QuestionSummary, self).get_error_messages(
             errors,
