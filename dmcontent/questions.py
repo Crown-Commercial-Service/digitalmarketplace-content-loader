@@ -328,7 +328,7 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["DynamicList"]:
         if not dynamic:
             return super(DynamicList, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
 
