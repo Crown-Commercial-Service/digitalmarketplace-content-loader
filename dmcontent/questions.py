@@ -2,7 +2,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
-from typing import Optional, TypeVar, Type, Union, cast
+from typing import Optional, TypeVar, cast
 
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
