@@ -450,7 +450,7 @@ class DynamicList(Multiquestion):
 
     def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         if self.id not in errors:
-            return {}
+            return OrderedDict()
 
         # Assumes errors being passed in are ordered by 'index' key e.g.
         # {'example': [
