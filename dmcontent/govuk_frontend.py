@@ -46,7 +46,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import List, Optional, Set, Union, TYPE_CHECKING
+from typing import cast, List, Optional, Set, Union, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -64,10 +64,12 @@ __all__ = ["render_question", "from_question", "govuk_input", "govuk_label"]
 # set this in your app to change the behaviour of this code.
 govuk_frontend_version = (2, 13, 0)
 
+MultiQuestionToRender = List[Union[dict, Markup]]
+
 
 def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> Union[dict, List[dict], None]:
+) -> Union[dict, MultiQuestionToRender]:
     """Create parameters object for govuk-frontend macros from a question
 
     `from_question()` takes a `Question` and returns a dict containing the name of
@@ -144,7 +146,7 @@ def from_question(
     elif question.type == "multiquestion":
         return dm_multiquestion(question, data, errors, **kwargs)
     else:
-        return None
+        raise jinja2.UndefinedError(f"unable to render question of type '{question.type}'")
 
 
 def govuk_input(
@@ -346,8 +348,8 @@ def dm_pricing_input(
 
 def dm_multiquestion(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> List[dict]:
-    to_render = []
+) -> MultiQuestionToRender:
+    to_render: MultiQuestionToRender = []
 
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
@@ -363,9 +365,8 @@ def dm_multiquestion(
         if q.id in to_skip:
             continue
 
-        to_render.append(
-            from_question(q, data, errors, is_page_heading=False)
-        )
+        # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
+        question_to_render = cast(dict, from_question(q, data, errors, is_page_heading=False))
 
         if q.get("followup"):
             # flag that the followup question(s) should be skipped later
@@ -374,7 +375,7 @@ def dm_multiquestion(
             # convert the values in values_followup to str
             # to match the form input item values
             followups = {str(v): qs for v, qs in q.values_followup.items()}
-            items = to_render[-1]["params"]["items"]
+            items = question_to_render["params"]["items"]
 
             for item in items:
                 if item["value"] in followups:
@@ -385,6 +386,8 @@ def dm_multiquestion(
                     item["conditional"] = {
                         "html": followup_items
                     }
+
+        to_render.append(question_to_render)
 
     return to_render
 
@@ -634,8 +637,6 @@ def render_question(
     `from_question()`. In most circumstances this should be all you need.
     """
     to_render = from_question(question, data, errors, **kwargs)
-    if to_render is None:
-        raise jinja2.UndefinedError(f"unable to render question of type '{question.type}'")
     return render(
         ctx,
         to_render,
