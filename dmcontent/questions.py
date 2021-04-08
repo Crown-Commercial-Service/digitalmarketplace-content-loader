@@ -2,7 +2,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
-from typing import Optional
+from typing import Optional, TypeVar, Type, Union, cast
 
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
@@ -11,6 +11,8 @@ from .errors import ContentNotFoundError
 from .formats import format_price
 from .govuk_frontend import get_href
 from .utils import TemplateField, drop_followups, get_option_value
+
+T = TypeVar("T", bound="Question")
 
 
 class Question(object):
@@ -26,7 +28,7 @@ class Question(object):
     def summary(self, service_data, inplace_allowed: bool = False) -> "QuestionSummary":
         return QuestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self: T, context, dynamic=True, inplace_allowed: bool = False) -> Optional[T]:
         if not self._should_be_shown(context):
             return None
 
@@ -34,7 +36,12 @@ class Question(object):
             self._context = context
             return self
         else:
-            return ContentQuestion(self._data, number=self.number, _context=context)
+            content_question = ContentQuestion(self._data, number=self.number, _context=context)
+            if not type(self) == type(content_question):
+                raise TypeError(f"The question's type did not match its type data. "
+                                f"Got {type(content_question)}, expected {type(self)}")
+
+            return cast(T, content_question)
 
     def _should_be_shown(self, context):
         return all(

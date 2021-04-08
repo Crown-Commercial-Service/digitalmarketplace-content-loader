@@ -202,6 +202,12 @@ class TestText(QuestionTest):
     def test_get_question_ids_by_type(self):
         assert self.question().get_question_ids(type='text') == ['example']
 
+    def test_question_filter_is_correct_type(self):
+        question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
+        question._data["type"] = "list"
+        with pytest.raises(TypeError):
+            question.filter(self.context({"lot": "lot-1"}))
+
 
 class TestDates(QuestionTest):
     def question(self, **kwargs):
