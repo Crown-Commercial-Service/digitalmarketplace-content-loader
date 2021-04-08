@@ -64,12 +64,12 @@ __all__ = ["render_question", "from_question", "govuk_input", "govuk_label"]
 # set this in your app to change the behaviour of this code.
 govuk_frontend_version = (2, 13, 0)
 
-MultiQuestionToRender = List[Union[dict, Markup]]
+Renderable = Union[dict, str, Markup, List[Union[dict, str, Markup]]]
 
 
 def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> Union[dict, MultiQuestionToRender]:
+) -> Renderable:
     """Create parameters object for govuk-frontend macros from a question
 
     `from_question()` takes a `Question` and returns a dict containing the name of
@@ -348,8 +348,8 @@ def dm_pricing_input(
 
 def dm_multiquestion(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> MultiQuestionToRender:
-    to_render: MultiQuestionToRender = []
+) -> Renderable:
+    to_render: List[Union[dict, Markup, str]] = []
 
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
@@ -553,7 +553,7 @@ def _question_advice(
 # and experiment a bit more.
 
 @jinja2.contextfunction
-def render(ctx, obj, *, question=None) -> Markup:
+def render(ctx, obj: Renderable, *, question=None) -> Markup:
     """Call Jinja2 macros using Python objects
 
     We want to be able to create HTML using govuk-frontend macros within Python
