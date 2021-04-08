@@ -46,7 +46,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import cast, List, Optional, Set, Union, TYPE_CHECKING
+from typing import cast, Dict, List, Optional, Set, Union, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -392,14 +392,14 @@ def dm_multiquestion(
     return to_render
 
 
-def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> Dict[str, Union[str, bool]]:
     """
     :param bool is_page_heading: If True, the label will be set to display as a page heading
     """
     input_id: str = kwargs.get("input_id", question.id)
     label_classes: List[str] = kwargs.get("label_classes", [])
 
-    label = {
+    label: Dict[str, Union[str, bool]] = {
         "for": f"input-{input_id}",
         "text": get_label_text(question, **kwargs),
     }
@@ -413,12 +413,14 @@ def govuk_label(question: 'Question', *, is_page_heading: bool = True, **kwargs)
     return label
 
 
-def govuk_fieldset(question: 'Question', *, is_page_heading: bool = True, **kwargs) -> dict:
+def govuk_fieldset(
+        question: 'Question', *, is_page_heading: bool = True, **kwargs
+) -> Dict[str, Dict[str, Union[str, bool]]]:
     """
     :param bool is_page_heading: If True, the legend will be set to display as a page heading
     """
 
-    fieldset = {
+    fieldset: Dict[str, Dict[str, Union[str, bool]]] = {
         "legend": {
             "classes": "govuk-fieldset__legend--m",
             "text": get_label_text(question),
