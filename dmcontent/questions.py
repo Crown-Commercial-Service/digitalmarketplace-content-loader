@@ -557,7 +557,7 @@ class List(Question):
 
         return {self.id: value or None}
 
-    def summary(self, service_data, inplace_allowed: bool = False) -> "ListSummary":
+    def summary(self, service_data, inplace_allowed: bool = False) -> 'QuestionSummary':
         return ListSummary(self, service_data)
 
 
@@ -581,7 +581,7 @@ class Hierarchy(List):
 
         return {self.id: sorted(values) or None}
 
-    def summary(self, service_data, inplace_allowed: bool = False) -> "HierarchySummary":
+    def summary(self, service_data, inplace_allowed: bool = False) -> 'QuestionSummary':
         return HierarchySummary(self, service_data)
 
     def get_missing_values(self, selected_values_set):
