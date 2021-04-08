@@ -46,7 +46,7 @@ Read the docstring for `from_question()` for more detail on how Questions are
 handled.
 """
 
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import List, Optional, Set, Union, TYPE_CHECKING
 
 import jinja2
 from jinja2 import Markup, escape
@@ -67,7 +67,7 @@ govuk_frontend_version = (2, 13, 0)
 
 def from_question(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> Optional[dict]:
+) -> Union[dict, List[dict], None]:
     """Create parameters object for govuk-frontend macros from a question
 
     `from_question()` takes a `Question` and returns a dict containing the name of
@@ -346,7 +346,7 @@ def dm_pricing_input(
 
 def dm_multiquestion(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
-) -> list:
+) -> List[dict]:
     to_render = []
 
     if question.get("question_advice"):
