@@ -512,7 +512,7 @@ def _params(
     hint_text: Optional[str] = kwargs.get("hint_text", question.get("hint"))
     input_id: str = kwargs.get("input_id", question.id)
 
-    params = {
+    params: Dict[str, Union[str, dict]] = {
         "id": f"input-{input_id}",
         "name": input_id,
     }
