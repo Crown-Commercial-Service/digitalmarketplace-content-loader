@@ -521,9 +521,10 @@ def _params(
         params["classes"] = " ".join(classes)
 
     if hint_text:
-        params["hint"] = {"text": hint_text}
+        hint = {"text": hint_text}
         if kwargs.get("hint_classes"):
-            params["hint"]["classes"] = " ".join(kwargs["hint_classes"])
+            hint["classes"] = " ".join(kwargs["hint_classes"])
+        params["hint"] = hint
 
     if data and data.get(input_id):
         params["value"] = data[input_id]
