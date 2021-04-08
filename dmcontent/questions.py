@@ -30,10 +30,11 @@ class Question(object):
         if not self._should_be_shown(context):
             return None
 
-        question = self if inplace_allowed else ContentQuestion(self._data, number=self.number)
-        question._context = context
-
-        return question
+        if inplace_allowed:
+            self._context = context
+            return self
+        else:
+            return ContentQuestion(self._data, number=self.number, _context=context)
 
     def _should_be_shown(self, context):
         return all(
@@ -915,7 +916,7 @@ QUESTION_TYPES = {
 }
 
 
-class ContentQuestion(object):
+class ContentQuestion(Question):
     def __new__(cls, data, *args, **kwargs):
         if data.get('type') in QUESTION_TYPES:
             return QUESTION_TYPES[data['type']](data, *args, **kwargs)
