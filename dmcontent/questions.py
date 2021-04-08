@@ -12,7 +12,8 @@ from .formats import format_price
 from .govuk_frontend import get_href
 from .utils import TemplateField, drop_followups, get_option_value
 
-T = TypeVar("T", bound="Question")
+TQuestion = TypeVar("TQuestion", bound="Question")
+TMultiquestion = TypeVar("TMultiquestion", bound="Multiquestion")
 
 
 class Question(object):
@@ -28,7 +29,7 @@ class Question(object):
     def summary(self, service_data, inplace_allowed: bool = False) -> "QuestionSummary":
         return QuestionSummary(self, service_data)
 
-    def filter(self: T, context, dynamic=True, inplace_allowed: bool = False) -> Optional[T]:
+    def filter(self: TQuestion, context, dynamic=True, inplace_allowed: bool = False) -> Optional[TQuestion]:
         if not self._should_be_shown(context):
             return None
 
@@ -41,7 +42,7 @@ class Question(object):
                 raise TypeError(f"The question's type did not match its type data. "
                                 f"Got {type(content_question)}, expected {type(self)}")
 
-            return cast(T, content_question)
+            return cast(TQuestion, content_question)
 
     def _should_be_shown(self, context):
         return all(
@@ -269,7 +270,7 @@ class Multiquestion(Question):
     def summary(self, service_data, inplace_allowed: bool = False) -> "MultiquestionSummary":
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self: TMultiquestion, context, dynamic=True, inplace_allowed: bool = False) -> Optional[TMultiquestion]:
         multi_question = super(Multiquestion, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
         if not multi_question:
             return None
