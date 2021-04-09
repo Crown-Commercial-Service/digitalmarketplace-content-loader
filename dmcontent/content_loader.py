@@ -519,7 +519,7 @@ class ContentLoader(object):
 
     def load_manifest(self, framework_slug, question_set, manifest) -> Optional[List]:
         if manifest in self._content[framework_slug]:
-            return
+            return None
 
         self._content[framework_slug][manifest] = self.generate_manifest(framework_slug, question_set, manifest)
         return self._content[framework_slug][manifest]
