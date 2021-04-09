@@ -18,6 +18,7 @@ setup(
     description='Digital Marketplace Content Loader',
     long_description=__doc__,
     packages=find_packages(),
+    package_data={'dmcontent': ['py.typed']},
     include_package_data=True,
     install_requires=[
         'Flask<1.1.0,>=1.0.2',
