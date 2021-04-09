@@ -258,7 +258,7 @@ class Multiquestion(Question):
         super(Multiquestion, self).__init__(data, *args, **kwargs)
 
         self.questions = [
-            question if isinstance(question, ContentQuestion) else ContentQuestion(question)
+            ContentQuestion(question)
             for question in data['questions']
         ]
 
