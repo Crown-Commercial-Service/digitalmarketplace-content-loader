@@ -116,10 +116,10 @@ class ContentManifest(object):
         Only includes the questions that should be shown for the provided
         service data. This is calculated by resolving the dependencies
         described by the `depends` section."""
-        new_sections = filter(None, [
+        new_sections: List[ContentSection] = list(filter(None, [
             section.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for section in self.sections
-        ])
+        ]))
 
         if inplace_allowed:
             self.sections[:] = new_sections
@@ -433,7 +433,7 @@ class ContentSection(object):
         section = self if inplace_allowed else self.copy()
         section._context = context
 
-        filtered_questions = list(filter(None, [
+        filtered_questions: List[Question] = list(filter(None, [
             question.filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
             for question in self.questions
         ]))
