@@ -9,3 +9,4 @@ def test_mypy(c):
 
 
 ns.add_task(test_mypy)
+ns["test"].pre.insert(-1, test_mypy)
