@@ -2,7 +2,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
-from typing import Optional
+from typing import Optional, TypeVar
 
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
@@ -11,6 +11,9 @@ from .errors import ContentNotFoundError
 from .formats import format_price
 from .govuk_frontend import get_href
 from .utils import TemplateField, drop_followups, get_option_value
+
+TQuestion = TypeVar("TQuestion", bound="Question")
+TMultiquestion = TypeVar("TMultiquestion", bound="Multiquestion")
 
 
 class Question(object):
@@ -26,14 +29,15 @@ class Question(object):
     def summary(self, service_data, inplace_allowed: bool = False) -> "QuestionSummary":
         return QuestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self: TQuestion, context, dynamic=True, inplace_allowed: bool = False) -> Optional[TQuestion]:
         if not self._should_be_shown(context):
             return None
 
-        question = self if inplace_allowed else ContentQuestion(self._data, number=self.number)
-        question._context = context
-
-        return question
+        if inplace_allowed:
+            self._context = context
+            return self
+        else:
+            return self.__class__(self._data, number=self.number, _context=context)
 
     def _should_be_shown(self, context):
         return all(
@@ -102,12 +106,12 @@ class Question(object):
 
         return {self.id: value}
 
-    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         error_fields = set(errors.keys()) & set(self.form_fields)
         if not error_fields:
-            return {}
+            return OrderedDict()
 
-        question_errors = {}
+        question_errors = OrderedDict()
         for field_name in sorted(error_fields):
             question = self.get_question(field_name)
             message_key = errors[field_name]
@@ -254,14 +258,14 @@ class Multiquestion(Question):
         super(Multiquestion, self).__init__(data, *args, **kwargs)
 
         self.questions = [
-            question if isinstance(question, ContentQuestion) else ContentQuestion(question)
+            ContentQuestion(question)
             for question in data['questions']
         ]
 
     def summary(self, service_data, inplace_allowed: bool = False) -> "MultiquestionSummary":
         return MultiquestionSummary(self, service_data)
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self: TMultiquestion, context, dynamic=True, inplace_allowed: bool = False) -> Optional[TMultiquestion]:
         multi_question = super(Multiquestion, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
         if not multi_question:
             return None
@@ -319,7 +323,7 @@ class DynamicList(Multiquestion):
         super(DynamicList, self).__init__(data, *args, **kwargs)
         self.type = 'multiquestion'  # same UI components as Multiquestion
 
-    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["Question"]:
+    def filter(self, context, dynamic=True, inplace_allowed: bool = False) -> Optional["DynamicList"]:
         if not dynamic:
             return super(DynamicList, self).filter(context, dynamic=dynamic, inplace_allowed=inplace_allowed)
 
@@ -441,7 +445,7 @@ class DynamicList(Multiquestion):
 
     def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
         if self.id not in errors:
-            return {}
+            return OrderedDict()
 
         # Assumes errors being passed in are ordered by 'index' key e.g.
         # {'example': [
@@ -548,7 +552,7 @@ class List(Question):
 
         return {self.id: value or None}
 
-    def summary(self, service_data, inplace_allowed: bool = False) -> "ListSummary":
+    def summary(self, service_data, inplace_allowed: bool = False) -> 'QuestionSummary':
         return ListSummary(self, service_data)
 
 
@@ -572,7 +576,7 @@ class Hierarchy(List):
 
         return {self.id: sorted(values) or None}
 
-    def summary(self, service_data, inplace_allowed: bool = False) -> "HierarchySummary":
+    def summary(self, service_data, inplace_allowed: bool = False) -> 'QuestionSummary':
         return HierarchySummary(self, service_data)
 
     def get_missing_values(self, selected_values_set):
@@ -651,7 +655,7 @@ class QuestionSummary(Question):
     def _default_for_field(self, field_key):
         return self.get('field_defaults', {}).get(field_key)
 
-    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> dict:
+    def get_error_messages(self, errors: dict, question_descriptor_from: str = "label") -> OrderedDict:
 
         question_errors = super(QuestionSummary, self).get_error_messages(
             errors,
@@ -915,7 +919,7 @@ QUESTION_TYPES = {
 }
 
 
-class ContentQuestion(object):
+class ContentQuestion(Question):
     def __new__(cls, data, *args, **kwargs):
         if data.get('type') in QUESTION_TYPES:
             return QUESTION_TYPES[data['type']](data, *args, **kwargs)
