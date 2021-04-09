@@ -2,6 +2,13 @@
 
 Records breaking changes from major version bumps
 
+## 8.0.0
+
+PR [#149](https://github.com/alphagov/digitalmarketplace-content-loader/pull/149)
+marks this package as PEP 561 compliant. If you have dmcontent as a dependency and run type checking, the type checker
+will now check that you're using dmcontent correctly. This might break your application's type checking if you're using 
+dmcontent incorrectly. 
+
 ## 7.0.0
 
 PR [#71](https://github.com/alphagov/digitalmarketplace-content-loader/pull/71)
