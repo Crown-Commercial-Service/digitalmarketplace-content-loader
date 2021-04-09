@@ -2,7 +2,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime
 import re
 
-from typing import Optional, TypeVar, cast
+from typing import Optional, TypeVar
 
 from dmutils.formats import DATE_FORMAT, DISPLAY_DATE_FORMAT
 
@@ -37,12 +37,7 @@ class Question(object):
             self._context = context
             return self
         else:
-            content_question = ContentQuestion(self._data, number=self.number, _context=context)
-            if not type(self) == type(content_question):
-                raise TypeError(f"The question's type did not match its type data. "
-                                f"Got {type(content_question)}, expected {type(self)}")
-
-            return cast(TQuestion, content_question)
+            return self.__class__(self._data, number=self.number, _context=context)
 
     def _should_be_shown(self, context):
         return all(
