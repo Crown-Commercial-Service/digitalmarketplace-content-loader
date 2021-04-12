@@ -30,7 +30,7 @@ invoke test
 ## Releasing a new version
 
 To update the package version, edit the `__version__ = ...` string in `dmcontent/__init__.py`,
-once merged the new version will be released and published to [Pypi](https://pypi.org/project/digitalmarketplace-content-loader/) by [Github Actions](./.github/workflows).
+once merged the new version will be released and published to [PyPI](https://pypi.org/project/digitalmarketplace-content-loader/) by [Github Actions](./.github/workflows).
 
 When changing a major version number consider adding a record to the `CHANGELOG.md` with a
 description of the change and an example of the upgrade process for the client apps.
