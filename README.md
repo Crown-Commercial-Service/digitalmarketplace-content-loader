@@ -30,14 +30,7 @@ invoke test
 ## Releasing a new version
 
 To update the package version, edit the `__version__ = ...` string in `dmcontent/__init__.py`,
-commit and push the change and wait for CI to create a new version tag.
-
-Once the tag is available on GitHub, the new version can be used by the apps by adding the following
-line to the app `requirements.txt` (replacing `X.Y.Z` with the current version number):
-
-```
-git+https://github.com/alphagov/digitalmarketplace-content-loader.git@X.Y.Z#egg=digitalmarketplace-content-loader==X.Y.Z
-```
+once merged the new version will be released and published to [Pypi](https://pypi.org/project/digitalmarketplace-content-loader/) by [Github Actions](./.github/workflows).
 
 When changing a major version number consider adding a record to the `CHANGELOG.md` with a
 description of the change and an example of the upgrade process for the client apps.
