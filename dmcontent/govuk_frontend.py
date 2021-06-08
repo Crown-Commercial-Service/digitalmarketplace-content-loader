@@ -295,7 +295,7 @@ def dm_list_input(
 
     # Params that are not common to other components
     params["addButtonName"] = "item"
-    params["maxItems"] = question.number_of_items
+    params["maxItems"] = question.get('number_of_items', 10)
     params["items"] = []
     params["itemLabelPrefix"] = str(question.question)
 
