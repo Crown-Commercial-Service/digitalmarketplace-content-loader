@@ -301,7 +301,7 @@ def dm_list_input(
 
     params["fieldset"] = govuk_fieldset(question, **kwargs)
 
-    if question.question_advice:
+    if question.get("question_advice"):
         params["question_advice"] = question.question_advice
 
     if data and question.id in data:
