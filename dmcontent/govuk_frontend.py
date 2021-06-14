@@ -354,17 +354,8 @@ def dm_multiquestion(
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
 
-    # We need to be able to skip followup questions. Questions which have
-    # followups always come before the followup, so we create a variable
-    # outside of the loop scope which is used to flag when a subsequent
-    # question should be skipped. Followups are referred to by id in the
-    # question object, so our variable should be a set of ids.
-    to_skip: Set[str] = set()
-
-    for q in question.questions:
-        if q.id in to_skip:
-            continue
-
+    # Some of our questions have sub questions with followups. We need to search these recursively.
+    def get_sub_questions(q, data, errors, to_skip):
         # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
         question_to_render = cast(dict, from_question(q, data, errors, is_page_heading=False))
 
@@ -379,15 +370,28 @@ def dm_multiquestion(
 
             for item in items:
                 if item["value"] in followups:
-                    followup_items = [
-                        from_question(question.get_question(followup_id), data, errors, is_page_heading=False)
-                        for followup_id in followups[item["value"]]
-                    ]
+                    followup_items: List[Union[dict, Markup, str]] = []
+                    for followup_id in followups[item["value"]]:
+                        followup_q = question.get_question(followup_id)
+                        followup_items.append(get_sub_questions(followup_q, data, errors, to_skip))
                     item["conditional"] = {
                         "html": followup_items
                     }
 
-        to_render.append(question_to_render)
+        return question_to_render
+
+    # We need to be able to skip followup questions. Questions which have
+    # followups always come before the followup, so we create a variable
+    # outside of the loop scope which is used to flag when a subsequent
+    # question should be skipped. Followups are referred to by id in the
+    # question object, so our variable should be a set of ids.
+    to_skip: Set[str] = set()
+
+    for q in question.questions:
+        if q.id in to_skip:
+            continue
+
+        to_render.append(get_sub_questions(q, data, errors, to_skip))
 
     return to_render
 
