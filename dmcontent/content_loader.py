@@ -226,6 +226,22 @@ class ContentSection(object):
             _context=self._context
         )
 
+    def get_question_as_section_containing_itself(self, question_slug):
+        question = self.get_question_by_slug(question_slug)
+        if not question:
+            return None
+
+        return ContentSection(
+            slug=question.slug,
+            name=question.label,
+            prefill=self.prefill,
+            editable=self.edit_questions,
+            edit_questions=False,
+            questions=[question],
+            description=question.get('hint') if question.get('questions') else '',
+            _context=self._context
+        )
+
     def get_field_names(self):
         """Return a list of field names that this section returns
 
