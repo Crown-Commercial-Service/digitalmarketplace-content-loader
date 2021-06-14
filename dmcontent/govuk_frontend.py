@@ -346,6 +346,39 @@ def dm_pricing_input(
     raise NotImplementedError("cannot yet handle pricing question with multiple fields")
 
 
+def get_sub_questions(
+    question: 'Question',
+    parent_multiquestion: 'Question',
+    data: Optional[dict],
+    errors: Optional[dict],
+    to_skip: Set[str]
+) -> Union[dict, Markup, str]:
+    # Some of our questions have sub questions with followups. We need to search these recursively.
+    # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
+    question_to_render = cast(dict, from_question(question, data, errors, is_page_heading=False))
+
+    if question.get("followup"):
+        # flag that the followup question(s) should be skipped later
+        to_skip.update(question.followup.keys())
+
+        # convert the values in values_followup to str
+        # to match the form input item values
+        followups = {str(v): qs for v, qs in question.values_followup.items()}
+        items = question_to_render["params"]["items"]
+
+        for item in items:
+            if item["value"] in followups:
+                followup_items: List[Union[dict, Markup, str]] = []
+                for followup_id in followups[item["value"]]:
+                    followup_q = parent_multiquestion.get_question(followup_id)
+                    followup_items.append(get_sub_questions(followup_q, parent_multiquestion, data, errors, to_skip))
+                item["conditional"] = {
+                    "html": followup_items
+                }
+
+    return question_to_render
+
+
 def dm_multiquestion(
     question: 'Question', data: Optional[dict] = None, errors: Optional[dict] = None, **kwargs
 ) -> Renderable:
@@ -353,32 +386,6 @@ def dm_multiquestion(
 
     if question.get("question_advice"):
         to_render.append(_question_advice(question))
-
-    # Some of our questions have sub questions with followups. We need to search these recursively.
-    def get_sub_questions(q, data, errors, to_skip):
-        # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
-        question_to_render = cast(dict, from_question(q, data, errors, is_page_heading=False))
-
-        if q.get("followup"):
-            # flag that the followup question(s) should be skipped later
-            to_skip.update(q.followup.keys())
-
-            # convert the values in values_followup to str
-            # to match the form input item values
-            followups = {str(v): qs for v, qs in q.values_followup.items()}
-            items = question_to_render["params"]["items"]
-
-            for item in items:
-                if item["value"] in followups:
-                    followup_items: List[Union[dict, Markup, str]] = []
-                    for followup_id in followups[item["value"]]:
-                        followup_q = question.get_question(followup_id)
-                        followup_items.append(get_sub_questions(followup_q, data, errors, to_skip))
-                    item["conditional"] = {
-                        "html": followup_items
-                    }
-
-        return question_to_render
 
     # We need to be able to skip followup questions. Questions which have
     # followups always come before the followup, so we create a variable
@@ -391,7 +398,7 @@ def dm_multiquestion(
         if q.id in to_skip:
             continue
 
-        to_render.append(get_sub_questions(q, data, errors, to_skip))
+        to_render.append(get_sub_questions(q, question, data, errors, to_skip))
 
     return to_render
 
