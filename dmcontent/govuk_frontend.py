@@ -351,11 +351,24 @@ def get_sub_questions(
     parent_multiquestion: 'Question',
     data: Optional[dict],
     errors: Optional[dict],
-    to_skip: Set[str]
+    to_skip: Set[str],
+    label_classes: List[str] = [],
+    legend_classes: List[str] = ["govuk-fieldset__legend--m"],
+    **kwargs
 ) -> Union[dict, Markup, str]:
     # Some of our questions have sub questions with followups. We need to search these recursively.
     # We don't have nested multiquestions, so the output of `from_question` here is always a dict.
-    question_to_render = cast(dict, from_question(question, data, errors, is_page_heading=False))
+    question_to_render = cast(
+        dict,
+        from_question(
+            question,
+            data,
+            errors,
+            is_page_heading=False,
+            label_classes=label_classes,
+            legend_classes=legend_classes
+        )
+    )
 
     if question.get("followup"):
         # flag that the followup question(s) should be skipped later
@@ -371,7 +384,17 @@ def get_sub_questions(
                 followup_items: List[Union[dict, Markup, str]] = []
                 for followup_id in followups[item["value"]]:
                     followup_q = parent_multiquestion.get_question(followup_id)
-                    followup_items.append(get_sub_questions(followup_q, parent_multiquestion, data, errors, to_skip))
+                    followup_items.append(
+                        get_sub_questions(
+                            followup_q,
+                            parent_multiquestion,
+                            data,
+                            errors,
+                            to_skip,
+                            label_classes=["govuk-label--s"],
+                            legend_classes=["govuk-fieldset__legend--s"]
+                        )
+                    )
                 item["conditional"] = {
                     "html": followup_items
                 }
@@ -398,7 +421,7 @@ def dm_multiquestion(
         if q.id in to_skip:
             continue
 
-        to_render.append(get_sub_questions(q, question, data, errors, to_skip))
+        to_render.append(get_sub_questions(q, question, data, errors, to_skip, **kwargs))
 
     return to_render
 
@@ -431,16 +454,21 @@ def govuk_fieldset(
     :param bool is_page_heading: If True, the legend will be set to display as a page heading
     """
 
+    legend_classes: List[str] = kwargs.get("legend_classes", ["govuk-fieldset__legend--m"])
+
     fieldset: Dict[str, Dict[str, Union[str, bool]]] = {
         "legend": {
-            "classes": "govuk-fieldset__legend--m",
             "text": get_label_text(question),
         }
     }
 
     if is_page_heading:
         fieldset["legend"]["isPageHeading"] = is_page_heading
-        fieldset["legend"]["classes"] = "govuk-fieldset__legend--l"
+        if "govuk-fieldset__legend--m" in legend_classes:
+            legend_classes.remove("govuk-fieldset__legend--m")
+        legend_classes += ["govuk-fieldset__legend--l"]
+
+    fieldset["legend"]["classes"] = " ".join(legend_classes)
 
     return fieldset
 

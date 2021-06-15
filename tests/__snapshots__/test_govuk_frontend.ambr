@@ -497,6 +497,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -550,6 +551,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -603,6 +605,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -658,6 +661,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -674,6 +678,7 @@
                 },
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-letUsContactYou',
                     'text': 'Enter your email so we can ask you to tell us even more',
                   },
@@ -726,6 +731,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -743,6 +749,7 @@
                 },
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-letUsContactYou',
                     'text': 'Enter your email so we can ask you to tell us even more',
                   },
@@ -795,6 +802,7 @@
               'html': <class 'list'> [
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-tellUsMore',
                     'text': 'Tell us more',
                   },
@@ -814,6 +822,7 @@
                 },
                 <class 'dict'> {
                   'label': <class 'dict'> {
+                    'classes': 'govuk-label--s',
                     'for': 'input-letUsContactYou',
                     'text': 'Enter your email so we can ask you to tell us even more',
                   },
