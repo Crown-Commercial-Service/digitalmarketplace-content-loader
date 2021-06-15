@@ -800,7 +800,14 @@ class TestDmMultiquestion:
             dm_multiquestion(question)
             assert from_question.call_count == len(question.questions)
             assert from_question.call_args_list == [
-                mock.call(sub_question, None, None, is_page_heading=False)
+                mock.call(
+                    sub_question,
+                    None,
+                    None,
+                    is_page_heading=False,
+                    label_classes=[],
+                    legend_classes=["govuk-fieldset__legend--m"]
+                )
                 for sub_question in question.questions
             ]
 
@@ -810,7 +817,14 @@ class TestDmMultiquestion:
             errors = mock.MagicMock()
             dm_multiquestion(question, data, errors)
             assert from_question.call_args_list == [
-                mock.call(sub_question, data, errors, is_page_heading=False)
+                mock.call(
+                    sub_question,
+                    data,
+                    errors,
+                    is_page_heading=False,
+                    label_classes=[],
+                    legend_classes=["govuk-fieldset__legend--m"]
+                )
                 for sub_question in question.questions
             ]
 
