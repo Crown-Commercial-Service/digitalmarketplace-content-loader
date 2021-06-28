@@ -21,8 +21,15 @@ class _ClassAddingTreeprocessor(Treeprocessor):
 
         # mutate each affected element in-place
         if element.tag in self._mapping:
-            orig_class = element.attrib.get("class", "")
-            element.set("class", (orig_class + " " if orig_class else "") + self._mapping[element.tag])
+            if not self.is_html_placeholder(element):
+                orig_class = element.attrib.get("class", "")
+                element.set("class", (orig_class + " " if orig_class else "") + self._mapping[element.tag])
+
+    def is_html_placeholder(self, element: Element):
+        """Check if this element is one that's been added as a placeholder for some raw html by
+        markdown.preprocessors.HtmlBlockPreprocessor."""
+        placeholders = [self.md.htmlStash.get_placeholder(i) for i in range(self.md.htmlStash.html_counter)]
+        return element.tag == "p" and element.text in placeholders
 
 
 class GOVUKFrontendExtension(Extension):

@@ -34,3 +34,8 @@ Paragraphs, and [links](#).
         text = '<a href="#" target="_blank" rel="noopener noreferrer">link (opens in new tab)</a>'
 
         assert text in markdown.markdown(text, extensions=[GOVUKFrontendExtension()])
+
+    def test_list(self):
+        text = '<ul><li>A text</li></ul>'
+
+        assert 'p' not in markdown.markdown(text, extensions=[GOVUKFrontendExtension()])
