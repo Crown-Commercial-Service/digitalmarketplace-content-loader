@@ -189,6 +189,14 @@ class TestNumberInput:
         assert form["params"]["value"] == "10"
         assert form == snapshot
 
+    def test_from_question_with_answer_being_zero(self, question, snapshot):
+        data = {"howMany": 0}
+
+        form = from_question(question, data)
+
+        assert form["params"]["value"] == "0"
+        assert form == snapshot
+
     def test_from_question_with_errors(self, question, snapshot):
         errors = {
             "howMany": {
