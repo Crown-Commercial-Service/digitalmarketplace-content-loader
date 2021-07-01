@@ -158,6 +158,9 @@ def govuk_input(
     params = _params(question, data, errors, **kwargs)
 
     if question.type in ("number", "pricing"):
+        # If value is 0, it can get evaluated as False, so we should stringify it
+        if isinstance(params.get("value"), int):
+            params["value"] = str(params["value"])
         params["classes"] += " govuk-input--width-5"
         params["spellcheck"] = False
         if question.get("limits") and question.limits.get("integer_only") is True:
@@ -526,7 +529,7 @@ def _params(
             hint["classes"] = " ".join(kwargs["hint_classes"])
         params["hint"] = hint
 
-    if data and data.get(input_id):
+    if data and data.get(input_id) is not None:
         params["value"] = data[input_id]
 
     if errors and errors.get(input_id):
