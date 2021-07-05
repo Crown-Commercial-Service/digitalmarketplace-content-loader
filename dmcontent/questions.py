@@ -41,9 +41,25 @@ class Question(object):
 
     def _should_be_shown(self, context):
         return all(
-            depends["on"] in context and (context[depends["on"]] in depends["being"])
+            self._is_dependency_valid(depends["on"], depends["being"], context)
             for depends in self.get("depends", [])
         )
+
+    def _is_dependency_valid(self, key, condition, context):
+        is_valid = False
+        if key in context:
+            if context[key] in condition:
+                is_valid = True
+            else:
+                boolean_array = []
+                for cond in condition:
+                    if "type" in cond and cond["type"] == "integer":
+                        min_value = cond.get("min_value", 0)
+                        max_value = cond.get("max_value", min_value) + 1
+                        boolean_array.append(context[key] in range(min_value, max_value))
+                is_valid = any(boolean_array)
+
+        return is_valid
 
     def get_question(self, field_name):
         if self.id == field_name:

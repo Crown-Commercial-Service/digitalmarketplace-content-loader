@@ -61,18 +61,44 @@ class QuestionTest(object):
 
     @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
     def test_question_filter_with_dependencies_that_match(self, filter_inplace_allowed):
-        question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self.context({"lot": "lot-1"}), inplace_allowed=filter_inplace_allowed) is not None
+        question = self.question(depends=[
+            {"on": "lot", "being": ["lot-1"]},
+            {"on": "number", "being": [{"min_value": 10, "max_value": 10, "type": "integer"}]},
+            {
+                "on": "other_number",
+                "being": [
+                    {"min_value": 10, "max_value": 10, "type": "integer"},
+                    {"min_value": 0, "max_value": 0, "type": "integer"}
+                ]
+            }
+        ])
+        assert question.filter(
+            self.context({"lot": "lot-1", "number": 10, "other_number": 0}),
+            inplace_allowed=filter_inplace_allowed
+        ) is not None
         if not filter_inplace_allowed:
             assert question.filter(
-                self.context({"lot": "lot-1"}),
+                self.context({"lot": "lot-1", "number": 10, "other_number": 0}),
                 inplace_allowed=filter_inplace_allowed,
             ) is not question
 
     @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
     def test_question_filter_with_dependencies_that_are_not_matched(self, filter_inplace_allowed):
-        question = self.question(depends=[{"on": "lot", "being": ["lot-1"]}])
-        assert question.filter(self.context({"lot": "lot-2"}), inplace_allowed=filter_inplace_allowed) is None
+        question = self.question(depends=[
+            {"on": "lot", "being": ["lot-1"]},
+            {"on": "number", "being": [{"min_value": 10, "max_value": 10, "type": "integer"}]},
+            {
+                "on": "other_number",
+                "being": [
+                    {"min_value": 10, "max_value": 10, "type": "integer"},
+                    {"min_value": 0, "max_value": 0, "type": "integer"}
+                ]
+            }
+        ])
+        assert question.filter(
+            self.context({"lot": "lot-2", "number": 11, "other_number": 2}),
+            inplace_allowed=filter_inplace_allowed
+        ) is None
 
     @pytest.mark.parametrize("filter_inplace_allowed", (False, True,))
     def test_question_without_template_tags_are_unchanged(self, filter_inplace_allowed):
