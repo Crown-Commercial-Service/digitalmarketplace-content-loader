@@ -2,6 +2,13 @@
 
 Records breaking changes from major version bumps
 
+## 9.0.0
+Update to use python 3.8 as python 3.6 is reaching end of life.
+
+Dropping support for:
+- python 3.6
+- python 3.7
+
 ## 8.0.0
 
 PR [#149](https://github.com/alphagov/digitalmarketplace-content-loader/pull/149)

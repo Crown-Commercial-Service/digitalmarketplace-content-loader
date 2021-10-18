@@ -5,3 +5,4 @@
 .pytest_cache
 venv*
 local.nix
+.idea/
