@@ -24,7 +24,7 @@ setup(
         'Flask~=1.0',
         'Jinja2~=2.10',
         'Markdown<4.0.0,>=2.6.7',
-        'PyYAML<6.0,>=5.1.2',
+        'PyYAML>=5.1.2,<7.0',
         'inflection<1.0.0,>=0.3.1',
         'digitalmarketplace-utils>=59.0.0',
     ],
