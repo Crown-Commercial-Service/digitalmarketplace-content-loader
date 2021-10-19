@@ -8,10 +8,6 @@ attrs==19.3.0
     # via
     #   pytest
     #   syrupy
-click==7.1.2
-    # via
-    #   -c requirements.txt
-    #   pip-tools
 colored==1.4.2
     # via syrupy
 entrypoints==0.3
@@ -32,8 +28,6 @@ mypy==0.812
     # via -r requirements-dev.in
 packaging==20.4
     # via pytest
-pip-tools==5.5.0
-    # via -r requirements-dev.in
 pluggy==0.13.1
     # via pytest
 py==1.10.0
@@ -62,6 +56,3 @@ typing-extensions==3.10.0.0
     # via
     #   mypy
     #   syrupy
-
-# The following packages are considered to be unsafe in a requirements file:
-# pip
