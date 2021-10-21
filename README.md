@@ -8,7 +8,7 @@ Digital Marketplace Content Loader
 
 Content loader for Digital Marketplace.
 
-Originally was part of [Digital Marketplace Utils](https://github.com/alphagov/digitalmarketplace-utils).
+Originally was part of [Digital Marketplace Utils](https://github.com/Crown-Commercial-Service/digitalmarketplace-utils).
 
 
 ## Running the tests
