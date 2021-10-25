@@ -22,7 +22,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'Flask~=1.0',
-        'Jinja2~=2.10',
+        'Jinja2>=2.10,<4.0',
         'Markdown<4.0.0,>=2.6.7',
         'PyYAML>=5.1.2,<7.0',
         'inflection<1.0.0,>=0.3.1',
