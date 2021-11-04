@@ -28,5 +28,5 @@ setup(
         'inflection<1.0.0,>=0.3.1',
         'digitalmarketplace-utils>=59.0.0',
     ],
-    python_requires="~=3.6",
+    python_requires="~=3.8",
 )
