@@ -1,6 +1,7 @@
 # coding=utf-8
 from collections import OrderedDict
 
+import markupsafe
 from markupsafe import Markup
 import pytest
 import six
@@ -131,7 +132,7 @@ class QuestionTest(object):
             if hasattr(question, field):
                 for item in question[field]:
                     if subfield in item:
-                        assert type(item[subfield]) == Markup
+                        assert isinstance(item[subfield], (Markup, markupsafe.Markup))
 
     def test_question_has_href_property(self):
         question = self.question()

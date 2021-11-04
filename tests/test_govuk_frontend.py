@@ -1,3 +1,4 @@
+import markupsafe
 import pytest
 
 from unittest import mock
@@ -1257,10 +1258,10 @@ class TestRender:
         return env
 
     def test_it_returns_markup(self, context):
-        assert isinstance(render(context, []), Markup)
-        assert isinstance(render(context, ""), Markup)
-        assert isinstance(render(context, "Hello World"), Markup)
-        assert isinstance(render(context, Markup("<p>Hello World</p>")), Markup)
+        assert isinstance(render(context, []), (Markup, markupsafe.Markup))
+        assert isinstance(render(context, ""), (Markup, markupsafe.Markup))
+        assert isinstance(render(context, "Hello World"), (Markup, markupsafe.Markup))
+        assert isinstance(render(context, Markup("<p>Hello World</p>")), (Markup, markupsafe.Markup))
 
     def test_it_returns_the_empty_string_if_called_with_nothing(self, context):
         assert render(context, []) == ""
