@@ -21,8 +21,8 @@ setup(
     package_data={'dmcontent': ['py.typed']},
     include_package_data=True,
     install_requires=[
-        'Flask~=1.0',
-        'Jinja2~=2.10',
+        'Flask>=1.0,<2.1',
+        'Jinja2>=2.10,<3.1',
         'Markdown<4.0.0,>=2.6.7',
         'PyYAML>=5.1.2,<7.0',
         'inflection<1.0.0,>=0.3.1',
