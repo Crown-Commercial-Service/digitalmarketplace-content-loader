@@ -611,20 +611,20 @@ def render(ctx, obj: Renderable, *, question=None) -> Markup:
 
                 visit(params)
 
-                inner_html += Markup(macro(params))
+                inner_html += Markup(macro(params))  # type:ignore # fix once drop support for Flask 1.0
             else:
-                inner_html += Markup(macro())
+                inner_html += Markup(macro())  # type:ignore # fix once drop support for Flask 1.0
 
             if "fieldset" in obj:
                 inner_html = Markup(
                     ctx.resolve("govukFieldset")(obj["fieldset"], caller=lambda: inner_html)
                 )
 
-            html += inner_html
+            html += inner_html  # type:ignore # fix once drop support for Flask 1.0
 
         return html
     elif isinstance(obj, (str, Markup)):
-        return escape(obj)
+        return escape(obj)  # type:ignore # fix once drop support for Flask 1.0
     else:
         raise TypeError("render() expects a dict or string type, or a list of dicts or string types")
 
