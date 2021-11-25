@@ -61,6 +61,8 @@ govuk-country-register==0.5.0
     # via digitalmarketplace-utils
 idna==2.10
     # via requests
+importlib-metadata==4.8.2
+    # via markdown
 inflection==0.5.1
     # via sanitized-package
 itsdangerous==1.1.0
@@ -77,7 +79,7 @@ jmespath==0.10.0
     #   botocore
 mailchimp3==3.0.15
     # via digitalmarketplace-utils
-markdown==3.3.4
+markdown==3.3.6
     # via sanitized-package
 markupsafe==1.1.1
     # via
@@ -128,3 +130,5 @@ workdays==1.4
     # via digitalmarketplace-utils
 wtforms==2.3.3
     # via flask-wtf
+zipp==3.6.0
+    # via importlib-metadata
