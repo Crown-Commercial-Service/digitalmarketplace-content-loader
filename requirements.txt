@@ -34,7 +34,7 @@ digitalmarketplace-utils==60.2.0
     # via sanitized-package
 docopt==0.6.2
     # via notifications-python-client
-flask==1.1.4
+flask==2.0.2
     # via
     #   digitalmarketplace-utils
     #   flask-gzip
@@ -63,11 +63,11 @@ idna==2.10
     # via requests
 inflection==0.5.1
     # via sanitized-package
-itsdangerous==1.1.0
+itsdangerous==2.0.1
     # via
     #   flask
     #   flask-wtf
-jinja2==2.11.3
+jinja2==3.0.3
     # via
     #   flask
     #   sanitized-package
@@ -79,7 +79,7 @@ mailchimp3==3.0.15
     # via digitalmarketplace-utils
 markdown==3.3.4
     # via sanitized-package
-markupsafe==1.1.1
+markupsafe==2.0.1
     # via
     #   jinja2
     #   wtforms
@@ -122,7 +122,7 @@ urllib3==1.26.6
     # via
     #   botocore
     #   requests
-werkzeug==1.0.1
+werkzeug==2.0.2
     # via flask
 workdays==1.4
     # via digitalmarketplace-utils
