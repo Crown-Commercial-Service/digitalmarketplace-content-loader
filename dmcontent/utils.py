@@ -177,7 +177,7 @@ def count_unanswered_questions(service_attributes: "ContentManifest") -> typing.
     return unanswered_required, unanswered_optional
 
 
-class LazyDict(collections.MutableMapping):
+class LazyDict(collections.abc.MutableMapping):
     """
     A dictionary for values that will be lazily evaluated the first time they are requested.
     If a value is callable, then it will be called the first time that value is requested and the result cached.
