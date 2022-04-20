@@ -1,6 +1,6 @@
-import collections
 import typing
 
+from collections import abc
 from jinja2 import Markup, StrictUndefined, TemplateSyntaxError, UndefinedError
 from markdown import Markdown
 
@@ -80,9 +80,9 @@ class TemplateField(object):
 def template_all(item):
     if isinstance(item, str):
         return TemplateField(item)
-    elif isinstance(item, collections.abc.Sequence):
+    elif isinstance(item, abc.Sequence):
         return [template_all(i) for i in item]
-    elif isinstance(item, collections.abc.Mapping):
+    elif isinstance(item, abc.Mapping):
         result = {}
         for (key, val) in item.items():
             result[key] = template_all(val)
@@ -177,7 +177,7 @@ def count_unanswered_questions(service_attributes: "ContentManifest") -> typing.
     return unanswered_required, unanswered_optional
 
 
-class LazyDict(collections.MutableMapping):
+class LazyDict(abc.MutableMapping):
     """
     A dictionary for values that will be lazily evaluated the first time they are requested.
     If a value is callable, then it will be called the first time that value is requested and the result cached.
