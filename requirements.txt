@@ -101,7 +101,7 @@ pytz==2020.1
     # via digitalmarketplace-utils
 pyyaml==6.0
     # via sanitized-package
-redis==3.5.3
+redis==4.3.6
     # via digitalmarketplace-utils
 requests==2.25.1
     # via
