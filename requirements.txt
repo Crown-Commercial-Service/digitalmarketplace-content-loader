@@ -103,7 +103,7 @@ pyyaml==6.0
     # via sanitized-package
 redis==3.5.3
     # via digitalmarketplace-utils
-requests==2.25.1
+requests==2.31.0
     # via
     #   digitalmarketplace-utils
     #   mailchimp3
