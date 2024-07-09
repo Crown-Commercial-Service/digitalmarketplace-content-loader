@@ -56,3 +56,4 @@ typing-extensions==3.10.0.0
     # via
     #   mypy
     #   syrupy
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
